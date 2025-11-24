@@ -1,221 +1,297 @@
 """
-rat_injector_ibm_small_v2.py
-----------------------------
-Injects RAT-style laundering motifs (fan-in, chains, cycles)
-into the IBM HI-Small_Trans dataset.
+RAT + Motif Feature Injection for IBM HI-Small (Multiplicative Version)
+------------------------------------------------------------------------
+Simulates Routine Activity Theory (RAT) signals AND explicit graph motifs on
+the IBM HI-Small dataset by:
 
-Input:
-  - HI-Small_Trans.csv  (original IBM transactions)
+Uses:
+    - Transactions CSV: HI-Small_Trans.csv
+    - Accounts CSV:     HI-Small_accounts.csv
+    - Optional patterns.txt: list of high-risk account numbers (one per line)
 
-Output:
-  - HI-Small_Trans_RAT.csv  (with extra injected motif edges)
+Computes per-account stats:
+    - outgoing / incoming degree
+    - per-account amount means / std
+    - account age at transaction time
+    - daily burstiness
+
+Computes contextual features:
+    - off-hours / weekend flag
+    - cross-bank flag
+    - entity-level risk (same entity, multi-account entity)
+
+Builds RAT sub-scores:
+    - RAT_offender_score
+    - RAT_target_score
+    - RAT_guardian_weakness_score
+
+Combines them multiplicatively:
+    RAT_score = ((offender+eps)*(target+eps)*(guardian+eps)) ** (1/3)
+
+Adds explicit motif features:
+    - motif_fanin
+    - motif_fanout
+    - motif_chain
+    - motif_cycle
+
+Creates 3 RAT intensity variants:
+    HI-Small_Trans_RAT_low.csv
+    HI-Small_Trans_RAT_medium.csv
+    HI-Small_Trans_RAT_high.csv
+
+No rows are added; timestamps and graph structure are preserved.
 """
 
 import os
-import random
 import numpy as np
 import pandas as pd
 
 # ===================== CONFIG =====================
 
-INPUT_PATH  = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\ibm_transcations_datasets\HI-Small_Trans.csv"
-OUTPUT_PATH = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\ibm_transcations_datasets\RAT\HI-Small_Trans_RAT.csv"
+BASE_DIR = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\ibm_transcations_datasets"
 
-# ~0.08% of ~5M rows ≈ 4k injected edges
-NUM_FANIN_EDGES = 1800
-NUM_CHAIN_EDGES = 1400
-NUM_CYCLE_EDGES = 800
+TX_CSV_PATH       = os.path.join(BASE_DIR, "HI-Small_Trans.csv")
+ACCOUNTS_CSV_PATH = os.path.join(BASE_DIR, "HI-Small_accounts.csv")
+PATTERNS_TXT_PATH = os.path.join(BASE_DIR, "HI-Small_patterns.txt")  # optional
 
-RNG_SEED = 42
-random.seed(RNG_SEED)
-np.random.seed(RNG_SEED)
+OUTPUT_DIR        = os.path.join(BASE_DIR, "RAT_RICH")
+os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-SRC_COL      = "Account"
-DST_COL      = "Account.1"
-AMT_REC_COL  = "Amount Received"
-AMT_PAID_COL = "Amount Paid"
-TS_COL       = "Timestamp"
-LABEL_COL    = "Is Laundering"
+# Columns in transaction data
+TS_COL      = "Timestamp"
+SRC_COL     = "Account"
+DST_COL     = "Account.1"
+FROM_BANK   = "From Bank"
+TO_BANK     = "To Bank"
+AMT_PAID    = "Amount Paid"
+AMT_REC     = "Amount Received"
+LABEL_COL   = "Is Laundering"
 
-# ===================== LOAD DATA =====================
+# Columns in accounts file
+ACCT_ID_COL      = "Account Number"
+ACCT_ENTITY_ID   = "Entity ID"
+ACCT_ENTITY_NAME = "Entity Name"
 
-print(f"Loading IBM transactions from: {INPUT_PATH}")
-df = pd.read_csv(INPUT_PATH, low_memory=False)
+# RAT slicing fractions
+INTENSITIES = {
+    "low":    0.15,
+    "medium": 0.30,
+    "high":   0.60
+}
 
-required_cols = [
-    TS_COL, "From Bank", SRC_COL, "To Bank", DST_COL,
-    AMT_REC_COL, "Receiving Currency", AMT_PAID_COL,
-    "Payment Currency", "Payment Format", LABEL_COL
-]
-for c in required_cols:
-    if c not in df.columns:
-        raise ValueError(f"Required column '{c}' not found in dataset.")
+EPS = 1e-8
 
-print(f"Loaded {len(df):,} transactions")
+# ===================== HELPERS =====================
 
-# parse timestamps (auto-detect format)
+def safe_zscore(x, mean, std):
+    return (x - mean) / (std.replace(0, np.nan) + EPS)
+
+def norm_by_quantile(series, q=0.95):
+    s = series.astype(float)
+    qv = s.quantile(q)
+    if not np.isfinite(qv) or qv <= 0:
+        qv = s.max()
+    if not np.isfinite(qv) or qv <= 0:
+        return pd.Series(0.0, index=series.index)
+    return (s / qv).clip(0, 1)
+
+def clip_positive(series):
+    return series.clip(lower=0.0)
+
+# ===================== LOAD TRANSACTIONS =====================
+
+print(f"Loading transactions from: {TX_CSV_PATH}")
+df = pd.read_csv(TX_CSV_PATH, low_memory=False).reset_index(drop=True)
 df[TS_COL] = pd.to_datetime(df[TS_COL], errors="raise")
-min_ts = df[TS_COL].min()
-max_ts = df[TS_COL].max()
-print(f"Timestamp range: {min_ts}  ->  {max_ts}")
 
-# account universe
-accounts_src = df[SRC_COL].astype(str)
-accounts_dst = df[DST_COL].astype(str)
-all_accounts = pd.Index(accounts_src).append(pd.Index(accounts_dst)).unique()
-print(f"Unique accounts: {len(all_accounts):,}")
+df[AMT_PAID] = pd.to_numeric(df[AMT_PAID], errors="coerce")
+df[AMT_REC]  = pd.to_numeric(df[AMT_REC], errors="coerce")
 
-# amount distribution
-amounts_paid = df[AMT_PAID_COL].astype(float).values
-median_amt = np.median(amounts_paid)
-std_amt    = np.std(amounts_paid)
-print(f"Amount Paid median: {median_amt:.2f}, std: {std_amt:.2f}")
+# ===================== LOAD ACCOUNTS =====================
 
+print(f"Loading accounts from: {ACCOUNTS_CSV_PATH}")
+df_acct = pd.read_csv(ACCOUNTS_CSV_PATH, low_memory=False)
+df_acct = df_acct.set_index(ACCT_ID_COL)
 
-def sample_amount(n=1):
-    vals = np.random.normal(loc=median_amt, scale=0.5 * std_amt, size=n)
-    vals = np.maximum(vals, 1.0)
-    return vals
+# Optional: load pattern accounts
+pattern_accounts = set()
+if os.path.exists(PATTERNS_TXT_PATH):
+    with open(PATTERNS_TXT_PATH, "r") as f:
+        for line in f:
+            acc = line.strip()
+            if acc:
+                pattern_accounts.add(acc)
+print(f"Pattern accounts loaded: {len(pattern_accounts)}")
 
+# ===================== PER-ACCOUNT STATS =====================
 
-def sample_timestamp(n=1):
-    total_seconds = int((max_ts - min_ts).total_seconds())
-    offs = np.random.randint(0, total_seconds + 1, size=n)
-    return [min_ts + pd.to_timedelta(int(o), unit="s") for o in offs]
+src_group = df.groupby(SRC_COL)
+dst_group = df.groupby(DST_COL)
 
+df["src_out_degree"] = src_group[DST_COL].nunique().reindex(df[SRC_COL]).values
+df["dst_in_degree"]  = dst_group[SRC_COL].nunique().reindex(df[DST_COL]).values
 
-injected_rows = []
+df["src_amt_mean"] = src_group[AMT_PAID].mean().reindex(df[SRC_COL]).values
+df["src_amt_std"]  = src_group[AMT_PAID].std().reindex(df[SRC_COL]).values
+df["dst_amt_mean"] = dst_group[AMT_REC].mean().reindex(df[DST_COL]).values
+df["dst_amt_std"]  = dst_group[AMT_REC].std().reindex(df[DST_COL]).values
 
-# ===================== FAN-IN MOTIFS =====================
+df["src_first_seen"] = src_group[TS_COL].min().reindex(df[SRC_COL]).values
+df["dst_first_seen"] = dst_group[TS_COL].min().reindex(df[DST_COL]).values
 
-print(f"Injecting FAN-IN motifs (~{NUM_FANIN_EDGES} edges)...")
-fan_in_edges_added = 0
+df["src_age_days"] = (df[TS_COL] - df["src_first_seen"]).dt.total_seconds() / (3600*24)
+df["dst_age_days"] = (df[TS_COL] - df["dst_first_seen"]).dt.total_seconds() / (3600*24)
 
-while fan_in_edges_added < NUM_FANIN_EDGES:
-    target = str(np.random.choice(all_accounts))
-    k = np.random.randint(3, 8)  # 3–7 sources
-    sources = np.random.choice(all_accounts, size=k, replace=False)
-    timestamps = sample_timestamp(k)
-    amts = sample_amount(k)
+# ===================== BURSTINESS =====================
 
-    for src, ts_, amt_ in zip(sources, timestamps, amts):
-        if fan_in_edges_added >= NUM_FANIN_EDGES:
-            break
+df["date_only"] = df[TS_COL].dt.date
+df["src_day_tx_count"] = df.groupby([SRC_COL,"date_only"])[AMT_PAID].transform("count")
+df["dst_day_tx_count"] = df.groupby([DST_COL,"date_only"])[AMT_REC].transform("count")
 
-        row = {
-            TS_COL: ts_,
-            "From Bank": np.nan,
-            SRC_COL: str(src),
-            "To Bank": np.nan,
-            DST_COL: target,
-            AMT_REC_COL: float(amt_),
-            "Receiving Currency": "US Dollar",
-            AMT_PAID_COL: float(amt_),
-            "Payment Currency": "US Dollar",
-            "Payment Format": "ACH",
-            LABEL_COL: 1,
-            "injected_motif": "fanin",
-        }
-        injected_rows.append(row)
-        fan_in_edges_added += 1
+# ===================== TIME CONTEXT =====================
 
-print(f"  -> Added {fan_in_edges_added} FAN-IN edges.")
+df["hour"] = df[TS_COL].dt.hour
+df["weekday"] = df[TS_COL].dt.weekday
 
-# ===================== CHAIN MOTIFS =====================
+df["RAT_is_off_hours"]  = ((df["hour"] < 8) | (df["hour"] > 18)).astype(int)
+df["RAT_is_weekend"]    = (df["weekday"] >= 5).astype(int)
+df["RAT_is_cross_bank"] = (df[FROM_BANK] != df[TO_BANK]).astype(int)
 
-print(f"Injecting CHAIN motifs (~{NUM_CHAIN_EDGES} edges)...")
-chain_edges_added = 0
+# ===================== AMOUNT Z-SCORES =====================
 
-while chain_edges_added < NUM_CHAIN_EDGES:
-    L = np.random.randint(3, 7)  # chain length
-    chain_accounts = np.random.choice(all_accounts, size=L + 1, replace=False)
-    timestamps = sorted(sample_timestamp(L))
-    amts = sample_amount(L)
-    motif_name = f"chain_L{L}"
+df["RAT_src_amount_z_pos"] = clip_positive(
+    safe_zscore(df[AMT_PAID], df["src_amt_mean"], df["src_amt_std"])
+)
+df["RAT_dst_amount_z_pos"] = clip_positive(
+    safe_zscore(df[AMT_REC], df["dst_amt_mean"], df["dst_amt_std"])
+)
 
-    for i in range(L):
-        if chain_edges_added >= NUM_CHAIN_EDGES:
-            break
+# ===================== NORMALIZE STRUCTURAL =====================
 
-        src = str(chain_accounts[i])
-        dst = str(chain_accounts[i + 1])
-        ts_ = timestamps[i]
-        amt_ = amts[i]
+df["RAT_src_out_deg_norm"] = norm_by_quantile(df["src_out_degree"].fillna(0))
+df["RAT_dst_in_deg_norm"]  = norm_by_quantile(df["dst_in_degree"].fillna(0))
+df["RAT_src_burst_norm"]   = norm_by_quantile(df["src_day_tx_count"].fillna(0))
+df["RAT_dst_burst_norm"]   = norm_by_quantile(df["dst_day_tx_count"].fillna(0))
+df["RAT_combined_burst"]   = norm_by_quantile(
+    df["src_day_tx_count"].fillna(0) + df["dst_day_tx_count"].fillna(0)
+)
 
-        row = {
-            TS_COL: ts_,
-            "From Bank": np.nan,
-            SRC_COL: src,
-            "To Bank": np.nan,
-            DST_COL: dst,
-            AMT_REC_COL: float(amt_),
-            "Receiving Currency": "US Dollar",
-            AMT_PAID_COL: float(amt_),
-            "Payment Currency": "US Dollar",
-            "Payment Format": "ACH",
-            LABEL_COL: 1,
-            "injected_motif": motif_name,
-        }
-        injected_rows.append(row)
-        chain_edges_added += 1
+# ===================== MERGE ENTITY INFO =====================
 
-print(f"  -> Added {chain_edges_added} CHAIN edges.")
+df = df.join(df_acct.add_prefix("srcacct_"), on=SRC_COL)
+df = df.join(df_acct.add_prefix("dstacct_"), on=DST_COL)
 
-# ===================== CYCLE MOTIFS =====================
+df["src_entity_id"] = df["srcacct_" + ACCT_ENTITY_ID]
+df["dst_entity_id"] = df["dstacct_" + ACCT_ENTITY_ID]
 
-print(f"Injecting CYCLE motifs (~{NUM_CYCLE_EDGES} edges)...")
-cycle_edges_added = 0
+df["RAT_same_entity"] = (df["src_entity_id"].astype(str) == df["dst_entity_id"].astype(str)).astype(int)
 
-while cycle_edges_added < NUM_CYCLE_EDGES:
-    L = np.random.randint(3, 6)  # cycle length (3–5 nodes)
-    cycle_accounts = np.random.choice(all_accounts, size=L, replace=False)
-    timestamps = sorted(sample_timestamp(L))
-    amts = sample_amount(L)
-    motif_name = f"cycle_L{L}"
+# entity → number of accounts
+entity_acct_count = df_acct.reset_index().groupby(ACCT_ENTITY_ID)[ACCT_ID_COL].nunique()
 
-    for i in range(L):
-        if cycle_edges_added >= NUM_CYCLE_EDGES:
-            break
+df["RAT_src_entity_accounts"] = df["src_entity_id"].map(entity_acct_count).fillna(1)
+df["RAT_dst_entity_accounts"] = df["dst_entity_id"].map(entity_acct_count).fillna(1)
 
-        src = str(cycle_accounts[i])
-        dst = str(cycle_accounts[(i + 1) % L])  # wrap
-        ts_ = timestamps[i]
-        amt_ = amts[i]
+df["RAT_src_entity_acct_norm"] = norm_by_quantile(df["RAT_src_entity_accounts"])
+df["RAT_dst_entity_acct_norm"] = norm_by_quantile(df["RAT_dst_entity_accounts"])
 
-        row = {
-            TS_COL: ts_,
-            "From Bank": np.nan,
-            SRC_COL: src,
-            "To Bank": np.nan,
-            DST_COL: dst,
-            AMT_REC_COL: float(amt_),
-            "Receiving Currency": "US Dollar",
-            AMT_PAID_COL: float(amt_),
-            "Payment Currency": "US Dollar",
-            "Payment Format": "ACH",
-            LABEL_COL: 1,
-            "injected_motif": motif_name,
-        }
-        injected_rows.append(row)
-        cycle_edges_added += 1
+# ===================== PATTERN FLAGS =====================
 
-print(f"  -> Added {cycle_edges_added} CYCLE edges.")
+df["RAT_src_pattern_flag"] = df[SRC_COL].astype(str).isin(pattern_accounts).astype(int)
+df["RAT_dst_pattern_flag"] = df[DST_COL].astype(str).isin(pattern_accounts).astype(int)
 
-# ===================== CONCAT & SAVE =====================
+# ===================== MUTUAL FLOW (cycle motif) =====================
 
-print(f"Total injected edges created: {len(injected_rows)}")
-if len(injected_rows) == 0:
-    raise RuntimeError("No injected rows were created – aborting save.")
+edge_counts = df.groupby([SRC_COL,DST_COL]).size().reset_index(name="count")
+rev = edge_counts.rename(columns={SRC_COL:"DST_tmp", DST_COL:"SRC_tmp"})
 
-inj_df = pd.DataFrame(injected_rows)
+mutual = edge_counts.merge(
+    rev,
+    left_on=[SRC_COL,DST_COL],
+    right_on=["DST_tmp","SRC_tmp"],
+    how="inner"
+)[[SRC_COL,DST_COL]].drop_duplicates()
 
-# ensure original has injected_motif column
-if "injected_motif" not in df.columns:
-    df["injected_motif"] = np.nan
+mutual["RAT_mutual_flag"] = 1
 
-combined = pd.concat([df, inj_df], ignore_index=True, sort=False)
+df = df.merge(mutual, on=[SRC_COL,DST_COL], how="left")
+df["RAT_mutual_flag"] = df["RAT_mutual_flag"].fillna(0)
 
-os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
-combined.to_csv(OUTPUT_PATH, index=False)
-print(f"\Saved RAT-injected IBM dataset to: {OUTPUT_PATH}")
-print(f"Original rows: {len(df):,}  |  New rows: {len(combined):,}")
+# ===================== MOTIF FEATURES =====================
+
+df["dst_out_degree"]    = df[DST_COL].map(src_group[DST_COL].nunique())
+df["dst_out_deg_norm"]  = norm_by_quantile(df["dst_out_degree"].fillna(0))
+
+df["motif_fanin"]   = df["RAT_dst_in_deg_norm"]
+df["motif_fanout"]  = df["RAT_src_out_deg_norm"]
+df["motif_chain"]   = np.sqrt(df["RAT_dst_in_deg_norm"] * df["dst_out_deg_norm"])
+
+df["motif_cycle"] = (
+    0.5 * df["RAT_mutual_flag"] +
+    0.3 * df["RAT_same_entity"] +
+    0.2 * df["RAT_combined_burst"]
+)
+
+# ===================== RAT SUB-SCORES =====================
+
+df["RAT_offender_score"] = (
+    0.30*df["RAT_src_amount_z_pos"] +
+    0.20*df["RAT_src_out_deg_norm"] +
+    0.20*df["RAT_src_burst_norm"] +
+    0.10*df["RAT_is_off_hours"] +
+    0.10*df["RAT_src_pattern_flag"] +
+    0.10*df["RAT_src_entity_acct_norm"]
+)
+
+df["RAT_target_score"] = (
+    0.35*df["RAT_dst_amount_z_pos"] +
+    0.25*df["RAT_dst_in_deg_norm"] +
+    0.15*(1 - norm_by_quantile(df["dst_age_days"].fillna(0))) +
+    0.15*df["RAT_dst_entity_acct_norm"] +
+    0.10*df["RAT_dst_pattern_flag"]
+)
+
+df["RAT_guardian_weakness_score"] = (
+    0.30*df["RAT_is_off_hours"] +
+    0.20*df["RAT_is_weekend"] +
+    0.20*df["RAT_is_cross_bank"] +
+    0.20*df["RAT_combined_burst"] +
+    0.10*df["RAT_same_entity"]
+)
+
+# ===================== MULTIPLICATIVE RAT SCORE =====================
+
+print("Computing multiplicative RAT score...")
+
+df["RAT_score"] = (
+    (df["RAT_offender_score"] + EPS) *
+    (df["RAT_target_score"] + EPS) *
+    (df["RAT_guardian_weakness_score"] + EPS)
+) ** (1/3)
+
+df["RAT_score"] = df["RAT_score"].clip(0,1)
+
+# ===================== CREATE INTENSITY DATASETS =====================
+
+launder_mask = df[LABEL_COL] == 1
+launder_scores = df.loc[launder_mask, "RAT_score"].values
+
+for name, frac in INTENSITIES.items():
+
+    threshold = np.quantile(launder_scores, 1 - frac)
+    print(f"{name}: threshold = {threshold:.4f}")
+
+    df_out = df.copy()
+    df_out["RAT_injected"] = (
+        (df_out[LABEL_COL] == 1) &
+        (df_out["RAT_score"] >= threshold)
+    ).astype(int)
+
+    df_out["RAT_intensity_level"] = df_out["RAT_injected"] * {"low":1, "medium":2, "high":3}[name]
+
+    out_path = os.path.join(OUTPUT_DIR, f"HI-Small_Trans_RAT_{name}.csv")
+    df_out.to_csv(out_path, index=False)
+
+    print(f"Saved {out_path} [{df_out['RAT_injected'].sum()} injected rows]")
+
+print("DONE.")
