@@ -23,9 +23,9 @@ import torch
 
 # ===================== CONFIG =====================
 
-BASE_DIR = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\ibm_transcations_datasets\RAT"
+BASE_DIR = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\ibm_transcations_datasets"
 
-TX_FILE = "HI-Small_Trans_RAT.csv"
+TX_FILE = "HI-Small_Trans.csv"
 NODE_FEATS_FILE = "HI-Small_motif_features.csv"
 
 OUT_DIR = os.path.join(BASE_DIR, "pyg_graph_hismall")
