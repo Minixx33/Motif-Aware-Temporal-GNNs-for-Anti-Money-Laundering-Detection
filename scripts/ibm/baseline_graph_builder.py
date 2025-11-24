@@ -77,11 +77,13 @@ print(f"Timestamp range: {tx[TS_COL].min()} -> {tx[TS_COL].max()}")
 
 print("Building account -> node index mapping from HI-Small_accounts...")
 
-acct_ids = accounts_df[ACCT_ID_COL].tolist()
-acct2idx = {acct: i for i, acct in enumerate(acct_ids)}
-num_nodes = len(acct2idx)
+# Use unique account numbers ONLY (IBM file contains duplicates)
+acct_ids = sorted(accounts_df[ACCT_ID_COL].astype(str).unique())
 
-print(f"Unique accounts in accounts file: {num_nodes:,}")
+acct2idx = {acct: i for i, acct in enumerate(acct_ids)}
+num_nodes = len(acct_ids)
+
+print(f"Unique accounts after deduplication: {num_nodes:,}")
 
 # Sanity check: all accounts in tx should be in accounts_df
 tx_accounts = set(tx[SRC_COL].unique()) | set(tx[DST_COL].unique())
