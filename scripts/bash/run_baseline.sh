@@ -6,6 +6,7 @@
 
 set -e  # Stop on error
 set -u  # Stop on undefined variable
+set -o pipefail
 
 # Timestamp
 ts=$(date +"%Y%m%d_%H%M%S")
@@ -19,6 +20,11 @@ echo " Running Baseline Experiments (SAGE, SAGE-T, TGAT) " | tee -a "$log_file"
 echo " Timestamp: $ts " | tee -a "$log_file"
 echo "===========================================" | tee -a "$log_file"
 
+# GPU info
+echo "" | tee -a "$log_file"
+echo ">>> GPU Info:" | tee -a "$log_file"
+nvidia-smi | tee -a "$log_file"
+
 # Config paths
 BASE_CONFIG="configs/base.yaml"
 DATASET_CONFIG="configs/datasets/baseline.yaml"
@@ -30,7 +36,7 @@ start_time=$(date +%s)
 # Run GraphSAGE
 # --------------------------------------------
 echo "" | tee -a "$log_file"
-echo ">>> Running GraphSAGE on baseline..." | tee -a "$log_file"
+echo "[`date +"%Y-%m-%d %H:%M:%S"`] >>> Running GraphSAGE on baseline..." | tee -a "$log_file"
 model_start=$(date +%s)
 
 if python train_graphsage.py \
@@ -51,7 +57,7 @@ fi
 # Run GraphSAGE-T
 # --------------------------------------------
 echo "" | tee -a "$log_file"
-echo ">>> Running GraphSAGE-T on baseline..." | tee -a "$log_file"
+echo "[`date +"%Y-%m-%d %H:%M:%S"`] >>> Running GraphSAGE-T on baseline..." | tee -a "$log_file"
 model_start=$(date +%s)
 
 if python train_graphsage_t.py \
@@ -72,7 +78,7 @@ fi
 # Run TGAT
 # --------------------------------------------
 echo "" | tee -a "$log_file"
-echo ">>> Running TGAT on baseline..." | tee -a "$log_file"
+echo "[`date +"%Y-%m-%d %H:%M:%S"`] >>> Running TGAT on baseline..." | tee -a "$log_file"
 model_start=$(date +%s)
 
 if python train_tgat.py \
@@ -101,3 +107,5 @@ echo " ALL BASELINE EXPERIMENTS COMPLETED SUCCESSFULLY " | tee -a "$log_file"
 echo " Total time: ${total_minutes}m ${total_seconds}s " | tee -a "$log_file"
 echo " Log saved to: $log_file " | tee -a "$log_file"
 echo "===========================================" | tee -a "$log_file"
+
+touch "logs/BASELINE_FINISHED_${ts}.done"
