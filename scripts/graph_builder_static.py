@@ -47,7 +47,7 @@ BASE_DIR = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Mo
 # DATASET = "HI-Small_Trans.csv"
 
 # RAT (Routine Activity Theory):
-DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_low.csv")
+# DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_low.csv")
 # DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_medium.csv")
 # DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_high.csv")
 
