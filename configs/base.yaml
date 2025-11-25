@@ -1,27 +1,18 @@
+# configs/base.yaml
 experiment:
-  name: "default_experiment"
   seed: 42
+  name: "default_experiment"
 
 paths:
-  graph_dir: ""          # overwritten per-run
-  splits_dir: ""         # overwritten per-run
-  results_dir: "results/"
-  logs_dir: "logs/"
-
-training:
-  device: "cuda"
-  batch_size: 2048
-  lr: 0.0005
-  weight_decay: 1e-4
-  epochs: 15
-  early_stopping_patience: 5
-
-loss:
-  type: "bce"            # binary classification
-  pos_weight: null        # optionally set automatically per dataset
+  root: ""                  # filled programmatically
+  graphs_dir: "graphs"
+  tgat_graphs_dir: "tgat_graphs"
+  splits_dir: "splits"
+  results_dir: "results"
+  logs_dir: "logs"
 
 evaluation:
   threshold: 0.5
-  auto_threshold: false
+  auto_threshold: true
   compute_top_k: true
   top_k_values: [100, 500, 1000]
