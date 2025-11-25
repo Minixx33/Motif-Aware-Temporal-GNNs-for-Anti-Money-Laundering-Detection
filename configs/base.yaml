@@ -4,7 +4,7 @@ experiment:
   name: "default_experiment"
 
 paths:
-  root: ""                  # filled programmatically
+  root: ""                  # filled programmatically (current dir)
   graphs_dir: "graphs"
   tgat_graphs_dir: "tgat_graphs"
   splits_dir: "splits"
@@ -16,3 +16,9 @@ evaluation:
   auto_threshold: true
   compute_top_k: true
   top_k_values: [100, 500, 1000]
+
+# Add these for completeness:
+logging:
+  print_interval: 1  # print every N epochs
+  save_history: true
+  save_best_only: true
