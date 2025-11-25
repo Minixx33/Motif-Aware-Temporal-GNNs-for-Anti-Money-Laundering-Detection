@@ -16,6 +16,16 @@
 # -----------------------------------------------------------
 
 import os
+import sys
+
+# Add project root to Python path (one level above "scripts")
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, "..", ".."))
+sys.path.insert(0, PROJECT_ROOT)
+
+# Now utils can be imported as:
+# from scripts.utils.config_utils import ...
+
 import json
 import time
 import argparse
@@ -26,11 +36,11 @@ import torch.optim as optim
 from torch_geometric.nn import SAGEConv
 from torch.utils.tensorboard import SummaryWriter
 
-from utils.config_utils import (
+from scripts.utils.config_utils import (
     setup_experiment,
     save_experiment_config,
 )
-from utils.evaluation_utils import (
+from scripts.utils.evaluation_utils import (
     evaluate_binary_classifier,
     print_metrics,
 )
