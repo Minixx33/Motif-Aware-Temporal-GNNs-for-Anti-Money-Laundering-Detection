@@ -303,7 +303,7 @@ def validate_config(
         if "tgat_graphs_dir" not in base_cfg["paths"]:
             print("[WARN] TGAT model selected but 'tgat_graphs_dir' not found in base config paths")
     
-    print("✓ Configuration validation passed")
+    print("[INFO] Configuration validation passed")
     return True
 
 
@@ -521,21 +521,21 @@ def print_config_summary(
     
     # Dataset info
     theory = dataset_cfg["dataset"]["theory"]
-    print(f"\n📊 DATASET:")
+    print("\n[DATASET]")
     print(f"  Theory:       {theory}")
     print(f"  Intensity:    {intensity if intensity else 'N/A (baseline)'}")
     print(f"  Full name:    {paths['dataset_name']}")
     
     # Model info
     model_name = model_cfg["model"]["name"]
-    print(f"\n🤖 MODEL: {model_name}")
+    print(f"\n[MODEL] {model_name}")
     print(f"  Hidden dim:   {model_cfg['model'].get('hidden_dim', 'N/A')}")
     print(f"  Num layers:   {model_cfg['model'].get('num_layers', 'N/A')}")
     print(f"  Dropout:      {model_cfg['model'].get('dropout', 'N/A')}")
     
     # Training info
     training = model_cfg["training"]
-    print(f"\n⚙️  TRAINING:")
+    print("\n[TRAINING]")
     print(f"  Device:       {training.get('device', 'cuda')}")
     print(f"  Batch size:   {training.get('batch_size', 'N/A')}")
     print(f"  Learning rate: {training.get('lr', 'N/A')}")
@@ -543,7 +543,7 @@ def print_config_summary(
     print(f"  Early stop:   {training.get('early_stopping_patience', 'N/A')} epochs")
     
     # Paths
-    print(f"\n📁 PATHS:")
+    print("\n[PATHS]")
     print(f"  Graphs:       {paths['graph_folder']}")
     print(f"  Splits:       {paths['split_folder']}")
     print(f"  Results:      {paths['results_dir']}")
@@ -551,7 +551,7 @@ def print_config_summary(
     
     # Experiment settings
     seed = base_cfg.get("experiment", {}).get("seed", 42)
-    print(f"\n🎲 EXPERIMENT:")
+    print("\n[EXPERIMENT]")
     print(f"  Seed:         {seed}")
     print(f"  Exp name:     {base_cfg.get('experiment', {}).get('name', 'default')}")
     
@@ -632,12 +632,12 @@ def setup_experiment(
             timestamp=True
         )
         logger = Logger(log_path)
-        print(f"📝 Logging to: {log_path}")
+        print(f"[INFO] Logging to: {log_path}")
     
     # Print summary if verbose
     if verbose:
         print_config_summary(base_cfg, model_cfg, dataset_cfg, intensity, paths)
-        print(f"\n💻 Device: {device}\n")
+        print(f"\n[DEVICE] {device}\n")
     
     result = {
         "base_cfg": base_cfg,
@@ -668,9 +668,9 @@ if __name__ == "__main__":
     print("Test 1: Loading individual configs...")
     try:
         base = load_yaml("configs/base.yaml")
-        print(f"  ✓ Loaded base config with keys: {list(base.keys())}")
+        print(f"   Loaded base config with keys: {list(base.keys())}")
     except Exception as e:
-        print(f"  ✗ Error loading base config: {e}")
+        print(f"   Error loading base config: {e}")
     
     # Test 2: Load and merge configs
     print("\nTest 2: Loading and merging configs...")
@@ -679,18 +679,18 @@ if __name__ == "__main__":
             model_config_path="configs/models/graphsage.yaml",
             dataset_config_path="configs/datasets/rat.yaml"
         )
-        print(f"  ✓ Merged configs with keys: {list(configs.keys())}")
+        print(f"   Merged configs with keys: {list(configs.keys())}")
     except Exception as e:
-        print(f"  ✗ Error merging configs: {e}")
+        print(f"   Error merging configs: {e}")
     
     # Test 3: Validate intensity
     print("\nTest 3: Validating intensity...")
     try:
         dataset_cfg = load_yaml("configs/datasets/rat.yaml")
         validate_intensity(dataset_cfg, "medium")
-        print("  ✓ Intensity validation passed for 'medium'")
+        print("   Intensity validation passed for 'medium'")
     except Exception as e:
-        print(f"  ✗ Intensity validation failed: {e}")
+        print(f"   Intensity validation failed: {e}")
     
     # Test 4: Complete setup
     print("\nTest 4: Complete experiment setup...")
@@ -701,9 +701,9 @@ if __name__ == "__main__":
             intensity="medium",
             verbose=True
         )
-        print("  ✓ Complete setup successful")
+        print("   Complete setup successful")
     except Exception as e:
-        print(f"  ✗ Setup failed: {e}")
+        print(f"   Setup failed: {e}")
     
     print("\n" + "=" * 80)
     print("All tests completed!")
