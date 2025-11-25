@@ -1,0 +1,247 @@
+======================================================================
+TGAT EVENT STREAM DEBUGGING
+======================================================================
+
+Graph directory: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\ibm_transcations_datasets\tgat_graphs\HI-Small_Trans_RAT_low
+Debug report will be saved to: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\ibm_transcations_datasets\tgat_graphs\HI-Small_Trans_RAT_low\debug_report.txt
+
+======================================================================
+FILE EXISTENCE CHECK
+======================================================================
+True src_nodes.pt
+True dst_nodes.pt
+True timestamps.pt
+True edge_attr.pt
+True y_edge.pt
+True x_node.pt
+True y_node.pt
+True node_mapping.json
+True edge_attr_cols.json
+True feature_stats.json
+True graph_stats.json
+
+✓ All required files exist
+
+======================================================================
+LOADING TGAT EVENT STREAM
+======================================================================
+ All files loaded successfully
+
+======================================================================
+SHAPE AND TYPE VALIDATION (TGAT FORMAT)
+======================================================================
+
+Event Stream Structure:
+  Nodes: 515,080
+  Events: 5,078,415
+  Avg events per node: 9.86
+
+Tensor Shapes:
+  src_nodes:   torch.Size([5078415]) (expected: [E])
+  dst_nodes:   torch.Size([5078415]) (expected: [E])
+  timestamps:  torch.Size([5078415]) (expected: [E])
+  edge_attr:   torch.Size([5078415, 38]) (expected: [E, F_e])
+  y_edge:      torch.Size([5078415]) (expected: [E])
+  x_node:      torch.Size([515080, 4]) (expected: [N, F_n])
+  y_node:      torch.Size([515080]) (expected: [N])
+
+Data Types:
+  src_nodes:   torch.int64 (expected: torch.int64)
+  dst_nodes:   torch.int64 (expected: torch.int64)
+  timestamps:  torch.int64 (expected: torch.int64)
+  edge_attr:   torch.float32 (expected: torch.float32)
+  y_edge:      torch.int32 (expected: torch.int64)
+  x_node:      torch.float32 (expected: torch.float32)
+  y_node:      torch.int64 (expected: torch.int64)
+
+ All shapes and types are correct for TGAT format
+
+======================================================================
+NaN/INF CHECK
+======================================================================
+
+edge_attr:
+  NaN values: 0
+  Inf values: 0
+
+x_node (node features):
+  NaN values: 0
+  Inf values: 0
+
+timestamps:
+  NaN values: 0
+  Inf values: 0
+
+ No NaN/Inf values found
+
+======================================================================
+NODE INDEX VALIDATION
+======================================================================
+
+Source Nodes:
+  Min ID: 0
+  Max ID: 496994
+  Unique: 496,995
+
+Destination Nodes:
+  Min ID: 0
+  Max ID: 515079
+  Unique: 420,636
+
+Self-loops: 591,221 (11.64%)
+
+Connectivity:
+  Connected nodes: 515,080
+  Isolated nodes:  0
+
+ Node indices are valid
+
+======================================================================
+ CRITICAL: TEMPORAL ORDERING VALIDATION
+======================================================================
+
+ Events are in chronological order (REQUIRED for TGAT)
+
+Timestamp Statistics:
+  Min timestamp: 1661990400
+  Max timestamp: 1663517880
+  Time span:     17.7 days
+
+Timestamp Uniqueness:
+  Unique timestamps: 15,018
+  Total events:      5,078,415
+  Duplicate ratio:   99.70%
+  ℹ Note: 99.7% of events share timestamps
+     This is normal for transaction data (multiple events per second)
+     TGAT handles this with tie-breaking logic
+
+Time Gaps Between Consecutive Events:
+  Min gap:  0 seconds
+  Max gap:  20280 seconds (5.6 hours)
+  Mean gap: 0.3 seconds
+
+======================================================================
+RAT FEATURE VALIDATION
+======================================================================
+
+Total edge features: 38
+
+Feature columns:
+   1. RAT_combined_burst
+   2. RAT_dst_amount_z_pos
+   3. RAT_dst_burst_norm
+   4. RAT_dst_entity_accounts
+   5. RAT_dst_entity_acct_norm
+   6. RAT_dst_in_deg_norm
+   7. RAT_dst_pattern_flag
+   8. RAT_guardian_weakness_score
+   9. RAT_is_cross_bank
+  10. RAT_is_off_hours
+  11. RAT_is_weekend
+  12. RAT_mutual_flag
+  13. RAT_offender_score
+  14. RAT_same_entity
+  15. RAT_score
+  16. RAT_src_amount_z_pos
+  17. RAT_src_burst_norm
+  18. RAT_src_entity_accounts
+  19. RAT_src_entity_acct_norm
+  20. RAT_src_out_deg_norm
+  21. RAT_src_pattern_flag
+  22. RAT_target_score
+  23. dst_age_days
+  24. dst_amt_mean
+  25. dst_amt_std
+  26. dst_day_tx_count
+  27. dst_in_degree
+  28. dst_out_deg_norm
+  29. dst_out_degree
+  30. motif_chain
+  31. motif_cycle
+  32. motif_fanin
+  33. motif_fanout
+  34. src_age_days
+  35. src_amt_mean
+  36. src_amt_std
+  37. src_day_tx_count
+  38. src_out_degree
+
+Feature Breakdown:
+  RAT features:         22
+  Motif features:       4
+  Structural features:  12
+
+Key RAT Features Check:
+   RAT_offender_score
+      Range: [0.0000, 60.2811]
+      Mean:  0.1645
+   RAT_target_score
+      Range: [0.0000, 4.5699]
+      Mean:  0.3255
+   RAT_guardian_weakness_score
+      Range: [0.0001, 0.9230]
+      Mean:  0.3971
+   RAT_score
+      Range: [0.0000, 1.0000]
+      Mean:  0.2096
+
+Motif Features Check:
+  motif_fanin
+      Range: [0.1667, 1.0000]
+      Mean:  0.5406
+  motif_fanout
+      Range: [0.0001, 1.0000]
+      Mean:  0.0590
+  motif_chain
+      Range: [0.0000, 1.0000]
+      Mean:  0.4049
+  motif_cycle
+      Range: [0.5001, 1.0000]
+      Mean:  0.5514
+
+======================================================================
+LABEL DISTRIBUTION
+======================================================================
+
+Event Labels:
+  Laundering events: 5,177 (0.10%)
+  Normal events:     5,073,238 (99.90%)
+
+Node Labels:
+  Laundering nodes: 6,357 (1.23%)
+  Normal nodes:     508,723 (98.77%)
+
+ WARNING: Severe class imbalance (0.10% positive)
+  → Recommended: Use weighted loss or focal loss for training
+
+======================================================================
+TEMPORAL LABEL ANALYSIS
+======================================================================
+
+Analyzing label distribution across 10 temporal windows...
+(Important for temporal train/val/test splits)
+
+  Window  1: Events       0- 507841 | Laundering:  0.01%
+  Window  2: Events  507841-1015682 | Laundering:  0.04%
+  Window  3: Events 1015682-1523523 | Laundering:  0.05%
+  Window  4: Events 1523523-2031364 | Laundering:  0.10%
+  Window  5: Events 2031364-2539205 | Laundering:  0.14%
+  Window  6: Events 2539205-3047046 | Laundering:  0.11%
+  Window  7: Events 3047046-3554887 | Laundering:  0.11%
+  Window  8: Events 3554887-4062728 | Laundering:  0.10%
+  Window  9: Events 4062728-4570569 | Laundering:  0.09%
+  Window 10: Events 4570569-5078410 | Laundering:  0.27%
+
+Temporal distribution variation (std): 0.0007
+
+======================================================================
+METADATA VALIDATION
+======================================================================
+
+Graph Stats (from graph_stats.json):
+  Dataset type:           RAT-injected
+  Format:                 TGAT_event_stream
+  Num nodes (recorded):   515,080
+  Num events (recorded):  5,078,415
+  Num edge features:      38
+  Num node features:      4
