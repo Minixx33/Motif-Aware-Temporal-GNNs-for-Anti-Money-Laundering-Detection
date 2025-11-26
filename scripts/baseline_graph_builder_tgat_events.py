@@ -142,7 +142,7 @@ timestamps = (df[TS_COL].astype("int64") // 10**9).values  # UNIX seconds
 time_diffs = np.diff(timestamps)
 
 if (time_diffs < 0).any():
-    raise ValueError("❌ TGAT requires strictly non-decreasing timestamps!")
+    raise ValueError(" TGAT requires strictly non-decreasing timestamps!")
 
 unique_ts = len(np.unique(timestamps))
 print(f" Timestamps are non-decreasing")
