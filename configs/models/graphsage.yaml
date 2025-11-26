@@ -1,0 +1,25 @@
+model:
+  name: "GraphSAGE"
+  hidden_dim: 128
+  num_layers: 2
+  aggregator: "mean"     # mean / max / lstm
+  dropout: 0.2
+
+training:
+  device: "cuda"
+  batch_size: 8192        # full-batch; included for consistency
+  eval_batch_size: 16384
+  use_amp: true
+  lr: 0.0005
+  weight_decay: 0.0001
+  epochs: 100
+  early_stopping_patience: 15
+
+  optimizer:
+    type: "adam"
+    betas: [0.9, 0.999]
+    eps: 1e-8
+
+loss:
+  type: "bce"
+  pos_weight: null         # auto-computed from training split

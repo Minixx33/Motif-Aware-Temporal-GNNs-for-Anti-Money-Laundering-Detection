@@ -1,0 +1,27 @@
+model:
+  name: "TGAT"
+  hidden_dim: 128
+  num_heads: 4                 # ← CHANGED: 4 heads better for RTX 4080
+  num_layers: 2                # ← ADDED: explicit layer count
+  time_dim: 32
+  dropout: 0.2
+  use_residual: true
+
+training:
+  device: "cuda"
+  batch_size: 4096             # ← CHANGED: optimized for GPU memory
+  eval_batch_size: 8192        # ← ADDED: for evaluation
+  use_amp: true                # ← ADDED: enable mixed precision
+  lr: 0.0005                   # ← CHANGED: scaled for new batch size
+  weight_decay: 0.0001
+  epochs: 100
+  early_stopping_patience: 15  # ← CHANGED: 15 is safer than 5
+
+  optimizer:
+    type: "adam"
+    betas: [0.9, 0.999]        # ← CHANGED: standard betas work fine with AMP
+    eps: 1e-8
+
+loss:
+  type: "bce"
+  pos_weight: null             # auto from train split
