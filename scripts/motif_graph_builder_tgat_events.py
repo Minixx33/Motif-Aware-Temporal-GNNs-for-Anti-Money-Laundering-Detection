@@ -35,8 +35,6 @@ import torch
 
 BASE_DIR = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\ibm_transcations_datasets"
 
-# Baseline
-# DATASET = "HI-Small_Trans.csv"
 
 # RAT examples:
 # DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_low.csv")

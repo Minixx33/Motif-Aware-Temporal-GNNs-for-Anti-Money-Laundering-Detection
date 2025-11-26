@@ -3,8 +3,7 @@ graph_builder_static.py (Final Universal Version)
 -------------------------------------------------
 Build a static graph for GraphSAGE / GraphSAGE-T from IBM HI-Small datasets.
 
-Supports ALL criminology theory datasets:
-    - HI-Small_Trans.csv                     (Baseline)
+Supports ALL criminology theory datasets: [NOT FOR BASELINE]
     - HI-Small_Trans_RAT_low/medium/high.csv (Routine Activity Theory)
     - HI-Small_Trans_SLT_low/medium/high.csv (Social Learning Theory)
     - HI-Small_Trans_STRAIN_low/medium/high.csv (Strain Theory)
@@ -43,8 +42,6 @@ import torch
 BASE_DIR = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\ibm_transcations_datasets"
 
 # ========== SELECT ONE DATASET ==========
-# Baseline:
-# DATASET = "HI-Small_Trans.csv"
 
 # RAT (Routine Activity Theory):
 # DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_low.csv")

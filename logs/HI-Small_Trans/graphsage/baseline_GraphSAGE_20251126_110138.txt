@@ -1,0 +1,60 @@
+
+================================================================================
+Logging started at: 2025-11-26 11:01:38
+Log file: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans\graphsage\baseline_GraphSAGE_20251126_110138.txt
+================================================================================
+
+[INFO] Logging to: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans\graphsage\baseline_GraphSAGE_20251126_110138.txt
+================================================================================
+EXPERIMENT CONFIGURATION
+================================================================================
+
+[DATASET]
+  Theory:       baseline
+  Intensity:    N/A (baseline)
+  Full name:    HI-Small_Trans
+
+[MODEL] GraphSAGE
+  Hidden dim:   128
+  Num layers:   2
+  Dropout:      0.2
+
+[TRAINING]
+  Device:       cuda
+  Batch size:   4096
+  Learning rate: 0.0005
+  Epochs:       15
+  Early stop:   5 epochs
+
+[PATHS]
+  Graphs:       C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs\HI-Small_Trans
+  Splits:       C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits\HI-Small_Trans
+  Results:      C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans\graphsage
+  Logs:         C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans\graphsage
+
+[EXPERIMENT]
+  Seed:         42
+  Exp name:     default_experiment
+
+================================================================================
+
+[DEVICE] cuda
+
+TensorBoard log dir: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans\graphsage\tb
+Loading graph tensors...
+
+===== SHAPE DEBUG =====
+edge_index shape: torch.Size([2, 5078345])
+edge_attr shape: torch.Size([5078345, 0])
+x shape: torch.Size([515080, 4])
+y_edge shape: torch.Size([5078345])
+train_idx shape: torch.Size([3047007])
+val_idx shape: torch.Size([1015669])
+test_idx shape: torch.Size([1015669])
+max train_idx: 5078344
+num edges: 5078345
+num labels: 5078345
+Indexing OK: y_edge[train_idx] works
+Starting GraphSAGE training...
+Epoch 001 | loss=1408.4287 | val_F1=0.0017 | val_AUPR=0.0009 | time=75.14s
+Epoch 002 | loss=749.8170 | val_F1=0.0019 | val_AUPR=0.0009 | time=67.86s

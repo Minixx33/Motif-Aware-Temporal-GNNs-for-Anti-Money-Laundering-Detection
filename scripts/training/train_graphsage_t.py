@@ -300,12 +300,18 @@ def main():
     optimizer_cfg = training_cfg.get("optimizer", {})
     betas = optimizer_cfg.get("betas", [0.9, 0.999])
     eps = optimizer_cfg.get("eps", 1e-8)
+    
+    # Convert to proper types (YAML may load as strings)
+    lr = float(training_cfg.get("lr", 5e-4))
+    weight_decay = float(training_cfg.get("weight_decay", 1e-4))
+    eps = float(eps)
+    betas = tuple([float(b) for b in betas])
 
     optimizer = optim.Adam(
         model.parameters(),
-        lr=training_cfg.get("lr", 5e-4),
-        weight_decay=training_cfg.get("weight_decay", 1e-4),
-        betas=tuple(betas),
+        lr=lr,
+        weight_decay=weight_decay,
+        betas=betas,
         eps=eps,
     )
 

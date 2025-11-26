@@ -253,6 +253,28 @@ def main():
     val_idx = torch.load(os.path.join(split_folder, "val_edge_idx.pt")).to(device)
     test_idx = torch.load(os.path.join(split_folder, "test_edge_idx.pt")).to(device)
 
+    print("\n===== SHAPE DEBUG =====")
+    print("edge_index shape:", edge_index.shape)
+    print("edge_attr shape:", edge_attr.shape)
+    print("x shape:", x.shape)
+    print("y_edge shape:", y_edge.shape)
+
+    print("train_idx shape:", train_idx.shape)
+    print("val_idx shape:", val_idx.shape)
+    print("test_idx shape:", test_idx.shape)
+
+    print("max train_idx:", train_idx.max().item())
+    print("num edges:", edge_index.size(1))
+    print("num labels:", y_edge.size(0))
+
+    # Try to index safely
+    try:
+        _ = y_edge[train_idx]
+        print("Indexing OK: y_edge[train_idx] works")
+    except Exception as e:
+        print("Indexing ERROR:", e)
+
+    
     # -------------------------------------------------------
     # Build model, loss, optimizer
     # -------------------------------------------------------
@@ -273,12 +295,18 @@ def main():
     optimizer_cfg = training_cfg.get("optimizer", {})
     betas = optimizer_cfg.get("betas", [0.9, 0.999])
     eps = optimizer_cfg.get("eps", 1e-8)
+    
+    # Convert to proper types (YAML may load as strings)
+    lr = float(training_cfg.get("lr", 5e-4))
+    weight_decay = float(training_cfg.get("weight_decay", 1e-4))
+    eps = float(eps)
+    betas = tuple([float(b) for b in betas])
 
     optimizer = optim.Adam(
         model.parameters(),
-        lr=training_cfg.get("lr", 5e-4),
-        weight_decay=training_cfg.get("weight_decay", 1e-4),
-        betas=tuple(betas),
+        lr=lr,
+        weight_decay=weight_decay,
+        betas=betas,
         eps=eps
     )
 
