@@ -1,0 +1,14 @@
+C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\scripts\training\train_graphsage.py:239: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  edge_index = torch.load(os.path.join(graph_folder, "edge_index.pt")).to(device)
+Traceback (most recent call last):
+  File "C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\scripts\training\train_graphsage.py", line 409, in <module>
+    main()
+  File "C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\scripts\training\train_graphsage.py", line 239, in main
+    edge_index = torch.load(os.path.join(graph_folder, "edge_index.pt")).to(device)
+  File "C:\ProgramData\anaconda3\envs\aml_project\lib\site-packages\torch\serialization.py", line 1319, in load
+    with _open_file_like(f, "rb") as opened_file:
+  File "C:\ProgramData\anaconda3\envs\aml_project\lib\site-packages\torch\serialization.py", line 659, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+  File "C:\ProgramData\anaconda3\envs\aml_project\lib\site-packages\torch\serialization.py", line 640, in __init__
+    super().__init__(open(name, mode))
+FileNotFoundError: [Errno 2] No such file or directory: "C:\\Users\\yasmi\\OneDrive\\Desktop\\Uni - Master's\\Fall 2025\\MLR 570\\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\\scripts\\utils\\graphs\\HI-Small_Trans\\edge_index.pt"

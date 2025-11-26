@@ -45,6 +45,11 @@ from scripts.utils.evaluation_utils import (
     print_metrics,
 )
 
+# Suppress FutureWarnings to prevent infinite loop with Logger class
+import warnings
+warnings.filterwarnings('ignore', category=FutureWarning)
+
+
 # -----------------------------------------------------------
 # Sinusoidal Time Encoding (TGAT-style)
 # -----------------------------------------------------------
@@ -247,9 +252,12 @@ def main():
     os.makedirs(tb_log_dir, exist_ok=True)
     writer = SummaryWriter(tb_log_dir)
 
+    print("TensorBoard log dir:", tb_log_dir)
+
     # ---------------------------------------
     # Load graph tensors
     # ---------------------------------------
+    print("Loading graph tensors...")
     graph_folder = paths["graph_folder"]
     edge_index = torch.load(os.path.join(graph_folder, "edge_index.pt")).to(device)
     edge_attr = torch.load(os.path.join(graph_folder, "edge_attr.pt")).to(device)
@@ -258,6 +266,7 @@ def main():
     timestamps = torch.load(os.path.join(graph_folder, "timestamps.pt")).to(device)
 
     # Generate sinusoidal encoding
+    print("Generating sinusoidal time encoding...")
     sinus = build_sinusoidal_time_encoding(timestamps, time_dim=time_dim)
 
     # Combine edge_attr + sinusoidal time
@@ -359,13 +368,16 @@ def main():
             break
 
     total_time = time.perf_counter() - total_start
-    print("Total time:", total_time)
+    print("Total training time: %.2f seconds" % total_time)
     writer.add_scalar("Time/total_seconds", total_time, 0)
 
     # ---------------------------------------
     # Evaluate best
     # ---------------------------------------
+    print("Loading best model from:", best_model_path)
     model.load_state_dict(torch.load(best_model_path, map_location=device))
+
+    print("Evaluating on train/val/test...")
 
     train_metrics, train_probs = evaluate_split(
         model, x, edge_index, feat,
@@ -384,6 +396,9 @@ def main():
     print_metrics(val_metrics, experiment_name + " VAL")
     print_metrics(test_metrics, experiment_name + " TEST")
 
+    # ---------------------------------------
+    # Save outputs
+    # ---------------------------------------
     out = {
         "train": train_metrics,
         "val": val_metrics,
@@ -407,6 +422,9 @@ def main():
     )
 
     writer.close()
+
+    print("Done.")
+
     if logger:
         logger.close()
 

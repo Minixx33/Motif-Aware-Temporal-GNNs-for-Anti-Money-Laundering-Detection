@@ -1,64 +1,50 @@
 #!/bin/bash
-# ============================================================================
-# run_baseline_experiments.sh
-# Run GraphSAGE, GraphSAGE-T, TGAT on BASELINE dataset only (WSL compatible)
-# ============================================================================
+set -e
+set -o pipefail
 
-# ========================================================================
-# Conda environment activation for Git Bash on Windows
-# ========================================================================
+# ---------------------------------------------------------
+# Move to project root (go up 2 levels from scripts/batch/)
+# ---------------------------------------------------------
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR/../.."
+PROJECT_ROOT="$(pwd)"
 
-# Initialize conda for Git Bash
+echo "Running from project root: $PROJECT_ROOT"
+
+# ---------------------------------------------------------
+# Activate Conda
+# ---------------------------------------------------------
 source "/c/ProgramData/Anaconda3/etc/profile.d/conda.sh"
-
-# Activate your environment
-echo "Activating Conda environment: aml_project"
 conda activate aml_project
 
-# Debugging info
 echo "Using Python: $(which python)"
 python --version
 
-# ========================================================================
-
-set -e          # Stop on error
-set -u          # Stop on undefined variable
-set -o pipefail # Catch errors in piped commands
-
 # ----------------------------------------------------------------------------
-# Resolve PROJECT ROOT directory (directory where this script lives)
+# Config paths - use RELATIVE paths for Python on Windows
 # ----------------------------------------------------------------------------
-PROJECT_ROOT="$(cd "$(dirname "$0")" && pwd)"
-
-echo "Project root resolved to: $PROJECT_ROOT"
-
-# ----------------------------------------------------------------------------
-# Convert Windows paths → WSL Linux paths
-# ----------------------------------------------------------------------------
-win_to_wsl() {
-    local win_path="$1"
-    wsl_path=$(wslpath "$win_path" 2>/dev/null || echo "$win_path")
-    echo "$wsl_path"
-}
-
-
-# ----------------------------------------------------------------------------
-# Resolve absolute paths for configs
-# ----------------------------------------------------------------------------
-BASE_CONFIG_WIN="C:\\Users\\yasmi\\OneDrive\\Desktop\\Uni - Master's\\Fall 2025\\MLR 570\\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\\configs\\base.yaml"
-DATASET_CONFIG_WIN="C:\\Users\\yasmi\\OneDrive\\Desktop\\Uni - Master's\\Fall 2025\\MLR 570\\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\\configs\\datasets\\baseline.yaml"
-
-BASE_CONFIG=$(win_to_wsl "$BASE_CONFIG_WIN")
-DATASET_CONFIG=$(win_to_wsl "$DATASET_CONFIG_WIN")
+BASE_CONFIG="configs/base.yaml"
+DATASET_CONFIG="configs/datasets/baseline.yaml"
 
 echo "Base config: $BASE_CONFIG"
 echo "Dataset config: $DATASET_CONFIG"
+
+# Verify configs exist (using absolute paths for bash)
+if [ ! -f "$PROJECT_ROOT/$BASE_CONFIG" ]; then
+    echo "ERROR: Base config not found at: $PROJECT_ROOT/$BASE_CONFIG"
+    exit 1
+fi
+
+if [ ! -f "$PROJECT_ROOT/$DATASET_CONFIG" ]; then
+    echo "ERROR: Dataset config not found at: $PROJECT_ROOT/$DATASET_CONFIG"
+    exit 1
+fi
 
 # ----------------------------------------------------------------------------
 # Timestamp + Logging
 # ----------------------------------------------------------------------------
 ts=$(date +"%Y%m%d_%H%M%S")
-LOG_DIR="$PROJECT_ROOT/logs"
+LOG_DIR="logs"
 mkdir -p "$LOG_DIR"
 LOG_FILE="$LOG_DIR/baseline_runs_${ts}.log"
 
@@ -70,14 +56,37 @@ echo "=================================================================" | tee -
 # GPU INFO
 echo "" | tee -a "$LOG_FILE"
 echo ">>> GPU INFO:" | tee -a "$LOG_FILE"
-nvidia-smi | tee -a "$LOG_FILE"
+nvidia-smi 2>&1 | tee -a "$LOG_FILE" || echo "GPU info not available" | tee -a "$LOG_FILE"
 
 # ----------------------------------------------------------------------------
-# TRAINING SCRIPTS (absolute WSL paths)
+# TRAINING SCRIPTS - use RELATIVE paths
 # ----------------------------------------------------------------------------
-TRAIN_SAGE="C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\scripts\training\train_graphsage.py"
-TRAIN_SAGET="C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\scripts\training\train_graphsage_t.py"
-TRAIN_TGAT="C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\scripts\training\train_tgat.py"
+TRAIN_SAGE="scripts/training/train_graphsage.py"
+TRAIN_SAGET="scripts/training/train_graphsage_t.py"
+TRAIN_TGAT="scripts/training/train_tgat.py"
+
+# Verify scripts exist
+for script in "$TRAIN_SAGE" "$TRAIN_SAGET" "$TRAIN_TGAT"; do
+    if [ ! -f "$script" ]; then
+        echo "ERROR: Training script not found: $script"
+        exit 1
+    fi
+done
+
+# ----------------------------------------------------------------------------
+# Model configs - use RELATIVE paths
+# ----------------------------------------------------------------------------
+SAGE_CONFIG="configs/models/graphsage.yaml"
+SAGET_CONFIG="configs/models/graphsage_t.yaml"
+TGAT_CONFIG="configs/models/tgat.yaml"
+
+# Verify model configs exist
+for config in "$SAGE_CONFIG" "$SAGET_CONFIG" "$TGAT_CONFIG"; do
+    if [ ! -f "$config" ]; then
+        echo "ERROR: Model config not found: $config"
+        exit 1
+    fi
+done
 
 # ----------------------------------------------------------------------------
 # Helper function: run a single model
@@ -92,6 +101,7 @@ run_model() {
 
     model_start=$(date +%s)
 
+    # Run from project root with relative paths
     if python "$SCRIPT_PATH" \
         --config "$MODEL_CONFIG" \
         --dataset "$DATASET_CONFIG" \
@@ -113,9 +123,9 @@ run_model() {
 # ----------------------------------------------------------------------------
 start_time=$(date +%s)
 
-run_model "GraphSAGE"   "$TRAIN_SAGE"   "$PROJECT_ROOT/configs/models/graphsage.yaml"
-run_model "GraphSAGE-T" "$TRAIN_SAGET"  "$PROJECT_ROOT/configs/models/graphsage_t.yaml"
-run_model "TGAT"        "$TRAIN_TGAT"   "$PROJECT_ROOT/configs/models/tgat.yaml"
+run_model "GraphSAGE"   "$TRAIN_SAGE"   "$SAGE_CONFIG"
+run_model "GraphSAGE-T" "$TRAIN_SAGET"  "$SAGET_CONFIG"
+run_model "TGAT"        "$TRAIN_TGAT"   "$TGAT_CONFIG"
 
 # ----------------------------------------------------------------------------
 # TOTAL TIME SUMMARY
@@ -134,3 +144,7 @@ echo "=================================================================" | tee -
 
 # Marker file
 touch "$LOG_DIR/BASELINE_FINISHED_${ts}.done"
+
+echo ""
+echo "SUCCESS! All experiments completed."
+echo "Check results in: results/"

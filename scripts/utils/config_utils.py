@@ -334,9 +334,19 @@ def build_paths(
             - logs_dir: Path to save logs
     """
     # Get script directory as default root
+    # Get root directory - go up 2 levels from scripts/utils/ to project root
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    root = base_cfg.get("paths", {}).get("root") or script_dir
-    
+    project_root = os.path.abspath(os.path.join(script_dir, "..", ".."))
+    root = base_cfg.get("paths", {}).get("root")
+
+    # If no root specified in config, use project root
+    if root:
+        # If root is relative (like "."), make it absolute
+        if not os.path.isabs(root):
+            root = os.path.abspath(root)
+    else:
+        root = project_root
+        
     # Extract dataset info
     theory = dataset_cfg["dataset"]["theory"]
     prefix = dataset_cfg["dataset"]["prefix"]

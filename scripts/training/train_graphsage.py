@@ -45,6 +45,10 @@ from scripts.utils.evaluation_utils import (
     print_metrics
 )
 
+# Suppress FutureWarnings to prevent infinite loop with Logger class
+import warnings
+warnings.filterwarnings('ignore', category=FutureWarning)
+
 
 # -----------------------------------------------------------
 # GraphSAGE Node Encoder (ASCII-safe)

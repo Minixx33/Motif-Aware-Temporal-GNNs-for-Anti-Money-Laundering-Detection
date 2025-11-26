@@ -45,6 +45,10 @@ from scripts.utils.evaluation_utils import (
     print_metrics
 )
 
+# Suppress FutureWarnings to prevent infinite loop with Logger class
+import warnings
+warnings.filterwarnings('ignore', category=FutureWarning)
+
 
 # -----------------------------------------------------------
 # Time encoding (sinusoidal, ASCII-safe)
@@ -291,6 +295,7 @@ def main():
     print("Num events: %d" % num_events)
 
     # Build sinusoidal time encoding
+    print("Generating sinusoidal time encoding...")
     time_enc = build_sinusoidal_time_encoding(timestamps, time_dim=time_dim)
 
     # -------------------------------------------------------
