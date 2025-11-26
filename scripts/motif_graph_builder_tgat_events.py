@@ -3,24 +3,8 @@ graph_builder_tgat_events.py (Final Universal Version)
 ------------------------------------------------------
 Build a temporal event stream for TGAT from IBM HI-Small datasets.
 
-Supports:
-  - Baseline: HI-Small_Trans.csv
-  - RAT:     HI-Small_Trans_RAT_low/medium/high.csv
-  - SLT:     HI-Small_Trans_SLT_low/medium/high.csv
-  - STRAIN:  HI-Small_Trans_STRAIN_low/medium/high.csv
-
-Outputs (tgat_graphs/{dataset_name}/):
-  - src_nodes.pt
-  - dst_nodes.pt
-  - timestamps.pt
-  - edge_attr.pt
-  - y_edge.pt
-  - x_node.pt
-  - y_node.pt
-  - node_mapping.json
-  - edge_attr_cols.json
-  - feature_stats.json
-  - graph_stats.json
+Supports baseline + RAT/SLT/STRAIN injected datasets
+with motif feature normalization (critical!)
 """
 
 import os
@@ -30,26 +14,15 @@ import pandas as pd
 import torch
 
 # ============================================================
-# CONFIG - SELECT DATASET HERE
+# CONFIG
 # ============================================================
 
 BASE_DIR = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\ibm_transcations_datasets"
 
-
-# RAT examples:
+# Choose dataset
 # DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_low.csv")
 # DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_medium.csv")
 DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_high.csv")
-
-# SLT examples:
-# DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_low.csv")
-# DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_medium.csv")
-# DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_high.csv")
-
-# STRAIN examples:
-# DATASET = os.path.join("STRAIN", "HI-Small_Trans_STRAIN_low.csv")
-# DATASET = os.path.join("STRAIN", "HI-Small_Trans_STRAIN_medium.csv")
-# DATASET = os.path.join("STRAIN", "HI-Small_Trans_STRAIN_high.csv")
 
 INPUT_PATH = os.path.join(BASE_DIR, DATASET)
 dataset_name = os.path.splitext(os.path.basename(DATASET))[0]
@@ -107,7 +80,7 @@ df = df.sort_values(TS_COL).reset_index(drop=True)
 print(f"Timestamp range: {df[TS_COL].min()} -> {df[TS_COL].max()}")
 
 # ============================================================
-# THEORY DETECTION
+# DETECT THEORY TYPE
 # ============================================================
 
 has_rat = any(c.startswith("RAT_") for c in df.columns)
@@ -147,17 +120,12 @@ num_events = len(df)
 print(f"Num events: {num_events:,}")
 
 # ============================================================
-# TEMPORAL VALIDATION
+# TEMPORAL CHECK
 # ============================================================
 
 timestamps = (df[TS_COL].astype("int64") // 10**9).values
-time_diffs = np.diff(timestamps)
-
-if (time_diffs < 0).any():
-    raise ValueError("❌ TGAT requires strictly increasing timestamps — dataset not sorted!")
-
-unique_ts = len(np.unique(timestamps))
-print(f"Unique timestamps: {unique_ts:,} / {num_events:,}")
+if np.any(np.diff(timestamps) < 0):
+    raise ValueError("❌ TGAT requires strictly increasing timestamps!")
 
 # ============================================================
 # EDGE LABELS
@@ -182,18 +150,44 @@ for col in df.columns:
 
 edge_feature_cols = sorted(edge_feature_cols)
 
-edge_attr_df = df[edge_feature_cols].fillna(0).replace([np.inf, -np.inf], 0)
+edge_attr_df = df[edge_feature_cols].copy()
 
-for col in edge_feature_cols:
-    edge_attr_df[col] = edge_attr_df[col].astype(np.float32)
+# ============================================================
+# CLEAN FIRST (NaN / Inf)
+# ============================================================
 
-edge_attr = edge_attr_df.values
+edge_attr_df = edge_attr_df.fillna(0).replace([np.inf, -np.inf], 0)
 
-# Statistics for later (not applied here)
-edge_attr_means = edge_attr.mean(axis=0)
-edge_attr_stds  = edge_attr.std(axis=0)
-edge_attr_mins  = edge_attr.min(axis=0)
-edge_attr_maxs  = edge_attr.max(axis=0)
+# ============================================================
+# NORMALIZE MOTIF FEATURES (CRITICAL)
+# ============================================================
+
+motif_cols = [c for c in edge_feature_cols if c.startswith("motif_")]
+
+if len(motif_cols) > 0:
+    print(f"\nNormalizing {len(motif_cols)} motif feature cols...")
+
+    for col in motif_cols:
+        arr = edge_attr_df[col].values.astype(np.float32)
+        m, s = arr.mean(), arr.std()
+
+        if s < 1e-6:
+            s = 1.0
+
+        arr = (arr - m) / s
+        arr = np.clip(arr, -10, 10)
+
+        edge_attr_df[col] = arr
+
+    print("✓ Motif features standardized + clipped")
+else:
+    print("No motif features detected.")
+
+# ============================================================
+# Convert to numpy
+# ============================================================
+
+edge_attr = edge_attr_df.values.astype(np.float32)
 
 # ============================================================
 # NODE FEATURES
@@ -229,22 +223,20 @@ x_node = node_df[["out_degree", "in_degree", "total_degree", "laundering_count"]
 # ============================================================
 
 y_node = np.zeros(num_nodes, dtype=np.int64)
-laund_accts = set(laund_src) | set(laund_dst)
-
-for acct in laund_accts:
+for acct in laund_counts.index:
     y_node[acct2idx[acct]] = 1
 
 # ============================================================
-# SAVE ALL ARTIFACTS
+# SAVE EVERYTHING
 # ============================================================
 
-torch.save(torch.tensor(src_nodes),     os.path.join(OUT_DIR, "src_nodes.pt"))
-torch.save(torch.tensor(dst_nodes),     os.path.join(OUT_DIR, "dst_nodes.pt"))
-torch.save(torch.tensor(timestamps),    os.path.join(OUT_DIR, "timestamps.pt"))
-torch.save(torch.tensor(edge_attr),     os.path.join(OUT_DIR, "edge_attr.pt"))
-torch.save(torch.tensor(y_edge),        os.path.join(OUT_DIR, "y_edge.pt"))
-torch.save(torch.tensor(x_node),        os.path.join(OUT_DIR, "x_node.pt"))
-torch.save(torch.tensor(y_node),        os.path.join(OUT_DIR, "y_node.pt"))
+torch.save(torch.tensor(src_nodes),  os.path.join(OUT_DIR, "src_nodes.pt"))
+torch.save(torch.tensor(dst_nodes),  os.path.join(OUT_DIR, "dst_nodes.pt"))
+torch.save(torch.tensor(timestamps), os.path.join(OUT_DIR, "timestamps.pt"))
+torch.save(torch.tensor(edge_attr),  os.path.join(OUT_DIR, "edge_attr.pt"))
+torch.save(torch.tensor(y_edge),     os.path.join(OUT_DIR, "y_edge.pt"))
+torch.save(torch.tensor(x_node),     os.path.join(OUT_DIR, "x_node.pt"))
+torch.save(torch.tensor(y_node),     os.path.join(OUT_DIR, "y_node.pt"))
 
 with open(os.path.join(OUT_DIR, "node_mapping.json"), "w") as f:
     json.dump(acct2idx, f)
@@ -252,27 +244,5 @@ with open(os.path.join(OUT_DIR, "node_mapping.json"), "w") as f:
 with open(os.path.join(OUT_DIR, "edge_attr_cols.json"), "w") as f:
     json.dump(edge_feature_cols, f, indent=2)
 
-with open(os.path.join(OUT_DIR, "feature_stats.json"), "w") as f:
-    json.dump({
-        "edge_attr_means": edge_attr_means.tolist(),
-        "edge_attr_stds":  edge_attr_stds.tolist(),
-        "edge_attr_mins":  edge_attr_mins.tolist(),
-        "edge_attr_maxs":  edge_attr_maxs.tolist(),
-        "edge_attr_cols":  edge_feature_cols,
-    }, f, indent=2)
-
-with open(os.path.join(OUT_DIR, "graph_stats.json"), "w") as f:
-    json.dump({
-        "dataset_type": dataset_type,
-        "num_nodes": int(num_nodes),
-        "num_events": int(num_events),
-        "unique_timestamps": int(unique_ts),
-        "num_edge_features": len(edge_feature_cols),
-        "num_node_features": x_node.shape[1],
-        "pct_laundering_edges": float(y_edge.mean() * 100),
-        "dataset_name": dataset_name,
-        "format": "TGAT_event_stream"
-    }, f, indent=2)
-
-print("\nTGAT EVENT STREAM CONSTRUCTION COMPLETE")
+print("\n✓ TGAT EVENT STREAM READY")
 print(f"Saved to: {OUT_DIR}")
