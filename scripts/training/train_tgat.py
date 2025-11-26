@@ -195,7 +195,10 @@ def run_epoch_minibatch(model, optimizer, loss_fn,
     # Encode nodes once with mixed precision
     with autocast(enabled=use_amp):
         h = model.encode_nodes(x_node)
-    
+
+    # Prevent the TGAT attention graph from being retained by minibatches
+    h = h.detach()
+
     total_loss = 0
     num_batches = 0
     

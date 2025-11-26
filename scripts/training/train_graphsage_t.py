@@ -159,6 +159,9 @@ def run_epoch_minibatch(model, optimizer, loss_fn,
     # Encode nodes once with mixed precision
     with autocast(enabled=use_amp):
         h = model.encode_nodes(x, edge_index)
+
+    # Detach node embeddings so edge mini-batching doesn't hold the whole autograd graph
+    h = h.detach()
     
     total_loss = 0
     num_batches = 0
