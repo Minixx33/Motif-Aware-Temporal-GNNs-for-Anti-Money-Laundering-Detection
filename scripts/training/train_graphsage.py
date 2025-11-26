@@ -123,21 +123,12 @@ def run_epoch_minibatch(model, optimizer, loss_fn,
                        x, edge_index, edge_attr, y_edge, train_idx,
                        batch_size, device, scaler=None):
     """
-    Train with edge mini-batches + mixed precision.
-    Key: Encode nodes once, classify edges in batches.
+    Train with edge mini-batches.
+    Key: Encode nodes each batch so encoder can learn.
     """
     model.train()
     use_amp = scaler is not None
     
-    # Step 1: Encode all nodes once (with mixed precision)
-    with autocast(enabled=use_amp):
-        h = model.encode_nodes(x, edge_index)
-
-    # Detach to prevent autograd from tracking the entire graph
-    h = h.detach()
-
-    
-    # Step 2: Classify edges in mini-batches
     total_loss = 0
     num_batches = 0
     
@@ -156,18 +147,22 @@ def run_epoch_minibatch(model, optimizer, loss_fn,
         edge_attr_batch = edge_attr[batch_idx]
         labels_batch = y_edge[batch_idx].float()
         
-        # Forward with mixed precision
+        # Encode AND classify together (no detach!)
         with autocast(enabled=use_amp):
+            h = model.encode_nodes(x, edge_index)  # ← Fresh graph each batch
             logits = model.classify_edges(h, edge_index_batch, edge_attr_batch)
             loss = loss_fn(logits, labels_batch)
         
-        # Backward with gradient scaling
+        # Backward (no AMP for now)
         if use_amp:
             scaler.scale(loss).backward()
+            scaler.unscale_(optimizer)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             scaler.step(optimizer)
             scaler.update()
         else:
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
         
         total_loss += loss.item()

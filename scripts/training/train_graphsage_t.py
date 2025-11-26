@@ -187,10 +187,16 @@ def run_epoch_minibatch(model, optimizer, loss_fn,
         # Backward with gradient scaling
         if use_amp:
             scaler.scale(loss).backward()
+            # Unscale before clipping (important!)
+            scaler.unscale_(optimizer)
+            # Clip gradients to prevent explosion
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             scaler.step(optimizer)
             scaler.update()
         else:
             loss.backward()
+            # Also clip for non-AMP
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
         
         total_loss += loss.item()
