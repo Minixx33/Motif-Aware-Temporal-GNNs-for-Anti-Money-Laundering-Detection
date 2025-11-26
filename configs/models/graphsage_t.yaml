@@ -11,9 +11,8 @@ training:
   device: "cuda"
   batch_size: 8192              # ← CHANGED: 4x larger for RTX 4080!
   eval_batch_size: 16384        # ← ADDED: for evaluation
-  use_amp: true                 # ← ADDED: enable mixed precision
   lr: 0.0005                    # ← CHANGED: reduced (larger batch = lower LR)
-  weight_decay: 1e-4
+  weight_decay: 0.0001
   epochs: 100
   early_stopping_patience: 15
   gradient_clip: 1.0
