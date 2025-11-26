@@ -8,6 +8,20 @@
 #   - Gradient clipping
 #   - Uses same logging / outputs as GraphSAGE & GraphSAGE-T
 # -----------------------------------------------------------
+# Usage
+# Example: (default)
+# python scripts/training/train_tgat.py \
+#     --config configs/tgat.yaml \
+#     --dataset configs/datasets/baseline.yaml \
+#     --base_config configs/base.yaml
+#
+# Example: (low-intensity HiSmallRat)
+# python scripts/training/train_tgat.py \
+#     --config configs/tgat.yaml \
+#     --dataset configs/datasets/hismall_rat_low.yaml \
+#     --intensity low \
+#     --base_config configs/base.yaml
+# -----------------------------------------------------------
 
 import os
 import sys
