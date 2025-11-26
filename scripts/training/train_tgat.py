@@ -1,7 +1,12 @@
 # train_tgat_GPU.py
 # -----------------------------------------------------------
-# GPU-optimized TGAT with mixed precision (AMP)
-# Ready for RTX 4080!
+# GPU-optimized TGAT-style temporal edge classifier
+# Stable version:
+#   - Event-level self-attention (no N×N over all nodes)
+#   - Minibatch over events
+#   - No AMP by default (can be added later if needed)
+#   - Gradient clipping
+#   - Uses same logging / outputs as GraphSAGE & GraphSAGE-T
 # -----------------------------------------------------------
 
 import os
@@ -19,7 +24,6 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
-from torch.cuda.amp import autocast, GradScaler
 
 from scripts.utils.config_utils import (
     setup_experiment,
@@ -27,7 +31,7 @@ from scripts.utils.config_utils import (
 )
 from scripts.utils.evaluation_utils import (
     evaluate_binary_classifier,
-    print_metrics
+    print_metrics,
 )
 
 import warnings
@@ -35,119 +39,88 @@ warnings.filterwarnings('ignore', category=FutureWarning)
 
 
 # -----------------------------------------------------------
-# Time Encoding
+# Sinusoidal Time Encoding
 # -----------------------------------------------------------
 
 def build_sinusoidal_time_encoding(timestamps, time_dim=16):
-    """Sinusoidal time encoding"""
-    if time_dim % 2 != 0:
-        raise ValueError("time_dim must be even")
+    """TGAT-style sinusoidal time encoding over edge timestamps."""
+    assert time_dim % 2 == 0, "time_dim must be even"
 
     ts = timestamps.float()
+    t_min, t_max = ts.min(), ts.max()
 
-    t_min = ts.min()
-    t_max = ts.max()
     if t_max > t_min:
         ts_norm = (ts - t_min) / (t_max - t_min)
     else:
         ts_norm = torch.zeros_like(ts)
 
-    ts_norm = ts_norm.view(-1, 1)
+    ts_norm = ts_norm.view(-1, 1)  # [E, 1]
 
-    dim_half = time_dim // 2
-    div_term = torch.exp(
-        torch.arange(dim_half, dtype=torch.float32, device=ts.device)
-        * -(np.log(10000.0) / float(dim_half))
-    ).view(1, -1)
+    half = time_dim // 2
+    div = torch.exp(
+        torch.arange(half, device=ts.device, dtype=torch.float32)
+        * -(np.log(10000.0) / half)
+    ).view(1, -1)  # [1, half]
 
-    angles = ts_norm * div_term
-    sin_part = torch.sin(angles)
-    cos_part = torch.cos(angles)
-
-    time_enc = torch.cat([sin_part, cos_part], dim=-1)
-    return time_enc
+    angles = ts_norm * div  # [E, half]
+    return torch.cat([torch.sin(angles), torch.cos(angles)], dim=-1)  # [E, time_dim]
 
 
 # -----------------------------------------------------------
-# Temporal Attention Layer
+# Event-level Temporal Self-Attention
 # -----------------------------------------------------------
 
-class TemporalAttentionLayer(nn.Module):
+class TemporalSelfAttentionLayer(nn.Module):
+    """
+    Multi-head self-attention over a sequence of events in a minibatch.
+
+    Input:  x [B, N, C]  (we'll use B=1, N=batch_size, C=hidden_dim)
+    Output: same shape
+    """
     def __init__(self, embed_dim, num_heads=4, dropout=0.1):
         super().__init__()
+        assert embed_dim % num_heads == 0, "embed_dim must be divisible by num_heads"
         self.num_heads = num_heads
         self.head_dim = embed_dim // num_heads
-        assert self.head_dim * num_heads == embed_dim
 
         self.qkv = nn.Linear(embed_dim, 3 * embed_dim)
         self.out_proj = nn.Linear(embed_dim, embed_dim)
-        self.dropout = nn.Dropout(dropout)
+        self.attn_drop = nn.Dropout(dropout)
 
     def forward(self, x):
+        # x: [B, N, C]
         B, N, C = x.shape
-        qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)
-        q, k, v = qkv[0], qkv[1], qkv[2]
+        qkv = self.qkv(x)  # [B, N, 3*C]
+        qkv = qkv.view(B, N, 3, self.num_heads, self.head_dim)
+        qkv = qkv.permute(2, 0, 3, 1, 4)  # [3, B, H, N, D]
 
-        attn = (q @ k.transpose(-2, -1)) * (self.head_dim ** -0.5)
+        q, k, v = qkv[0], qkv[1], qkv[2]  # each [B, H, N, D]
+
+        attn = (q @ k.transpose(-2, -1)) * (self.head_dim ** -0.5)  # [B, H, N, N]
         attn = attn.softmax(dim=-1)
-        attn = self.dropout(attn)
+        attn = self.attn_drop(attn)
 
-        out = (attn @ v).transpose(1, 2).reshape(B, N, C)
+        out = attn @ v  # [B, H, N, D]
+        out = out.transpose(1, 2).contiguous().view(B, N, C)  # [B, N, C]
         out = self.out_proj(out)
         return out
 
 
 # -----------------------------------------------------------
-# TGAT Model
+# TGAT-style Edge Model (event-level)
 # -----------------------------------------------------------
 
-class TGATNodeEncoder(nn.Module):
-    def __init__(self, in_dim, hidden_dim, num_layers=2, num_heads=4, dropout=0.1):
-        super().__init__()
-        self.input_proj = nn.Linear(in_dim, hidden_dim)
-        
-        self.layers = nn.ModuleList([
-            TemporalAttentionLayer(hidden_dim, num_heads, dropout)
-            for _ in range(num_layers)
-        ])
-        
-        self.norm = nn.LayerNorm(hidden_dim)
-        self.dropout = nn.Dropout(dropout)
+class TGATEdgeModel(nn.Module):
+    """
+    TGAT-style temporal edge classifier.
 
-    def forward(self, x):
-        h = self.input_proj(x)
-        h = h.unsqueeze(0)
-        
-        for layer in self.layers:
-            h = h + layer(h)
-            h = self.norm(h)
-            h = self.dropout(h)
-        
-        return h.squeeze(0)
-
-
-class EdgeClassifier(nn.Module):
-    def __init__(self, node_emb_dim, edge_attr_dim, time_dim, hidden_dim=128, dropout=0.2):
-        super().__init__()
-        in_dim = node_emb_dim * 2 + edge_attr_dim + time_dim
-
-        self.mlp = nn.Sequential(
-            nn.Linear(in_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Dropout(dropout),
-            nn.Linear(hidden_dim, hidden_dim // 2),
-            nn.ReLU(),
-            nn.Dropout(dropout),
-            nn.Linear(hidden_dim // 2, 1)
-        )
-
-    def forward(self, h_src, h_dst, edge_attr, time_enc):
-        z = torch.cat([h_src, h_dst, edge_attr, time_enc], dim=-1)
-        return self.mlp(z).view(-1)
-
-
-class TGATEdgeClassifier(nn.Module):
-    def __init__(self, in_dim_node, in_dim_edge, time_dim, cfg_model):
+    For each event (edge) e:
+      - project src & dst node features
+      - concatenate with edge_attr and time encoding
+      - run several self-attention layers over the minibatch of events
+      - classify each event with an MLP
+    """
+    def __init__(self, node_in_dim, edge_in_dim, time_dim, cfg_model):
         super().__init__()
 
         hidden_dim = cfg_model["hidden_dim"]
@@ -155,124 +128,130 @@ class TGATEdgeClassifier(nn.Module):
         num_heads = cfg_model.get("num_heads", 4)
         dropout = cfg_model.get("dropout", 0.1)
 
-        self.encoder = TGATNodeEncoder(
-            in_dim=in_dim_node,
-            hidden_dim=hidden_dim,
-            num_layers=num_layers,
-            num_heads=num_heads,
-            dropout=dropout
+        # Project node features to hidden_dim
+        self.node_proj = nn.Linear(node_in_dim, hidden_dim)
+
+        # Project concatenated event features to hidden_dim
+        event_in_dim = hidden_dim * 2 + edge_in_dim + time_dim
+        self.event_proj = nn.Linear(event_in_dim, hidden_dim)
+
+        # Temporal self-attention over events in a minibatch
+        self.layers = nn.ModuleList([
+            TemporalSelfAttentionLayer(hidden_dim, num_heads=num_heads, dropout=dropout)
+            for _ in range(num_layers)
+        ])
+        self.norm = nn.LayerNorm(hidden_dim)
+        self.dropout = nn.Dropout(dropout)
+
+        # Final edge classifier
+        self.classifier = nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim, 1),
         )
 
-        self.classifier = EdgeClassifier(
-            node_emb_dim=hidden_dim,
-            edge_attr_dim=in_dim_edge,
-            time_dim=time_dim,
-            hidden_dim=hidden_dim,
-            dropout=dropout
-        )
+    def forward_batch(self, x_node, src_idx, dst_idx, edge_attr_batch, time_enc_batch):
+        """
+        x_node:         [N, F_n]
+        src_idx/dst_idx:[B]
+        edge_attr_batch:[B, F_e]
+        time_enc_batch: [B, T]
+        """
+        # Gather node features for this batch of events
+        src_x = x_node[src_idx]  # [B, F_n]
+        dst_x = x_node[dst_idx]  # [B, F_n]
 
-    def encode_nodes(self, x_node):
-        """Encode all nodes once"""
-        return self.encoder(x_node)
-    
-    def classify_events(self, h, src_nodes, dst_nodes, edge_attr, time_enc):
-        """Classify a batch of events"""
-        h_src = h[src_nodes]
-        h_dst = h[dst_nodes]
-        return self.classifier(h_src, h_dst, edge_attr, time_enc)
+        # Project nodes
+        src_h = self.node_proj(src_x)  # [B, H]
+        dst_h = self.node_proj(dst_x)  # [B, H]
+
+        # Build event representations
+        feat = torch.cat([src_h, dst_h, edge_attr_batch, time_enc_batch], dim=-1)  # [B, event_in_dim]
+        h = self.event_proj(feat)  # [B, H]
+
+        # Self-attention over events in this minibatch
+        h_seq = h.unsqueeze(0)  # [1, B, H] → B(batch_dim)=1, N(seq_len)=B
+        for layer in self.layers:
+            residual = h_seq
+            h_seq = layer(h_seq)
+            h_seq = self.norm(h_seq + residual)
+            h_seq = self.dropout(h_seq)
+        h_out = h_seq.squeeze(0)  # [B, H]
+
+        # Classify each event
+        logits = self.classifier(h_out).view(-1)  # [B]
+        return logits
 
 
 # -----------------------------------------------------------
-# Mini-batch training with AMP
+# Training & Evaluation (minibatch, event-level)
 # -----------------------------------------------------------
 
-def run_epoch_minibatch(model, optimizer, loss_fn,
-                       x_node, src_nodes, dst_nodes, edge_attr, time_enc,
-                       y_edge, train_idx, batch_size, device, scaler=None):
+def run_epoch_minibatch(
+    model, optimizer, loss_fn,
+    x_node, src_nodes, dst_nodes, edge_attr, time_enc,
+    y_edge, train_idx,
+    batch_size, device
+):
     model.train()
-    use_amp = scaler is not None
-    
-    # Encode nodes once with mixed precision
-    with autocast(enabled=use_amp):
-        h = model.encode_nodes(x_node)
-
-    # Prevent the TGAT attention graph from being retained by minibatches
-    h = h.detach()
-
-    total_loss = 0
+    total_loss = 0.0
     num_batches = 0
-    
-    perm = torch.randperm(len(train_idx), device='cpu').to(device)
-    shuffled_idx = train_idx[perm]
-    
-    for start in range(0, len(shuffled_idx), batch_size):
-        end = min(start + batch_size, len(shuffled_idx))
-        batch_idx = shuffled_idx[start:end]
-        
-        optimizer.zero_grad()
-        
-        # Get batch
-        src_batch = src_nodes[batch_idx]
-        dst_batch = dst_nodes[batch_idx]
-        edge_attr_batch = edge_attr[batch_idx]
-        time_enc_batch = time_enc[batch_idx]
-        labels_batch = y_edge[batch_idx].float()
-        
-        # Forward with mixed precision
-        with autocast(enabled=use_amp):
-            logits = model.classify_events(h, src_batch, dst_batch, edge_attr_batch, time_enc_batch)
-            loss = loss_fn(logits, labels_batch)
-        
-        # Backward with gradient scaling
-        if use_amp:
-            scaler.scale(loss).backward()
-            # Unscale before clipping (important!)
-            scaler.unscale_(optimizer)
-            # Clip gradients to prevent explosion
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-            scaler.step(optimizer)
-            scaler.update()
-        else:
-            loss.backward()
-            # Also clip for non-AMP
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-            optimizer.step()
-        
+
+    # Shuffle training events
+    perm = torch.randperm(len(train_idx), device=device)
+    idx = train_idx[perm]
+
+    for start in range(0, len(idx), batch_size):
+        end = min(start + batch_size, len(idx))
+        batch_eids = idx[start:end]
+
+        optimizer.zero_grad(set_to_none=True)
+
+        src_batch = src_nodes[batch_eids]
+        dst_batch = dst_nodes[batch_eids]
+        edge_attr_batch = edge_attr[batch_eids]
+        time_enc_batch = time_enc[batch_eids]
+        labels_batch = y_edge[batch_eids].float()
+
+        logits = model.forward_batch(x_node, src_batch, dst_batch, edge_attr_batch, time_enc_batch)
+        loss = loss_fn(logits, labels_batch)
+
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+        optimizer.step()
+
         total_loss += loss.item()
         num_batches += 1
-    
-    return total_loss / num_batches if num_batches > 0 else 0.0
+
+    return total_loss / max(num_batches, 1)
 
 
 @torch.no_grad()
-def evaluate_split_minibatch(model, x_node, src_nodes, dst_nodes, edge_attr, time_enc,
-                             y_edge, split_idx, batch_size, device, eval_cfg, use_amp=True):
+def evaluate_split_minibatch(
+    model, x_node, src_nodes, dst_nodes, edge_attr, time_enc,
+    y_edge, split_idx,
+    batch_size, device, eval_cfg
+):
     model.eval()
-    
-    # Encode nodes once with mixed precision
-    with autocast(enabled=use_amp):
-        h = model.encode_nodes(x_node)
-    
     all_probs = []
-    
+
     for start in range(0, len(split_idx), batch_size):
         end = min(start + batch_size, len(split_idx))
-        batch_idx = split_idx[start:end]
-        
-        src_batch = src_nodes[batch_idx]
-        dst_batch = dst_nodes[batch_idx]
-        edge_attr_batch = edge_attr[batch_idx]
-        time_enc_batch = time_enc[batch_idx]
-        
-        with autocast(enabled=use_amp):
-            logits = model.classify_events(h, src_batch, dst_batch, edge_attr_batch, time_enc_batch)
-        
+        batch_eids = split_idx[start:end]
+
+        src_batch = src_nodes[batch_eids]
+        dst_batch = dst_nodes[batch_eids]
+        edge_attr_batch = edge_attr[batch_eids]
+        time_enc_batch = time_enc[batch_eids]
+
+        logits = model.forward_batch(x_node, src_batch, dst_batch, edge_attr_batch, time_enc_batch)
         probs = torch.sigmoid(logits).cpu().numpy()
         all_probs.append(probs)
-    
+
     all_probs = np.concatenate(all_probs)
     labels = y_edge[split_idx].cpu().numpy()
-    
+
     metrics = evaluate_binary_classifier(
         y_true=labels,
         y_pred_probs=all_probs,
@@ -280,9 +259,8 @@ def evaluate_split_minibatch(model, x_node, src_nodes, dst_nodes, edge_attr, tim
         auto_threshold=eval_cfg.get("auto_threshold", True),
         compute_top_k=eval_cfg.get("compute_top_k", True),
         k_values=eval_cfg.get("top_k_values", [100, 500, 1000]),
-        verbose=False
+        verbose=False,
     )
-    
     return metrics, all_probs
 
 
@@ -299,7 +277,7 @@ def compute_pos_weight(y_train):
 # -----------------------------------------------------------
 
 def main():
-    parser = argparse.ArgumentParser(description="GPU-optimized TGAT with AMP")
+    parser = argparse.ArgumentParser(description="GPU-optimized TGAT-style temporal edge classifier")
     parser.add_argument("--config", required=True)
     parser.add_argument("--dataset", required=True)
     parser.add_argument("--intensity", default=None)
@@ -312,114 +290,126 @@ def main():
         intensity=args.intensity,
         base_config_path=args.base_config,
         verbose=True,
-        enable_logging=True
+        enable_logging=True,
     )
 
     base_cfg = setup["base_cfg"]
     model_cfg = setup["model_cfg"]
     dataset_cfg = setup["dataset_cfg"]
-    paths = setup["paths"]
-    device = setup["device"]
-    experiment_name = setup["experiment_name"]
-    intensity = setup["intensity"]
-    logger = setup.get("logger", None)
-
     eval_cfg = base_cfg["evaluation"]
     training_cfg = model_cfg["training"]
     loss_cfg = model_cfg["loss"]
+    paths = setup["paths"]
+    device = setup["device"]
+    experiment_name = setup["experiment_name"]
+    intensity = setup.get("intensity")
+    logger = setup.get("logger")
+
     time_dim = model_cfg["model"].get("time_dim", 16)
 
-    # Batch sizes and AMP
-    batch_size = training_cfg.get("batch_size", 4096)
-    eval_batch_size = training_cfg.get("eval_batch_size", 8192)
-    use_amp = training_cfg.get("use_amp", True)
-    
-    print(f"\n{'='*70}")
-    print(f"GPU Mini-Batch Training (TGAT)")
-    print(f"{'='*70}")
+    # Batch sizes
+    batch_size = training_cfg.get("batch_size", 2048)      # TGAT is heavier → smaller default
+    eval_batch_size = training_cfg.get("eval_batch_size", 4096)
+
+    print("\n" + "=" * 70)
+    print("GPU Mini-Batch Training (TGAT-style)")
+    print("=" * 70)
     print(f"Train batch size: {batch_size}")
     print(f"Eval batch size:  {eval_batch_size}")
-    print(f"Mixed Precision:  {use_amp}")
+    print(f"Mixed Precision:  False (disabled for stability)")
     print(f"Device:           {device}")
-    print(f"{'='*70}\n")
-
-    # Initialize gradient scaler
-    scaler = GradScaler() if use_amp else None
+    print("=" * 70 + "\n")
 
     # TensorBoard
     tb_log_dir = os.path.join(paths["logs_dir"], "tb")
     os.makedirs(tb_log_dir, exist_ok=True)
     writer = SummaryWriter(log_dir=tb_log_dir)
 
-    # Load TGAT tensors
-    print("Loading TGAT event tensors...")
+    # -------------------------------------------------------
+    # Load tensors
+    # -------------------------------------------------------
+    print("Loading TGAT tensors...")
     graph_folder = paths["graph_folder"]
 
-    src_nodes = torch.load(os.path.join(graph_folder, "src_nodes.pt")).to(device)
-    dst_nodes = torch.load(os.path.join(graph_folder, "dst_nodes.pt")).to(device)
-    timestamps = torch.load(os.path.join(graph_folder, "timestamps.pt")).to(device)
-    edge_attr = torch.load(os.path.join(graph_folder, "edge_attr.pt")).to(device)
-    y_edge = torch.load(os.path.join(graph_folder, "y_edge.pt")).to(device)
-    x_node = torch.load(os.path.join(graph_folder, "x_node.pt")).to(device)
+    x_node = torch.load(os.path.join(graph_folder, "x_node.pt")).to(device)   # [N, F_n]
+    src_nodes = torch.load(os.path.join(graph_folder, "src_nodes.pt")).to(device)  # [E]
+    dst_nodes = torch.load(os.path.join(graph_folder, "dst_nodes.pt")).to(device)  # [E]
+    edge_attr = torch.load(os.path.join(graph_folder, "edge_attr.pt")).to(device)  # [E, F_e]
+    timestamps = torch.load(os.path.join(graph_folder, "timestamps.pt")).to(device)  # [E]
+    y_edge = torch.load(os.path.join(graph_folder, "y_edge.pt")).to(device)   # [E]
 
-    num_events = src_nodes.size(0)
     num_nodes = x_node.size(0)
-    print(f"Num nodes:  {num_nodes:,}")
-    print(f"Num events: {num_events:,}")
-    print(f"Edge features: {edge_attr.size(1)}")
-    print(f"Node features: {x_node.size(1)}")
+    num_events = src_nodes.size(0)
+    print(f"Num nodes:   {num_nodes:,}")
+    print(f"Num events:  {num_events:,}")
+    print(f"Node feats:  {x_node.size(1)}")
+    print(f"Edge feats:  {edge_attr.size(1)}")
 
-    # Build time encoding
+    # Time encoding
     print("Generating sinusoidal time encoding...")
-    time_enc = build_sinusoidal_time_encoding(timestamps, time_dim=time_dim)
+    time_enc = build_sinusoidal_time_encoding(timestamps, time_dim=time_dim).to(device)  # [E, time_dim]
 
-    # Load splits
+    # -------------------------------------------------------
+    # Splits (reuse edge splits like GraphSAGE)
+    # -------------------------------------------------------
     split_folder = paths["split_folder"]
-    train_idx = torch.load(os.path.join(split_folder, "train_idx.pt")).to(device)
-    val_idx = torch.load(os.path.join(split_folder, "val_idx.pt")).to(device)
-    test_idx = torch.load(os.path.join(split_folder, "test_idx.pt")).to(device)
+    train_idx = torch.load(os.path.join(split_folder, "train_edge_idx.pt")).to(device)
+    val_idx = torch.load(os.path.join(split_folder, "val_edge_idx.pt")).to(device)
+    test_idx = torch.load(os.path.join(split_folder, "test_edge_idx.pt")).to(device)
 
     print(f"Train events: {len(train_idx):,}")
     print(f"Val events:   {len(val_idx):,}")
     print(f"Test events:  {len(test_idx):,}")
 
+    # -------------------------------------------------------
     # Model
-    model = TGATEdgeClassifier(
-        in_dim_node=x_node.size(1),
-        in_dim_edge=edge_attr.size(1),
+    # -------------------------------------------------------
+    model = TGATEdgeModel(
+        node_in_dim=x_node.size(1),
+        edge_in_dim=edge_attr.size(1),
         time_dim=time_dim,
-        cfg_model=model_cfg["model"]
+        cfg_model=model_cfg["model"],
     ).to(device)
 
+    # -------------------------------------------------------
     # Loss
-    pos_weight = loss_cfg.get("pos_weight", None)
-    if pos_weight is None:
-        pos_weight = compute_pos_weight(y_edge[train_idx])
-        pos_weight = min(pos_weight.item(), 100.0)
-        pos_weight = torch.tensor(pos_weight, dtype=torch.float32, device=device)
+    # -------------------------------------------------------
+    pos_weight_cfg = loss_cfg.get("pos_weight", None)
+    if pos_weight_cfg is None:
+        pw = compute_pos_weight(y_edge[train_idx])
+        pw = min(pw.item(), 100.0)
+        pos_weight = torch.tensor(pw, dtype=torch.float32, device=device)
     else:
-        pos_weight = torch.tensor(pos_weight, dtype=torch.float32, device=device)
+        pos_weight = torch.tensor(float(pos_weight_cfg), dtype=torch.float32, device=device)
 
     print(f"pos_weight: {pos_weight.item():.2f}")
-    
     loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
 
-    # Optimizer
-    optimizer_cfg = training_cfg.get("optimizer", {})
+    # -------------------------------------------------------
+    # Optimizer (cast all to float to avoid YAML string issues)
+    # -------------------------------------------------------
+    opt_cfg = training_cfg.get("optimizer", {})
+
     lr = float(training_cfg.get("lr", 5e-4))
     weight_decay = float(training_cfg.get("weight_decay", 1e-4))
-    betas = tuple([float(b) for b in optimizer_cfg.get("betas", [0.9, 0.999])])
-    eps = float(optimizer_cfg.get("eps", 1e-8))
+
+    betas_raw = opt_cfg.get("betas", [0.9, 0.999])
+    betas = tuple(float(b) for b in betas_raw)
+
+    eps_raw = opt_cfg.get("eps", 1e-8)
+    eps = float(eps_raw)
 
     optimizer = optim.Adam(
         model.parameters(),
         lr=lr,
         weight_decay=weight_decay,
         betas=betas,
-        eps=eps
+        eps=eps,
     )
 
+    # -------------------------------------------------------
     # Training loop
+    # -------------------------------------------------------
     results_dir = paths["results_dir"]
     os.makedirs(results_dir, exist_ok=True)
 
@@ -436,29 +426,30 @@ def main():
     for epoch in range(1, epochs + 1):
         epoch_start = time.perf_counter()
 
-        loss = run_epoch_minibatch(
+        train_loss = run_epoch_minibatch(
             model, optimizer, loss_fn,
             x_node, src_nodes, dst_nodes, edge_attr, time_enc,
-            y_edge, train_idx, batch_size, device, scaler
+            y_edge, train_idx,
+            batch_size, device,
         )
 
         val_metrics, _ = evaluate_split_minibatch(
             model, x_node, src_nodes, dst_nodes, edge_attr, time_enc,
-            y_edge, val_idx, eval_batch_size, device, eval_cfg, use_amp
+            y_edge, val_idx,
+            eval_batch_size, device, eval_cfg,
         )
 
         val_aupr = val_metrics["aupr"]
         val_f1 = val_metrics["f1"]
-
         epoch_time = time.perf_counter() - epoch_start
 
         print(
-            f"Epoch {epoch:03d} | loss={loss:.4f} | "
+            f"Epoch {epoch:03d} | loss={train_loss:.4f} | "
             f"val_F1={val_f1:.4f} | val_AUPR={val_aupr:.4f} | "
             f"time={epoch_time:.2f}s"
         )
 
-        writer.add_scalar("Loss/train", loss, epoch)
+        writer.add_scalar("Loss/train", train_loss, epoch)
         writer.add_scalar("Val/F1", val_f1, epoch)
         writer.add_scalar("Val/AUPR", val_aupr, epoch)
         writer.add_scalar("Time/epoch_seconds", epoch_time, epoch)
@@ -468,40 +459,42 @@ def main():
             best_epoch = epoch
             patience = 0
             torch.save(model.state_dict(), best_model_path)
-            print(f"  → New best (val_AUPR={val_aupr:.4f})")
         else:
             patience += 1
 
         if patience >= max_patience:
-            print(f"Early stopping at epoch {epoch}")
+            print(f"\nEarly stopping at epoch {epoch}")
             break
 
     total_time = time.perf_counter() - total_start
     print(f"\nTotal training time: {total_time:.2f}s ({total_time/60:.1f} min)")
 
+    # -------------------------------------------------------
     # Final evaluation
+    # -------------------------------------------------------
     print(f"\nLoading best model from epoch {best_epoch}...")
     model.load_state_dict(torch.load(best_model_path, map_location=device))
 
     print("Evaluating on train/val/test...")
+
     train_metrics, train_probs = evaluate_split_minibatch(
         model, x_node, src_nodes, dst_nodes, edge_attr, time_enc,
-        y_edge, train_idx, eval_batch_size, device, eval_cfg, use_amp
+        y_edge, train_idx, eval_batch_size, device, eval_cfg,
     )
     val_metrics, val_probs = evaluate_split_minibatch(
         model, x_node, src_nodes, dst_nodes, edge_attr, time_enc,
-        y_edge, val_idx, eval_batch_size, device, eval_cfg, use_amp
+        y_edge, val_idx, eval_batch_size, device, eval_cfg,
     )
     test_metrics, test_probs = evaluate_split_minibatch(
         model, x_node, src_nodes, dst_nodes, edge_attr, time_enc,
-        y_edge, test_idx, eval_batch_size, device, eval_cfg, use_amp
+        y_edge, test_idx, eval_batch_size, device, eval_cfg,
     )
 
     print_metrics(train_metrics, model_name=f"{experiment_name} TRAIN")
     print_metrics(val_metrics, model_name=f"{experiment_name} VAL")
     print_metrics(test_metrics, model_name=f"{experiment_name} TEST")
 
-    # Save
+    # Save metrics + probs
     out = {
         "train": train_metrics,
         "val": val_metrics,
@@ -511,7 +504,7 @@ def main():
         "total_training_time_sec": float(total_time),
         "batch_size": batch_size,
         "eval_batch_size": eval_batch_size,
-        "use_amp": use_amp
+        "use_amp": False,
     }
 
     with open(os.path.join(results_dir, "metrics.json"), "w") as f:
@@ -531,15 +524,15 @@ def main():
             "total_training_time_sec": float(total_time),
             "batch_size": batch_size,
             "eval_batch_size": eval_batch_size,
-            "use_amp": use_amp
+            "use_amp": False,
         },
-        filename="experiment_config.json"
+        filename="experiment_config.json",
     )
 
     writer.close()
-    print("\n" + "="*70)
-    print("Training Complete!")
-    print("="*70)
+    print("\n" + "=" * 70)
+    print("TGAT Training Complete!")
+    print("=" * 70)
 
     if logger:
         logger.close()

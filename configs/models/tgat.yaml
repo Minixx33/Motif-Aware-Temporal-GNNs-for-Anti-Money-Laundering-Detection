@@ -11,7 +11,6 @@ training:
   device: "cuda"
   batch_size: 4096             # ← CHANGED: optimized for GPU memory
   eval_batch_size: 8192        # ← ADDED: for evaluation
-  use_amp: true                # ← ADDED: enable mixed precision
   lr: 0.0005                   # ← CHANGED: scaled for new batch size
   weight_decay: 0.0001
   epochs: 100
