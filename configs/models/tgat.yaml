@@ -4,15 +4,15 @@ model:
   num_heads: 4                 # ← CHANGED: 4 heads better for RTX 4080
   num_layers: 2                # ← ADDED: explicit layer count
   time_dim: 32
-  dropout: 0.2
+  dropout: 0.1
   use_residual: true
 
 training:
   device: "cuda"
   batch_size: 4096             # ← CHANGED: optimized for GPU memory
   eval_batch_size: 8192        # ← ADDED: for evaluation
-  lr: 0.0005                   # ← CHANGED: scaled for new batch size
-  weight_decay: 0.0001
+  lr: 0.001                   # ← CHANGED: scaled for new batch size
+  weight_decay: 0.00005
   epochs: 350
   early_stopping_patience: 25  # ← CHANGED: 15 is safer than 5
   gradient_clip: 1.0
@@ -24,4 +24,4 @@ training:
 
 loss:
   type: "bce"
-  pos_weight: null             # auto from train split
+  pos_weight: 100.0             # auto from train split
