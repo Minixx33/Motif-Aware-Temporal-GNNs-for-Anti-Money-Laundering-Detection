@@ -46,9 +46,9 @@ DATA_DIR = os.path.join(BASE_DIR, "ibm_transcations_datasets")
 # ========== SELECT ONE DATASET ==========
 
 # RAT (Routine Activity Theory):
-DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_low.csv")
+# DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_low.csv")
 # DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_medium.csv")
-# DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_high.csv")
+DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_high.csv")
 
 # SLT (Social Learning Theory):
 # DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_low.csv")
