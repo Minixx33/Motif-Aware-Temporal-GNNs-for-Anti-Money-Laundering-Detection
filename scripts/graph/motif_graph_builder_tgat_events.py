@@ -36,9 +36,9 @@ BASE_DIR = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Mo
 DATA_DIR = os.path.join(BASE_DIR, "ibm_transcations_datasets")
 
 # SELECT ONE DATASET
-# DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_low.csv")
+DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_low.csv")
 # DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_medium.csv")
-DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_high.csv")
+# DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_high.csv")
 
 # DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_low.csv")
 # DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_medium.csv")
@@ -147,25 +147,31 @@ df[TS_COL]  = pd.to_datetime(df[TS_COL], errors="raise")
 
 df = df.sort_values(TS_COL).reset_index(drop=True)
 
-# =====================================================================
+# ============================================================
 # DETECT THEORY TYPE
-# =====================================================================
+# ============================================================
 
-has_rat    = any(c.startswith("RAT_") for c in df.columns)
-has_slt    = any(c.startswith("SLT_") for c in df.columns)
+has_rat = any(c.startswith("RAT_") for c in df.columns)
+has_motif = any(c.startswith("motif_") for c in df.columns)
+has_slt = any(c.startswith("SLT_") for c in df.columns)
 has_strain = any(c.startswith("STRAIN_") for c in df.columns)
-has_motif  = any(c.startswith("motif_") for c in df.columns)
 
-if has_rat:
+if has_rat or has_motif:
+    dataset_type = "RAT-injected"
     theory_prefix = ["RAT_", "motif_"]
 elif has_slt:
-    theory_prefix = ["SLT_", "motif_"]
+    dataset_type = "SLT-injected"
+    theory_prefix = ["SLT_"]
 elif has_strain:
-    theory_prefix = ["STRAIN_", "motif_"]
+    dataset_type = "STRAIN-injected"
+    theory_prefix = ["STRAIN_"]
 else:
+    dataset_type = "Baseline"
     theory_prefix = []
 
-print("Theory prefixes:", theory_prefix)
+print(f"Detected dataset type: {dataset_type}")
+print(f"Theory prefixes: {theory_prefix}")
+
 
 # =====================================================================
 # NODE MAPPING
