@@ -366,7 +366,13 @@ def main():
     # -------------------------------------------------------
     # Splits (reuse edge splits like GraphSAGE)
     # -------------------------------------------------------
-    split_folder = paths["split_folder"]
+    # TGAT uses temporal (chronological) splits
+    split_folder_base = os.path.join(PROJECT_ROOT, "tgat_splits")
+    dataset_name = os.path.basename(paths["graph_folder"])
+    split_folder = os.path.join(split_folder_base, dataset_name)
+
+    print(f"Loading TGAT temporal splits from: {split_folder}")
+
     train_idx = torch.load(os.path.join(split_folder, "train_edge_idx.pt")).to(device)
     val_idx = torch.load(os.path.join(split_folder, "val_edge_idx.pt")).to(device)
     test_idx = torch.load(os.path.join(split_folder, "test_edge_idx.pt")).to(device)
