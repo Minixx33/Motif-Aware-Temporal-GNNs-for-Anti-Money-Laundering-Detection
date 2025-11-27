@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-11-26T23:57:25.366572",
+  "timestamp": "2025-11-27T12:37:25.117145",
   "base_config": {
     "experiment": {
       "seed": 42,
@@ -38,12 +38,14 @@
       "dropout": 0.2
     },
     "training": {
-      "device": "cpu",
-      "batch_size": 4096,
-      "lr": 0.001,
-      "weight_decay": "1e-4",
-      "epochs": 1,
-      "early_stopping_patience": 1,
+      "device": "cuda",
+      "batch_size": 8192,
+      "eval_batch_size": 16384,
+      "lr": 0.0001,
+      "weight_decay": 0.0001,
+      "epochs": 500,
+      "early_stopping_patience": 30,
+      "gradient_clip": 1.0,
       "optimizer": {
         "type": "adam",
         "betas": [
@@ -67,6 +69,8 @@
   },
   "intensity": null,
   "additional_info": {
-    "total_training_time_sec": 94.12382049998268
+    "total_training_time_sec": 23919.266415199963,
+    "batch_size": 8192,
+    "eval_batch_size": 16384
   }
 }

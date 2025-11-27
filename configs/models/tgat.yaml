@@ -13,8 +13,8 @@ training:
   eval_batch_size: 8192        # ← ADDED: for evaluation
   lr: 0.0005                   # ← CHANGED: scaled for new batch size
   weight_decay: 0.0001
-  epochs: 100
-  early_stopping_patience: 15  # ← CHANGED: 15 is safer than 5
+  epochs: 350
+  early_stopping_patience: 25  # ← CHANGED: 15 is safer than 5
   gradient_clip: 1.0
 
   optimizer:

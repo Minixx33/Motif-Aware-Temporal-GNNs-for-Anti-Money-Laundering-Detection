@@ -1,0 +1,53 @@
+
+================================================================================
+Logging started at: 2025-11-27 12:37:33
+Log file: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans\graphsage_t\baseline_GraphSAGE_T_20251127_123733.txt
+================================================================================
+
+[INFO] Logging to: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans\graphsage_t\baseline_GraphSAGE_T_20251127_123733.txt
+================================================================================
+EXPERIMENT CONFIGURATION
+================================================================================
+
+[DATASET]
+  Theory:       baseline
+  Intensity:    N/A (baseline)
+  Full name:    HI-Small_Trans
+
+[MODEL] GraphSAGE-T
+  Hidden dim:   128
+  Num layers:   2
+  Dropout:      0.2
+
+[TRAINING]
+  Device:       cuda
+  Batch size:   8192
+  Learning rate: 0.0005
+  Epochs:       500
+  Early stop:   30 epochs
+
+[PATHS]
+  Graphs:       C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs\HI-Small_Trans
+  Splits:       C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits\HI-Small_Trans
+  Results:      C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans\graphsage_t
+  Logs:         C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans\graphsage_t
+
+[EXPERIMENT]
+  Seed:         42
+  Exp name:     default_experiment
+
+================================================================================
+
+[DEVICE] cuda
+
+
+======= GRAPH SAGE-T TRAINING (FP32) =======
+Batch size:       8192
+Eval batch size:  16384
+Device:           cuda
+===========================================
+
+
+Starting training...
+
+Epoch 001 | train_loss=10.5421 val_loss=0.4845 P=0.014 R=0.012 F1=0.013 ROC-AUC=0.553 AUPR=0.001 time=52.51s
