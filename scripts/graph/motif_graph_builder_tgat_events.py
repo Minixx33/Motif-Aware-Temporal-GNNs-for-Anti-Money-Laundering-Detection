@@ -353,6 +353,61 @@ with open(os.path.join(OUT_DIR,"edge_attr_cols.json"),"w") as f:
 with open(os.path.join(OUT_DIR,"node_mapping.json"),"w") as f:
     json.dump(acct2idx,f)
 
+# ============================================================
+# GRAPH STATS (FULL – MATCHES STATIC GRAPHSAGE BUILDER)
+# ============================================================
+
+graph_stats = {
+    "dataset_name": dataset_name,
+    "dataset_type": dataset_type,
+    "theory_prefix": theory_prefix,
+
+    # SIZE
+    "num_nodes": int(num_nodes),
+    "num_events": int(num_events),
+    "num_edge_features": int(edge_attr.shape[1]),
+    "num_node_features": int(x_node.shape[1]),
+
+    # LABEL IMBALANCE
+    "num_laundering_events": int(y_edge.sum()),
+    "pct_laundering_events": float(y_edge.mean() * 100.0),
+
+    # NODE LABELS
+    "num_laundering_nodes": int(y_node.sum()),
+    "pct_laundering_nodes": float(y_node.mean() * 100.0),
+
+    # TEMPORAL
+    "timestamp_min": int(timestamps.min()),
+    "timestamp_max": int(timestamps.max()),
+    "time_span_days": float((timestamps.max() - timestamps.min()) / (3600 * 24)),
+    "temporal_violations": int(np.sum(np.diff(timestamps) < 0)),
+
+    # GRAPH STRUCTURE ESTIMATION (TGAT is event-based)
+    "avg_out_degree": float(np.mean(node_df["out_degree"])),
+    "avg_in_degree": float(np.mean(node_df["in_degree"])),
+    "avg_total_degree": float(np.mean(node_df["total_degree"])),
+    "graph_density_estimate": float(num_events / (num_nodes * max(1, num_nodes - 1))),
+
+    # MOTIF / THEORY PRESENCE
+    "has_motif": bool(has_motif),
+    "has_rat": bool(has_rat),
+    "has_slt": bool(has_slt),
+    "has_strain": bool(has_strain),
+    "num_motif_features": int(len([c for c in edge_attr_cols if c.startswith("motif_")])),
+    "num_theory_features": int(len([c for c in edge_attr_cols if c.startswith(("RAT_", "SLT_", "STRAIN_"))])),
+
+    # FEATURE LISTS
+    "edge_feature_cols": edge_attr_cols,
+    "node_feature_cols": ["out_degree", "in_degree", "total_degree", "laundering_count"],
+
+    # PATHS
+    "dataset_path": INPUT_PATH,
+    "output_dir": OUT_DIR,
+}
+
+with open(os.path.join(OUT_DIR, "graph_stats.json"), "w") as f:
+    json.dump(graph_stats, f, indent=2)
+
 print("\n✓ TGAT baseline-aligned event graph built.")
 print("Saved to:", OUT_DIR)
 print("=" * 70)
