@@ -19,9 +19,9 @@ STATIC (GraphSAGE/GraphSAGE-T):
   - split_metadata.json
 
 TEMPORAL (TGAT):
-  - train_idx.pt           [first 60% chronologically]
-  - val_idx.pt             [next 20%]
-  - test_idx.pt            [last 20%]
+  - train_edge_idx.pt      [first 60% chronologically]
+  - val_edge_idx.pt        [next 20%]
+  - test_edge_idx.pt       [last 20%]
   - split_metadata.json
 
 Enhancements:
@@ -29,6 +29,7 @@ Enhancements:
   - Temporal leakage detection
   - Validation checks
   - More detailed metadata
+  - Custom output directory support
 """
 
 import os
@@ -59,7 +60,7 @@ def detect_graph_type(folder):
         return "static"
     else:
         raise ValueError(
-            f"❌ Cannot detect graph type in {folder}.\n"
+            f" Cannot detect graph type in {folder}.\n"
             f"   Missing required files.\n"
             f"   Expected: 'edge_index.pt' (static) or 'src_nodes.pt' + 'dst_nodes.pt' (temporal)"
         )
@@ -101,7 +102,7 @@ def split_static_graph(folder, out_dir, train_ratio=0.60, val_ratio=0.20,
     print(f"  Negative (normal):     {num_edges - num_positive:,} ({100 - pct_positive:.2f}%)")
     
     if pct_positive < 1:
-        print(f"  ⚠️ Severe imbalance detected - using stratified split")
+        print(f"  Severe imbalance detected - using stratified split")
     
     # Create indices
     all_idx = np.arange(num_edges)
@@ -141,7 +142,7 @@ def split_static_graph(folder, out_dir, train_ratio=0.60, val_ratio=0.20,
             random_state=random_seed
         )
     
-    print(f"\n📊 Split sizes:")
+    print(f"\n Split sizes:")
     print(f"  Train: {len(train_idx):,} edges ({100*len(train_idx)/num_edges:.1f}%)")
     print(f"  Val:   {len(val_idx):,} edges ({100*len(val_idx)/num_edges:.1f}%)")
     print(f"  Test:  {len(test_idx):,} edges ({100*len(test_idx)/num_edges:.1f}%)")
@@ -304,9 +305,10 @@ def split_temporal_graph(folder, out_dir, train_ratio=0.60, val_ratio=0.20, test
     # Save outputs
     os.makedirs(out_dir, exist_ok=True)
     
-    torch.save(torch.tensor(train_idx, dtype=torch.long), os.path.join(out_dir, "train_idx.pt"))
-    torch.save(torch.tensor(val_idx, dtype=torch.long), os.path.join(out_dir, "val_idx.pt"))
-    torch.save(torch.tensor(test_idx, dtype=torch.long), os.path.join(out_dir, "test_idx.pt"))
+    # Use consistent naming with static graphs (train_edge_idx.pt)
+    torch.save(torch.tensor(train_idx, dtype=torch.long), os.path.join(out_dir, "train_edge_idx.pt"))
+    torch.save(torch.tensor(val_idx, dtype=torch.long), os.path.join(out_dir, "val_edge_idx.pt"))
+    torch.save(torch.tensor(test_idx, dtype=torch.long), os.path.join(out_dir, "test_edge_idx.pt"))
     
     # Save metadata
     meta = {
@@ -338,12 +340,13 @@ def split_temporal_graph(folder, out_dir, train_ratio=0.60, val_ratio=0.20, test
 # ------------------------------------------------------------
 # MAIN
 # ------------------------------------------------------------
-def create_splits(graph_folder, train_ratio=0.60, val_ratio=0.20, test_ratio=0.20, random_seed=42):
+def create_splits(graph_folder, out_dir=None, train_ratio=0.60, val_ratio=0.20, test_ratio=0.20, random_seed=42):
     """
     Main function to create train/val/test splits.
     
     Parameters:
         graph_folder: Path to graph directory
+        out_dir: Custom output directory (optional). If None, uses splits/<dataset_name>
         train_ratio: Fraction for training (default 0.60)
         val_ratio: Fraction for validation (default 0.20)
         test_ratio: Fraction for testing (default 0.20)
@@ -356,10 +359,13 @@ def create_splits(graph_folder, train_ratio=0.60, val_ratio=0.20, test_ratio=0.2
     
     dataset_name = os.path.basename(graph_folder)
     
-    # Output to splits/<dataset_name>/
-    parent_dir = os.path.dirname(graph_folder)
-    splits_base = os.path.join(parent_dir, "..", "splits")
-    out_dir = os.path.join(splits_base, dataset_name)
+    # Allow custom output directory, otherwise use default
+    if out_dir is None:
+        # Output to splits/<dataset_name>/
+        parent_dir = os.path.dirname(graph_folder)
+        splits_base = os.path.join(parent_dir, "..", "splits")
+        out_dir = os.path.join(splits_base, dataset_name)
+    
     out_dir = os.path.abspath(out_dir)
     
     print(f"\n{'='*70}")
@@ -404,7 +410,7 @@ def batch_create_splits(base_dir, graph_type="graphs", train_ratio=0.60, val_rat
     for dataset in datasets:
         folder = os.path.join(graph_dir, dataset)
         try:
-            create_splits(folder, train_ratio, val_ratio, test_ratio)
+            create_splits(folder, out_dir=None, train_ratio=train_ratio, val_ratio=val_ratio, test_ratio=test_ratio)
         except Exception as e:
             print(f"\n❌ Failed to process {dataset}: {e}\n")
     
@@ -423,7 +429,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--graph_folder",
         type=str,
-        help="Path to single graph directory (e.g., graphs/HI-Small_Trans_RAT_low)",
+        help="Path to single graph directory (e.g., graphs/HI-Small_Trans)",
+    )
+    parser.add_argument(
+        "--out_dir",
+        type=str,
+        default=None,
+        help="Custom output directory (e.g., splits/HI-Small_Trans_temporal). If not specified, uses splits/<dataset_name>"
     )
     parser.add_argument(
         "--batch",
@@ -487,6 +499,7 @@ if __name__ == "__main__":
         # Single dataset
         create_splits(
             args.graph_folder,
+            args.out_dir,
             args.train_ratio,
             args.val_ratio,
             args.test_ratio,
@@ -495,5 +508,9 @@ if __name__ == "__main__":
     else:
         parser.print_help()
         print("\nExample usage:")
-        print("  python create_splits.py --graph_folder graphs/HI-Small_Trans_RAT_low")
+        print("  # Use default output (splits/HI-Small_Trans/)")
+        print("  python create_splits.py --graph_folder graphs/HI-Small_Trans")
+        print("\n  # Custom output directory (won't override existing splits)")
+        print("  python create_splits.py --graph_folder graphs/HI-Small_Trans --out_dir splits/HI-Small_Trans_temporal")
+        print("\n  # Batch process all datasets")
         print("  python create_splits.py --batch --base_dir /path/to/data")
