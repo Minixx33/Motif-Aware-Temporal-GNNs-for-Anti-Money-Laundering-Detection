@@ -322,7 +322,7 @@ def main():
     max_patience = train_cfg.get("early_stopping_patience", 15)
     epochs = train_cfg.get("epochs", 100)
 
-    print("\nStarting training...\n")
+    print(f"\nStarting training for {epochs} epochs...\n")
     total_start = time.perf_counter()
 
     for epoch in range(1, epochs + 1):
