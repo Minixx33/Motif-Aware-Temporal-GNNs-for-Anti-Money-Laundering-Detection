@@ -1,26 +1,15 @@
-# train_graphsage_t_GPU.py
+# train_graphsage_t_FIXED.py
 # -----------------------------------------------------------
 # GPU-optimized GraphSAGE-T (Temporal GraphSAGE)
-# Stable version:
-#   - NO AMP (AMP caused NaNs)
-#   - NO DETACH (full end-to-end)
-#   - Temporal correctness: encode inside minibatch
-#   - Gradient clipping
-#   - STANDARD LOGGING identical to GraphSAGE + TGAT
-# -----------------------------------------------------------
-# Usage
-# Example: (default)
-# python scripts/training/train_graphsage_t.py \
-#     --config configs/tgat.yaml \
-#     --dataset configs/datasets/baseline.yaml \
-#     --base_config configs/base.yaml
-#
-# Example: (low-intensity HiSmallRat)
-# python scripts/training/train_graphsage_t.py \
-#     --config configs/tgat.yaml \
-#     --dataset configs/datasets/hismall_rat_low.yaml \
-#     --intensity low \
-#     --base_config configs/base.yaml
+# FIXED VERSION - Added missing metrics saving code!
+# 
+# WHAT WAS FIXED:
+# - Added metrics.json saving (lines 458-467)
+# - Added prediction probabilities saving (lines 470-473)
+# - Added experiment config saving (lines 476-488)
+# - Added completion message (lines 492-495)
+# 
+# This ensures results are ALWAYS saved even if training stops early!
 # -----------------------------------------------------------
 
 import os
@@ -131,7 +120,7 @@ class GraphSAGE_T(nn.Module):
 
 
 # -----------------------------------------------------------
-# Mini-batch training — STANDARDIZED
+# Mini-batch training
 # -----------------------------------------------------------
 
 def run_epoch_minibatch(
@@ -151,8 +140,6 @@ def run_epoch_minibatch(
         batch_edges = idx[start:end]
 
         optimizer.zero_grad(set_to_none=True)
-
-        # Temporal correctness: encode inside each batch
         h = model.encode(x, edge_index)
 
         eidx = edge_index[:, batch_edges]
@@ -181,7 +168,6 @@ def evaluate_minibatch(
     model.eval()
     total_loss = 0.0
     steps = 0
-
     all_probs = []
 
     for start in range(0, split_idx.size(0), batch_size):
@@ -189,7 +175,6 @@ def evaluate_minibatch(
         idx = split_idx[start:end]
 
         h = model.encode(x, edge_index)
-
         logits = model.classify(h, edge_index[:, idx], feat[idx])
         probs = torch.sigmoid(logits)
         labels = y[idx].float()
@@ -197,7 +182,6 @@ def evaluate_minibatch(
         loss = loss_fn(logits, labels)
         total_loss += loss.item()
         steps += 1
-
         all_probs.append(probs.cpu().numpy())
 
     all_probs = np.concatenate(all_probs)
@@ -246,9 +230,9 @@ def main():
 
     base_cfg = setup["base_cfg"]
     model_cfg = setup["model_cfg"]
+    dataset_cfg = setup.get("dataset_cfg", {})
     eval_cfg = base_cfg["evaluation"]
     train_cfg = model_cfg["training"]
-    loss_cfg = model_cfg["loss"]
     paths = setup["paths"]
     device = setup["device"]
     experiment_name = setup["experiment_name"]
@@ -257,7 +241,7 @@ def main():
     batch_size = train_cfg.get("batch_size", 8192)
     eval_batch_size = train_cfg.get("eval_batch_size", 16384)
 
-    print("\n======= GRAPH SAGE-T TRAINING (FP32) =======")
+    print("\n======= GRAPHSAGE-T TRAINING (FP32) =======")
     print(f"Batch size:       {batch_size}")
     print(f"Eval batch size:  {eval_batch_size}")
     print(f"Device:           {device}")
@@ -265,7 +249,7 @@ def main():
 
     writer = SummaryWriter(os.path.join(paths["logs_dir"], "tb"))
 
-    # Load tensors
+    # Load data
     graph = paths["graph_folder"]
     x = torch.load(f"{graph}/x.pt").to(device)
     edge_index = torch.load(f"{graph}/edge_index.pt").to(device)
@@ -273,12 +257,10 @@ def main():
     y_edge = torch.load(f"{graph}/y_edge.pt").to(device)
     timestamps = torch.load(f"{graph}/timestamps.pt").to(device)
 
-    # Time encoding
     time_dim = model_cfg["model"].get("time_dim", 16)
     time_enc = build_sinusoidal_time_encoding(timestamps, time_dim)
     feat = torch.cat([edge_attr, time_enc], dim=1)
 
-    # Splits
     split_folder = paths["split_folder"]
     train_idx = torch.load(f"{split_folder}/train_edge_idx.pt").to(device)
     val_idx = torch.load(f"{split_folder}/val_edge_idx.pt").to(device)
@@ -345,7 +327,6 @@ def main():
         val_f1 = val_metrics.get("f1", 0.0)
         val_roc = val_metrics.get("roc_auc", 0.0)
         val_aupr = val_metrics.get("aupr", 0.0)
-
         elapsed = time.perf_counter() - epoch_start
 
         print(
@@ -357,7 +338,6 @@ def main():
             f"time={elapsed:.2f}s"
         )
 
-        # TensorBoard
         writer.add_scalar("Loss/train", train_loss, epoch)
         writer.add_scalar("Loss/val", val_loss, epoch)
         writer.add_scalar("Val/Precision", val_p, epoch)
@@ -367,7 +347,6 @@ def main():
         writer.add_scalar("Val/AUPR", val_aupr, epoch)
         writer.add_scalar("Time/epoch_seconds", elapsed, epoch)
 
-        # Early stopping on AUPR
         if val_aupr > best_val:
             best_val = val_aupr
             best_epoch = epoch
@@ -383,20 +362,23 @@ def main():
     total_time = time.perf_counter() - total_start
     print(f"\nTotal training time: {total_time:.2f}s ({total_time/60:.1f} min)")
 
-    # Load best model + final evaluation
+    # ========================================================================
+    # FINAL EVALUATION + SAVE EVERYTHING (THIS WAS MISSING!)
+    # ========================================================================
+    print(f"\nLoading best model from epoch {best_epoch}...")
     model.load_state_dict(torch.load(best_model_path, map_location=device))
 
-    print("\nEvaluating final model...")
+    print("Evaluating final model...")
 
-    train_m, train_p, train_loss_f = evaluate_minibatch(
+    train_m, train_p, _ = evaluate_minibatch(
         model, loss_fn, x, edge_index, feat, y_edge,
         train_idx, eval_batch_size, device, eval_cfg
     )
-    val_m, val_p, val_loss_f = evaluate_minibatch(
+    val_m, val_p, _ = evaluate_minibatch(
         model, loss_fn, x, edge_index, feat, y_edge,
         val_idx, eval_batch_size, device, eval_cfg
     )
-    test_m, test_p, test_loss_f = evaluate_minibatch(
+    test_m, test_p, _ = evaluate_minibatch(
         model, loss_fn, x, edge_index, feat, y_edge,
         test_idx, eval_batch_size, device, eval_cfg
     )
@@ -405,7 +387,54 @@ def main():
     print_metrics(val_m, experiment_name + " VAL")
     print_metrics(test_m, experiment_name + " TEST")
 
+    # SAVE METRICS (THIS WAS MISSING!)
+    print("\nSaving results...")
+    
+    out = {
+        "train": train_m,
+        "val": val_m,
+        "test": test_m,
+        "best_epoch": best_epoch,
+        "best_val_aupr": float(best_val),
+        "total_training_time_sec": float(total_time),
+        "batch_size": batch_size,
+        "eval_batch_size": eval_batch_size,
+    }
+
+    metrics_path = os.path.join(results_dir, "metrics.json")
+    with open(metrics_path, "w") as f:
+        json.dump(out, f, indent=2)
+    print(f" Saved metrics to: {metrics_path}")
+
+    # Save prediction probabilities
+    torch.save(torch.tensor(train_p), os.path.join(results_dir, "train_pred_probs.pt"))
+    torch.save(torch.tensor(val_p), os.path.join(results_dir, "val_pred_probs.pt"))
+    torch.save(torch.tensor(test_p), os.path.join(results_dir, "test_pred_probs.pt"))
+    print(f" Saved prediction probabilities")
+
+    # Save experiment config
+    save_experiment_config(
+        save_dir=results_dir,
+        base_cfg=base_cfg,
+        model_cfg=model_cfg,
+        dataset_cfg=dataset_cfg,
+        intensity=args.intensity,
+        additional_info={
+            "total_training_time_sec": float(total_time),
+            "batch_size": batch_size,
+            "eval_batch_size": eval_batch_size,
+        },
+        filename="experiment_config.json",
+    )
+    print(f" Saved experiment config")
+
     writer.close()
+    
+    print("\n" + "="*70)
+    print("GraphSAGE-T Training Complete!")
+    print(f"Results saved to: {results_dir}")
+    print("="*70)
+    
     if logger:
         logger.close()
 

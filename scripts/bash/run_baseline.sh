@@ -124,7 +124,7 @@ run_model() {
 start_time=$(date +%s)
 
 # run_model "GraphSAGE"   "$TRAIN_SAGE"   "$SAGE_CONFIG"
-run_model "GraphSAGE-T" "$TRAIN_SAGET"  "$SAGET_CONFIG"
+# run_model "GraphSAGE-T" "$TRAIN_SAGET"  "$SAGET_CONFIG"
 run_model "TGAT"        "$TRAIN_TGAT"   "$TGAT_CONFIG"
 
 # ----------------------------------------------------------------------------
