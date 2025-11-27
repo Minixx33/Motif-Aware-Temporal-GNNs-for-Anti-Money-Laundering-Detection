@@ -36,9 +36,9 @@ BASE_DIR = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Mo
 DATA_DIR = os.path.join(BASE_DIR, "ibm_transcations_datasets")
 
 # SELECT ONE DATASET
-DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_low.csv")
+# DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_low.csv")
 # DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_medium.csv")
-# DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_high.csv")
+DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_high.csv")
 
 # DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_low.csv")
 # DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_medium.csv")
@@ -330,8 +330,10 @@ x_node = node_df[["out_degree","in_degree","total_degree","laundering_count"]].v
 # =====================================================================
 
 y_node = np.zeros(num_nodes, dtype=np.int64)
-for acct in laund_counts.index:
+laundering_accounts = set(laund_src) | set(laund_dst)
+for acct in laundering_accounts:
     y_node[acct2idx[acct]] = 1
+
 
 # =====================================================================
 # EDGE LABELS
@@ -362,6 +364,13 @@ with open(os.path.join(OUT_DIR,"node_mapping.json"),"w") as f:
 # ============================================================
 # GRAPH STATS (FULL – MATCHES STATIC GRAPHSAGE BUILDER)
 # ============================================================
+node_df["out_degree"] = node_df["out_degree"].fillna(0)
+node_df["in_degree"] = node_df["in_degree"].fillna(0)
+node_df["total_degree"] = node_df["total_degree"].fillna(0)
+
+avg_out_degree = float(num_events) / float(num_nodes) if num_nodes > 0 else 0.0
+avg_in_degree = avg_out_degree
+avg_total_degree = 2.0 * avg_out_degree
 
 graph_stats = {
     "dataset_name": dataset_name,
@@ -389,9 +398,9 @@ graph_stats = {
     "temporal_violations": int(np.sum(np.diff(timestamps) < 0)),
 
     # GRAPH STRUCTURE ESTIMATION (TGAT is event-based)
-    "avg_out_degree": float(np.mean(node_df["out_degree"])),
-    "avg_in_degree": float(np.mean(node_df["in_degree"])),
-    "avg_total_degree": float(np.mean(node_df["total_degree"])),
+    "avg_out_degree": avg_out_degree,
+    "avg_in_degree": avg_in_degree,
+    "avg_total_degree": avg_total_degree,
     "graph_density_estimate": float(num_events / (num_nodes * max(1, num_nodes - 1))),
 
     # MOTIF / THEORY PRESENCE
