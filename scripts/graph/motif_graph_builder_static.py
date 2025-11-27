@@ -1,34 +1,22 @@
 """
-graph_builder_static.py (Normalized Version)
--------------------------------------------
-Build a static graph for GraphSAGE / GraphSAGE-T from IBM HI-Small motif-injected datasets.
+graph_builder_theory_aligned.py
+---------------------------------------------------
+Baseline-aligned static graph builder for:
+  - HI-Small_Trans_RAT_low/medium/high.csv
+  - HI-Small_Trans_SLT_low/medium/high.csv
+  - HI-Small_Trans_STRAIN_low/medium/high.csv
 
-Supports ALL criminology theory datasets: [NOT FOR BASELINE]
-    - HI-Small_Trans_RAT_low/medium/high.csv   (Routine Activity Theory)
-    - HI-Small_Trans_SLT_low/medium/high.csv   (Social Learning Theory)
-    - HI-Small_Trans_STRAIN_low/medium/high.csv (Strain Theory)
+This version EXACTLY replicates the baseline builder behavior:
+  ✓ baseline temporal features
+  ✓ baseline engineered numeric features
+  ✓ baseline categorical one-hot encodings
+  ✓ baseline structural node features
+  ✓ z-score normalization on ALL numeric theory features
+  ✓ NO identity/leaky columns
+  ✓ Guaranteed compatibility with GraphSAGE + GraphSAGE-T
 
-Features:
-  ✓ Automatic dataset type detection
-  ✓ Theory-specific feature extraction (RAT_, SLT_, STRAIN_, motif_)
-  ✓ Structural feature inclusion
-  ✓ Column-wise z-score normalization for ALL edge features
-  ✓ Clipping to [-10, 10] for numerical stability
-  ✓ Separate output directories per dataset
-  ✓ GraphSAGE-T temporal validation
-  ✓ NaN/Inf handling and memory optimization
-
-Outputs (in graphs/{dataset_name}/):
-  - edge_index.pt      [2, E]
-  - edge_attr.pt       [E, F_e]  (normalized)
-  - timestamps.pt      [E]
-  - x.pt               [N, F_n]
-  - y_edge.pt          [E]
-  - y_node.pt          [N]
-  - node_mapping.json
-  - edge_attr_cols.json
-  - feature_stats.json (stats of normalized edge_attr)
-  - graph_stats.json
+Everything baseline → preserved.
+Only difference → added criminology theory + motif features.
 """
 
 import os
@@ -38,475 +26,268 @@ import pandas as pd
 import torch
 
 # ============================================================
-# CONFIG - CHANGE DATASET HERE
+# CONFIG
 # ============================================================
 
 BASE_DIR = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection"
 DATA_DIR = os.path.join(BASE_DIR, "ibm_transcations_datasets")
-# ========== SELECT ONE DATASET ==========
 
-# RAT (Routine Activity Theory):
+# RAT
 # DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_low.csv")
 # DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_medium.csv")
 DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_high.csv")
 
-# SLT (Social Learning Theory):
+# SLT
 # DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_low.csv")
-# DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_medium.csv")
-# DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_high.csv")
+# DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_low.csv")
+# DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_low.csv")
 
-# STRAIN (Strain Theory):
+# STRAIN
 # DATASET = os.path.join("STRAIN", "HI-Small_Trans_STRAIN_low.csv")
 # DATASET = os.path.join("STRAIN", "HI-Small_Trans_STRAIN_medium.csv")
 # DATASET = os.path.join("STRAIN", "HI-Small_Trans_STRAIN_high.csv")
 
-# ========== AUTO-GENERATE OUTPUT PATH ==========
+
 INPUT_PATH = os.path.join(DATA_DIR, DATASET)
 dataset_name = os.path.splitext(os.path.basename(DATASET))[0]
+
 OUT_DIR = os.path.join(BASE_DIR, "graphs", dataset_name)
 os.makedirs(OUT_DIR, exist_ok=True)
 
-# ========== COLUMN NAMES ==========
+# Column names
+TS_COL = "Timestamp"
 SRC_COL = "Account"
 DST_COL = "Account.1"
-TS_COL = "Timestamp"
+FROM_BANK = "From Bank"
+TO_BANK = "To Bank"
+RCURR = "Receiving Currency"
+PCURR = "Payment Currency"
+PFORMAT = "Payment Format"
 LABEL_COL = "Is Laundering"
-
-# Columns to EXCLUDE from edge features
-EXCLUDE_COLS = {
-    SRC_COL, DST_COL, TS_COL, LABEL_COL,
-    "From Bank", "To Bank",
-    "Receiving Currency", "Payment Currency", "Payment Format",
-    "date_only", "hour", "weekday",
-    "RAT_injected", "RAT_intensity_level",
-    "SLT_injected", "SLT_intensity_level",
-    "STRAIN_injected", "STRAIN_intensity_level",
-}
-
-# Structural columns to INCLUDE (if present)
-WHITELIST_STRUCT_COLS = {
-    "src_out_degree", "dst_in_degree",
-    "src_amt_mean", "src_amt_std",
-    "dst_amt_mean", "dst_amt_std",
-    "src_age_days", "dst_age_days",
-    "src_day_tx_count", "dst_day_tx_count",
-    "dst_out_degree", "dst_out_deg_norm",
-}
-
-# Self-loop handling
-REMOVE_SELF_LOOPS = False
 
 # ============================================================
 # LOAD DATA
 # ============================================================
 
 print("=" * 70)
-print("UNIVERSAL GRAPH BUILDER FOR GRAPHSAGE / GRAPHSAGE-T (NORMALIZED)")
+print("BASELINE-ALIGNED THEORY GRAPH BUILDER")
 print("=" * 70)
-print(f"\nDataset: {DATASET}")
-print(f"Loading from: {INPUT_PATH}")
 
 df = pd.read_csv(INPUT_PATH, low_memory=False)
-print(f"✓ Loaded {len(df):,} transaction rows")
+print(f"Loaded {len(df):,} rows")
 
-# Ensure correct types
+df[TS_COL] = pd.to_datetime(df[TS_COL], errors="raise")
+df = df.sort_values(TS_COL).reset_index(drop=True)
+
 df[SRC_COL] = df[SRC_COL].astype(str)
 df[DST_COL] = df[DST_COL].astype(str)
-df[TS_COL] = pd.to_datetime(df[TS_COL], errors="raise")
-
-# Sort by time (critical for GraphSAGE-T)
-df = df.sort_values(TS_COL).reset_index(drop=True)
-print(f"✓ Timestamp range: {df[TS_COL].min()} → {df[TS_COL].max()}")
 
 # ============================================================
-# DATASET TYPE DETECTION
+# DETECT THEORY TYPE
 # ============================================================
 
-print("\n" + "=" * 70)
-print("DATASET TYPE DETECTION")
-print("=" * 70)
+has_rat = any(col.startswith("RAT_") for col in df.columns)
+has_slt = any(col.startswith("SLT_") for col in df.columns)
+has_strain = any(col.startswith("STRAIN_") for col in df.columns)
+has_motif = any(col.startswith("motif_") for col in df.columns)
 
-has_rat_features = any(col.startswith("RAT_") for col in df.columns)
-has_motif_features = any(col.startswith("motif_") for col in df.columns)
-has_slt_features = any(col.startswith("SLT_") for col in df.columns)
-has_strain_features = any(col.startswith("STRAIN_") for col in df.columns)
-
-if has_rat_features or has_motif_features:
-    dataset_type = "RAT-injected"
+if has_rat:
     theory_prefix = ["RAT_", "motif_"]
-elif has_slt_features:
+    dataset_type = "RAT-injected"
+elif has_slt:
+    theory_prefix = ["SLT_", "motif_"]
     dataset_type = "SLT-injected"
-    theory_prefix = ["SLT_"]
-elif has_strain_features:
-    dataset_type = "Strain-injected"
-    theory_prefix = ["STRAIN_"]
+elif has_strain:
+    theory_prefix = ["STRAIN_", "motif_"]
+    dataset_type = "STRAIN-injected"
 else:
-    dataset_type = "Baseline"
-    theory_prefix = []
+    raise ValueError("ERROR: This builder is ONLY for theory-injected datasets")
 
 print(f"Detected: {dataset_type}")
-if theory_prefix:
-    print(f"Theory feature prefixes: {', '.join(theory_prefix)}")
 
 # ============================================================
 # NODE MAPPING
 # ============================================================
 
-print("\n" + "=" * 70)
-print("BUILDING NODE MAPPING")
-print("=" * 70)
-
-all_accounts = pd.concat([df[SRC_COL], df[DST_COL]]).unique()
-acct2idx = {acct: i for i, acct in enumerate(all_accounts)}
+all_nodes = pd.concat([df[SRC_COL], df[DST_COL]]).unique()
+acct2idx = {acct: i for i, acct in enumerate(all_nodes)}
 num_nodes = len(acct2idx)
-print(f"✓ Unique accounts (nodes): {num_nodes:,}")
 
-src_idx = df[SRC_COL].map(acct2idx).values
-dst_idx = df[DST_COL].map(acct2idx).values
-
-edge_index = np.stack([src_idx, dst_idx], axis=0)  # [2, E]
-num_edges = edge_index.shape[1]
-print(f"✓ Total edges: {num_edges:,}")
+src = df[SRC_COL].map(acct2idx).values
+dst = df[DST_COL].map(acct2idx).values
+edge_index = np.stack([src, dst], axis=0)
+num_edges = len(src)
 
 # ============================================================
-# GRAPH VALIDATION & STATISTICS
-# ============================================================
-
-print("\n" + "=" * 70)
-print("GRAPH STATISTICS")
-print("=" * 70)
-
-avg_degree = num_edges / num_nodes if num_nodes > 0 else 0
-density = num_edges / (num_nodes * (num_nodes - 1)) if num_nodes > 1 else 0
-
-print(f"Nodes: {num_nodes:,}")
-print(f"Edges: {num_edges:,}")
-print(f"Average degree: {avg_degree:.2f}")
-print(f"Graph density: {density:.6f}")
-
-# Self-loops
-self_loop_mask = src_idx == dst_idx
-num_self_loops = self_loop_mask.sum()
-print(f"Self-loops: {num_self_loops:,} ({100 * num_self_loops / num_edges:.2f}%)")
-
-if REMOVE_SELF_LOOPS and num_self_loops > 0:
-    print(f"  → Removing {num_self_loops:,} self-loops...")
-    keep_mask = ~self_loop_mask
-    edge_index = edge_index[:, keep_mask]
-    df = df[keep_mask].reset_index(drop=True)
-    src_idx = src_idx[keep_mask]
-    dst_idx = dst_idx[keep_mask]
-    num_edges = edge_index.shape[1]
-    print(f"  → Remaining edges: {num_edges:,}")
-
-# Isolated nodes
-unique_src = set(src_idx)
-unique_dst = set(dst_idx)
-connected_nodes = unique_src | unique_dst
-num_isolated = num_nodes - len(connected_nodes)
-print(f"Isolated nodes: {num_isolated:,} ({100 * num_isolated / num_nodes:.2f}%)")
-if num_isolated > 0:
-    print("  ⚠ Warning: Graph contains isolated nodes")
-
-# ============================================================
-# TIMESTAMPS
-# ============================================================
-
-print("\n" + "=" * 70)
-print("TEMPORAL FEATURES")
-print("=" * 70)
-
-timestamps = (df[TS_COL].astype("int64") // 10**9).values  # UNIX seconds
-
-time_span_days = (timestamps.max() - timestamps.min()) / (3600 * 24)
-print(f"Timestamp range (UNIX): {timestamps.min()} → {timestamps.max()}")
-print(f"Time span: {time_span_days:.1f} days")
-
-# Temporal ordering validation (critical for GraphSAGE-T)
-time_diffs = np.diff(timestamps)
-num_negative_gaps = (time_diffs < 0).sum()
-print(f"Min time gap: {time_diffs.min()} seconds")
-print(f"Max time gap: {time_diffs.max()} seconds")
-print(f"Temporal violations: {num_negative_gaps}")
-
-if num_negative_gaps > 0:
-    print("  ⚠ WARNING: Dataset has temporal ordering violations!")
-    print("  → GraphSAGE-T requires strictly increasing timestamps")
-
-# ============================================================
-# EDGE LABELS
+# LABELS
 # ============================================================
 
 y_edge = df[LABEL_COL].astype(int).values
 
-print("\n" + "=" * 70)
-print("LABEL DISTRIBUTION")
-print("=" * 70)
-
-num_laundering_edges = y_edge.sum()
-pct_laundering_edges = 100 * y_edge.mean()
-print(f"Laundering edges: {num_laundering_edges:,} ({pct_laundering_edges:.2f}%)")
-print(f"Normal edges: {num_edges - num_laundering_edges:,} ({100 - pct_laundering_edges:.2f}%)")
+# Node labels: any account involved in laundering becomes 1
+y_node = np.zeros(num_nodes, dtype=np.int64)
+laund_src = df.loc[df[LABEL_COL] == 1, SRC_COL].astype(str)
+laund_dst = df.loc[df[LABEL_COL] == 1, DST_COL].astype(str)
+for acct in set(laund_src) | set(laund_dst):
+    y_node[acct2idx[acct]] = 1
 
 # ============================================================
-# EDGE FEATURES (SELECTION + NORMALIZATION)
+# BASELINE FEATURES
+# (replicate EXACT baseline design)
 # ============================================================
 
-print("\n" + "=" * 70)
-print("EDGE FEATURES (SELECTION + NORMALIZATION)")
-print("=" * 70)
+def log1p_safe(x):
+    x = np.asarray(x, dtype=np.float64)
+    x = np.where(x < 0, 0, x)
+    return np.log1p(x)
 
-edge_feature_cols = []
+amt_rec = df["Amount Received"].astype(float).values
+amt_paid = df["Amount Paid"].astype(float).values
 
-for col in df.columns:
-    if col in EXCLUDE_COLS:
-        continue
-    if not np.issubdtype(df[col].dtype, np.number):
-        continue
+log_amt_rec = log1p_safe(amt_rec)
+log_amt_paid = log1p_safe(amt_paid)
 
-    is_theory_feature = any(col.startswith(prefix) for prefix in theory_prefix)
-    is_structural = col in WHITELIST_STRUCT_COLS
+same_bank = (df[FROM_BANK].astype(str) == df[TO_BANK].astype(str)).astype(float)
+same_curr = (df[RCURR].astype(str) == df[PCURR].astype(str)).astype(float)
 
-    if is_theory_feature or is_structural:
-        edge_feature_cols.append(col)
+hour = df[TS_COL].dt.hour.values.astype(float)
+weekday = df[TS_COL].dt.dayofweek.values.astype(float)
+is_weekend = (weekday >= 5).astype(float)
 
-edge_feature_cols = sorted(edge_feature_cols)
+# normalized timestamps
+timestamps = (df[TS_COL].astype("int64") // 10**9).values
+ts_norm = (timestamps - timestamps.min()) / (timestamps.max() - timestamps.min() + 1e-9)
 
-print(f"Selected {len(edge_feature_cols)} edge feature columns:")
-for i, c in enumerate(edge_feature_cols, 1):
-    print(f"  {i:2d}. {c}")
+# time since last src
+last_src = {}
+tsls = np.zeros(num_edges)
+for i, (s, ts) in enumerate(zip(src, timestamps)):
+    tsls[i] = ts - last_src.get(s, ts)
+    last_src[s] = ts
+tsls = np.log1p(tsls)
 
-# Extract edge features
-print("\nCleaning edge features (NaN/Inf handling) and applying normalization...")
-edge_attr_df = df[edge_feature_cols].copy()
+# time since last dst
+last_dst = {}
+tsld = np.zeros(num_edges)
+for i, (d, ts) in enumerate(zip(dst, timestamps)):
+    tsld[i] = ts - last_dst.get(d, ts)
+    last_dst[d] = ts
+tsld = np.log1p(tsld)
 
-# Replace NaN/Inf BEFORE normalization
-nan_before = edge_attr_df.isna().sum().sum()
-inf_before = np.isinf(edge_attr_df.select_dtypes(include=[np.number]).values).sum()
+pf = pd.get_dummies(df[PFORMAT].astype(str), prefix="pf")
+rc = pd.get_dummies(df[RCURR].astype(str), prefix="rc")
 
-if nan_before > 0:
-    print(f"  Found {nan_before:,} NaN values → filling with 0")
-if inf_before > 0:
-    print(f"  Found {inf_before:,} Inf values → replacing with 0")
+baseline_df = pd.DataFrame({
+    "log_amt_rec": log_amt_rec,
+    "log_amt_paid": log_amt_paid,
+    "same_bank": same_bank,
+    "same_currency": same_curr,
+    "hour_of_day": hour,
+    "day_of_week": weekday,
+    "is_weekend": is_weekend,
+    "ts_normalized": ts_norm.astype(np.float32),
+    "log_time_since_src": tsls.astype(np.float32),
+    "log_time_since_dst": tsld.astype(np.float32),
+})
 
-edge_attr_df = edge_attr_df.fillna(0).replace([np.inf, -np.inf], 0)
+baseline_df = pd.concat([baseline_df, pf, rc], axis=1)
 
-# ------------------------------------------------------------
-# COLUMN-WISE Z-SCORE NORMALIZATION (ALL EDGE FEATURES)
-# ------------------------------------------------------------
-
-norm_means = []
-norm_stds = []
-norm_mins = []
-norm_maxs = []
-
-for col in edge_feature_cols:
-    col_values = edge_attr_df[col].astype(np.float32).values
-
-    mean = col_values.mean()
-    std = col_values.std()
-
-    # Avoid division by zero
-    std_safe = std + 1e-6
-
-    # Standardize
-    col_norm = (col_values - mean) / std_safe
-
-    # Clip extreme values
-    col_norm = np.clip(col_norm, -10.0, 10.0)
-
-    # Store back
-    edge_attr_df[col] = col_norm.astype(np.float32)
-
-    # Track normalized stats
-    norm_means.append(float(col_norm.mean()))
-    norm_stds.append(float(col_norm.std()))
-    norm_mins.append(float(col_norm.min()))
-    norm_maxs.append(float(col_norm.max()))
-
-print("✓ All edge features normalized with z-score and clipped to [-10, 10]")
-
-edge_attr = edge_attr_df.values.astype(np.float32)
-print(f"✓ edge_attr shape: {edge_attr.shape}")
-
-# Final validation
-nan_after = np.isnan(edge_attr).sum()
-inf_after = np.isinf(edge_attr).sum()
-
-if nan_after > 0 or inf_after > 0:
-    print(f"  ✗ ERROR: Still have {nan_after} NaNs and {inf_after} Infs in normalized edge_attr!")
-else:
-    print("  ✓ No NaN/Inf values in normalized edge features")
-
-# Compute feature statistics (of NORMALIZED features)
-edge_attr_means = np.array(norm_means).tolist()
-edge_attr_stds = np.array(norm_stds).tolist()
-edge_attr_mins = np.array(norm_mins).tolist()
-edge_attr_maxs = np.array(norm_maxs).tolist()
+baseline_cols = list(baseline_df.columns)
 
 # ============================================================
-# NODE FEATURES
+# THEORY + MOTIF FEATURES
 # ============================================================
 
-print("\n" + "=" * 70)
-print("NODE FEATURES")
-print("=" * 70)
+theory_cols = [
+    col for col in df.columns
+    if any(col.startswith(p) for p in theory_prefix)
+]
+
+# Remove theory metadata flags (NOT real features)
+METADATA_COLS = {
+    "RAT_injected", "RAT_intensity_level",
+    "SLT_injected", "SLT_intensity_level",
+    "STRAIN_injected", "STRAIN_intensity_level"
+}
+
+theory_cols = [c for c in theory_cols if c not in METADATA_COLS]
+
+print(f"Detected {len(theory_cols)} theory/motif features.")
+
+# sanitize theory df
+theory_df = df[theory_cols].copy()
+theory_df = theory_df.replace([np.inf, -np.inf], 0).fillna(0)
+
+# normalize theory/motif features
+for col in theory_cols:
+    v = theory_df[col].astype(np.float32).values
+    std = v.std() + 1e-6
+    v = (v - v.mean()) / std
+    theory_df[col] = np.clip(v, -10, 10)
+
+# ============================================================
+# FINAL EDGE FEATURES
+# ============================================================
+
+edge_feat_df = pd.concat([baseline_df, theory_df], axis=1)
+edge_attr_cols = list(edge_feat_df.columns)
+edge_attr = edge_feat_df.values.astype(np.float32)
+
+# ============================================================
+# NODE FEATURES (same as baseline)
+# ============================================================
 
 node_df = pd.DataFrame({"acct": list(acct2idx.keys())})
 node_df["node_id"] = node_df["acct"].map(acct2idx)
 
-# Degrees
-out_deg_series = df.groupby(SRC_COL).size()
-in_deg_series = df.groupby(DST_COL).size()
+out_deg = df.groupby(SRC_COL).size().reindex(node_df["acct"]).fillna(0).values
+in_deg  = df.groupby(DST_COL).size().reindex(node_df["acct"]).fillna(0).values
 
-node_df["out_degree"] = node_df["acct"].map(out_deg_series).fillna(0).astype(float)
-node_df["in_degree"] = node_df["acct"].map(in_deg_series).fillna(0).astype(float)
-node_df["total_degree"] = node_df["out_degree"] + node_df["in_degree"]
+node_df["out_degree"] = out_deg
+node_df["in_degree"] = in_deg
+node_df["total_degree"] = out_deg + in_deg
 
-# Laundering involvement count
-laund_src = df[df[LABEL_COL] == 1][SRC_COL]
-laund_dst = df[df[LABEL_COL] == 1][DST_COL]
-laund_acct_counts = (
-    pd.concat([laund_src, laund_dst], axis=0)
-    .value_counts()
-    .reindex(node_df["acct"])
-    .fillna(0)
-    .astype(float)
-)
+node_df["log_out_degree"] = np.log1p(out_deg)
+node_df["log_in_degree"]  = np.log1p(in_deg)
+node_df["log_total_degree"] = np.log1p(node_df["total_degree"])
 
-node_df["laundering_count"] = laund_acct_counts.values
-
-# Node features (we keep these raw; they are much smaller scale)
-x = node_df[["out_degree", "in_degree", "total_degree", "laundering_count"]].fillna(0).values
-print(f"✓ x (node features) shape: {x.shape}")
-
-nan_count = np.isnan(x).sum()
-if nan_count > 0:
-    print(f"  ⚠ WARNING: {nan_count} NaN values in node features")
-else:
-    print("  ✓ No NaN values in node features")
+x = node_df[[
+    "out_degree", "in_degree", "total_degree",
+    "log_out_degree", "log_in_degree", "log_total_degree"
+]].values.astype(np.float32)
 
 # ============================================================
-# NODE LABELS
+# SAVE EVERYTHING
 # ============================================================
 
-y_node = np.zeros(num_nodes, dtype=np.int64)
-laund_accts = set(laund_src.astype(str)) | set(laund_dst.astype(str))
-for acct in laund_accts:
-    y_node[acct2idx[acct]] = 1
+torch.save(torch.tensor(edge_index, dtype=torch.long), os.path.join(OUT_DIR, "edge_index.pt"))
+torch.save(torch.tensor(edge_attr, dtype=torch.float32), os.path.join(OUT_DIR, "edge_attr.pt"))
+torch.save(torch.tensor(x, dtype=torch.float32), os.path.join(OUT_DIR, "x.pt"))
+torch.save(torch.tensor(timestamps, dtype=torch.long), os.path.join(OUT_DIR, "timestamps.pt"))
+torch.save(torch.tensor(y_edge, dtype=torch.long), os.path.join(OUT_DIR, "y_edge.pt"))
+torch.save(torch.tensor(y_node, dtype=torch.long), os.path.join(OUT_DIR, "y_node.pt"))
 
-num_laundering_nodes = y_node.sum()
-pct_laundering_nodes = 100 * y_node.mean()
-print(f"Laundering nodes: {num_laundering_nodes:,} ({pct_laundering_nodes:.2f}%)")
-print(f"Normal nodes: {num_nodes - num_laundering_nodes:,} ({100 - pct_laundering_nodes:.2f}%)")
+with open(os.path.join(OUT_DIR, "edge_attr_cols.json"), "w") as f:
+    json.dump(edge_attr_cols, f, indent=2)
 
-# ============================================================
-# CONVERT TO TORCH & SAVE
-# ============================================================
-
-print("\n" + "=" * 70)
-print("SAVING TENSORS")
-print("=" * 70)
-
-edge_index_t = torch.tensor(edge_index, dtype=torch.long)
-edge_attr_t = torch.tensor(edge_attr, dtype=torch.float32)
-x_t = torch.tensor(x, dtype=torch.float32)
-timestamps_t = torch.tensor(timestamps, dtype=torch.long)
-y_edge_t = torch.tensor(y_edge, dtype=torch.long)
-y_node_t = torch.tensor(y_node, dtype=torch.long)
-
-print(f"Output directory: {OUT_DIR}\n")
-
-torch.save(edge_index_t, os.path.join(OUT_DIR, "edge_index.pt"))
-print("  ✓ edge_index.pt")
-
-torch.save(edge_attr_t, os.path.join(OUT_DIR, "edge_attr.pt"))
-print("  ✓ edge_attr.pt")
-
-torch.save(x_t, os.path.join(OUT_DIR, "x.pt"))
-print("  ✓ x.pt")
-
-torch.save(timestamps_t, os.path.join(OUT_DIR, "timestamps.pt"))
-print("  ✓ timestamps.pt")
-
-torch.save(y_edge_t, os.path.join(OUT_DIR, "y_edge.pt"))
-print("  ✓ y_edge.pt")
-
-torch.save(y_node_t, os.path.join(OUT_DIR, "y_node.pt"))
-print("  ✓ y_node.pt")
-
-# Save metadata
-with open(os.path.join(OUT_DIR, "node_mapping.json"), "w", encoding="utf-8") as f:
+with open(os.path.join(OUT_DIR, "node_mapping.json"), "w") as f:
     json.dump(acct2idx, f)
-print("  ✓ node_mapping.json")
 
-with open(os.path.join(OUT_DIR, "edge_attr_cols.json"), "w", encoding="utf-8") as f:
-    json.dump(edge_feature_cols, f, indent=2)
-print("  ✓ edge_attr_cols.json")
-
-# Save feature statistics (OF NORMALIZED FEATURES)
-feature_stats = {
-    "edge_attr_means": edge_attr_means,
-    "edge_attr_stds": edge_attr_stds,
-    "edge_attr_mins": edge_attr_mins,
-    "edge_attr_maxs": edge_attr_maxs,
-    "edge_attr_cols": edge_feature_cols,
-}
-
-with open(os.path.join(OUT_DIR, "feature_stats.json"), "w", encoding="utf-8") as f:
-    json.dump(feature_stats, f, indent=2)
-print("  ✓ feature_stats.json")
-
-# Save comprehensive graph statistics
 graph_stats = {
     "dataset_type": dataset_type,
-    "theory_prefix": theory_prefix,
-    "has_rat_features": has_rat_features,
-    "has_motif_features": has_motif_features,
-    "has_slt_features": has_slt_features,
-    "has_strain_features": has_strain_features,
     "num_nodes": int(num_nodes),
     "num_edges": int(num_edges),
-    "num_self_loops": int(num_self_loops),
-    "num_isolated_nodes": int(num_isolated),
-    "avg_degree": float(avg_degree),
-    "graph_density": float(density),
-    "time_span_days": float(time_span_days),
-    "num_laundering_edges": int(num_laundering_edges),
-    "pct_laundering_edges": float(pct_laundering_edges),
-    "num_laundering_nodes": int(num_laundering_nodes),
-    "pct_laundering_nodes": float(pct_laundering_nodes),
-    "num_edge_features": len(edge_feature_cols),
+    "num_edge_features": len(edge_attr_cols),
     "num_node_features": x.shape[1],
-    "temporal_violations": int(num_negative_gaps),
-    "dataset_path": INPUT_PATH,
-    "dataset_name": dataset_name,
-    "self_loops_removed": REMOVE_SELF_LOOPS,
+    "has_motif": has_motif,
+    "has_rat": has_rat,
+    "has_slt": has_slt,
+    "has_strain": has_strain,
 }
-
-with open(os.path.join(OUT_DIR, "graph_stats.json"), "w", encoding="utf-8") as f:
+with open(os.path.join(OUT_DIR, "graph_stats.json"), "w") as f:
     json.dump(graph_stats, f, indent=2)
-print("  ✓ graph_stats.json")
 
-# ============================================================
-# FINAL SUMMARY
-# ============================================================
-
-print("\n" + "=" * 70)
-print("FINAL SUMMARY")
-print("=" * 70)
-print(f"Dataset Type:   {dataset_type}")
-print(f"  edge_index:   {edge_index_t.shape}")
-print(f"  edge_attr:    {edge_attr_t.shape}  (normalized)")
-print(f"  x:            {x_t.shape}")
-print(f"  timestamps:   {timestamps_t.shape}")
-print(f"  y_edge:       {y_edge_t.shape}")
-print(f"  y_node:       {y_node_t.shape}")
-
-print("\n" + "=" * 70)
-print("✓ GRAPH CONSTRUCTION COMPLETE (NORMALIZED)")
-print("=" * 70)
-print(f"\nAll files saved to:")
-print(f"  {OUT_DIR}")
-print(f"\nReady for GraphSAGE / GraphSAGE-T training!")
-print("=" * 70)
+print("="*70)
+print("✓ BASELINE-ALIGNED THEORY GRAPH BUILT")
+print(f"Saved to: {OUT_DIR}")
+print("="*70)
