@@ -1,0 +1,32 @@
+Traceback (most recent call last):
+  File "C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\scripts\training\train_tgat.py", line 562, in <module>
+    main()
+  File "C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\scripts\training\train_tgat.py", line 456, in main
+    val_metrics, _ = evaluate_split_minibatch(
+  File "C:\ProgramData\anaconda3\envs\aml_project\lib\site-packages\torch\utils\_contextlib.py", line 116, in decorate_context
+    return func(*args, **kwargs)
+  File "C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\scripts\training\train_tgat.py", line 269, in evaluate_split_minibatch
+    metrics = evaluate_binary_classifier(
+  File "C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\scripts\utils\evaluation_utils.py", line 119, in evaluate_binary_classifier
+    aupr = average_precision_score(y_true, y_pred_probs)
+  File "C:\ProgramData\anaconda3\envs\aml_project\lib\site-packages\sklearn\utils\_param_validation.py", line 218, in wrapper
+    return func(*args, **kwargs)
+  File "C:\ProgramData\anaconda3\envs\aml_project\lib\site-packages\sklearn\metrics\_ranking.py", line 266, in average_precision_score
+    return _average_binary_score(
+  File "C:\ProgramData\anaconda3\envs\aml_project\lib\site-packages\sklearn\metrics\_base.py", line 69, in _average_binary_score
+    return binary_metric(y_true, y_score, sample_weight=sample_weight)
+  File "C:\ProgramData\anaconda3\envs\aml_project\lib\site-packages\sklearn\metrics\_ranking.py", line 227, in _binary_uninterpolated_average_precision
+    precision, recall, _ = precision_recall_curve(
+  File "C:\ProgramData\anaconda3\envs\aml_project\lib\site-packages\sklearn\utils\_param_validation.py", line 191, in wrapper
+    return func(*args, **kwargs)
+  File "C:\ProgramData\anaconda3\envs\aml_project\lib\site-packages\sklearn\metrics\_ranking.py", line 1018, in precision_recall_curve
+    fps, tps, thresholds = _binary_clf_curve(
+  File "C:\ProgramData\anaconda3\envs\aml_project\lib\site-packages\sklearn\metrics\_ranking.py", line 869, in _binary_clf_curve
+    assert_all_finite(y_score)
+  File "C:\ProgramData\anaconda3\envs\aml_project\lib\site-packages\sklearn\utils\validation.py", line 210, in assert_all_finite
+    _assert_all_finite(
+  File "C:\ProgramData\anaconda3\envs\aml_project\lib\site-packages\sklearn\utils\validation.py", line 120, in _assert_all_finite
+    _assert_all_finite_element_wise(
+  File "C:\ProgramData\anaconda3\envs\aml_project\lib\site-packages\sklearn\utils\validation.py", line 169, in _assert_all_finite_element_wise
+    raise ValueError(msg_err)
+ValueError: Input contains NaN.
