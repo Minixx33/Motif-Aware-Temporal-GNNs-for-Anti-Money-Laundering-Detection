@@ -36,7 +36,7 @@ TRAIN_DYREP="scripts/training/train_dyrep.py"
 
 # Verify config + script existence
 for f in "$BASE_CONFIG" "$DYREP_CONFIG" "$TRAIN_DYREP" \
-         "$BASELINE_DS" "$RAT_DS" "$SLT_DS" "$STRAIN_DS"; do
+         "$BASELINE_DS" "$RAT_DS"; do
     if [ ! -f "$PROJECT_ROOT/$f" ]; then
         echo "ERROR: Missing file: $PROJECT_ROOT/$f"
         exit 1
