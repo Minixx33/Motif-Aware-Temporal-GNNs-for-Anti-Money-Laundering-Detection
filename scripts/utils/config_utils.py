@@ -359,15 +359,17 @@ def build_paths(
             raise ValueError(f"Intensity required for theory '{theory}'")
         dataset_name = f"{prefix}_{intensity}"
     
-    # Determine which graphs directory to use
+    # Determine which graphs and splits directories to use
     model_lower = model_name.lower()
     if "tgat" in model_lower:
         graphs_dir_key = "tgat_graphs_dir"
+        splits_dir_key = "tgat_splits_dir"  # ← ADD THIS!
     else:
         graphs_dir_key = "graphs_dir"
+        splits_dir_key = "splits_dir"  # ← ADD THIS!
     
     graphs_dir = os.path.join(root, base_cfg["paths"][graphs_dir_key])
-    splits_dir = os.path.join(root, base_cfg["paths"]["splits_dir"])
+    splits_dir = os.path.join(root, base_cfg["paths"][splits_dir_key])  # ← UPDATED!
     results_root = os.path.join(root, base_cfg["paths"]["results_dir"])
     logs_root = os.path.join(root, base_cfg["paths"].get("logs_dir", "logs"))
     

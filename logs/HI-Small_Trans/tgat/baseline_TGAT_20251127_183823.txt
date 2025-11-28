@@ -1,0 +1,69 @@
+
+================================================================================
+Logging started at: 2025-11-27 18:38:23
+Log file: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans\tgat\baseline_TGAT_20251127_183823.txt
+================================================================================
+
+[INFO] Logging to: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans\tgat\baseline_TGAT_20251127_183823.txt
+================================================================================
+EXPERIMENT CONFIGURATION
+================================================================================
+
+[DATASET]
+  Theory:       baseline
+  Intensity:    N/A (baseline)
+  Full name:    HI-Small_Trans
+
+[MODEL] TGAT
+  Hidden dim:   128
+  Num layers:   2
+  Dropout:      0.2
+
+[TRAINING]
+  Device:       cuda
+  Batch size:   4096
+  Learning rate: 0.0005
+  Epochs:       350
+  Early stop:   25 epochs
+
+[PATHS]
+  Graphs:       C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\tgat_graphs\HI-Small_Trans
+  Splits:       C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits\HI-Small_Trans
+  Results:      C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans\tgat
+  Logs:         C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans\tgat
+
+[EXPERIMENT]
+  Seed:         42
+  Exp name:     default_experiment
+
+================================================================================
+
+[DEVICE] cuda
+
+
+======================================================================
+GPU Mini-Batch Training (TGAT-style)
+======================================================================
+Train batch size: 4096
+Eval batch size:  8192
+Mixed Precision:  False (disabled for stability)
+Device:           cuda
+======================================================================
+
+Loading TGAT tensors...
+Num nodes:   515,088
+Num events:  5,078,345
+Node feats:  12
+Edge feats:  32
+Generating sinusoidal time encoding...
+Loading TGAT temporal splits from: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\tgat_splits\HI-Small_Trans
+Train events: 3,047,007
+Val events:   1,015,669
+Test events:  1,015,669
+pos_weight: 100.00
+
+Starting training for 350 epochs...
+
+Epoch 001 | loss=0.2801 | val_F1=0.0029 | val_AUPR=0.0013 | time=50.01s
+Epoch 002 | loss=0.2767 | val_F1=0.0028 | val_AUPR=0.0010 | time=48.98s
+Epoch 003 | loss=0.2769 | val_F1=0.0027 | val_AUPR=0.0014 | time=50.76s

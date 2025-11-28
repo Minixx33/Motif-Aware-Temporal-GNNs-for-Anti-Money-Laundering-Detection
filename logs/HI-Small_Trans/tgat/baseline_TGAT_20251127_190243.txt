@@ -1,0 +1,199 @@
+
+================================================================================
+Logging started at: 2025-11-27 19:02:43
+Log file: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans\tgat\baseline_TGAT_20251127_190243.txt
+================================================================================
+
+[INFO] Logging to: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans\tgat\baseline_TGAT_20251127_190243.txt
+================================================================================
+EXPERIMENT CONFIGURATION
+================================================================================
+
+[DATASET]
+  Theory:       baseline
+  Intensity:    N/A (baseline)
+  Full name:    HI-Small_Trans
+
+[MODEL] TGAT
+  Hidden dim:   128
+  Num layers:   2
+  Dropout:      0.1
+
+[TRAINING]
+  Device:       cuda
+  Batch size:   4096
+  Learning rate: 0.001
+  Epochs:       350
+  Early stop:   25 epochs
+
+[PATHS]
+  Graphs:       C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\tgat_graphs\HI-Small_Trans
+  Splits:       C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\tgat_splits\HI-Small_Trans
+  Results:      C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans\tgat
+  Logs:         C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans\tgat
+
+[EXPERIMENT]
+  Seed:         42
+  Exp name:     default_experiment
+
+================================================================================
+
+[DEVICE] cuda
+
+
+======================================================================
+GPU Mini-Batch Training (TGAT-style)
+======================================================================
+Train batch size: 4096
+Eval batch size:  8192
+Mixed Precision:  False (disabled for stability)
+Device:           cuda
+======================================================================
+
+Loading TGAT tensors...
+Num nodes:   515,088
+Num events:  5,078,345
+Node feats:  12
+Edge feats:  32
+Generating sinusoidal time encoding...
+Loading TGAT temporal splits from: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\tgat_splits\HI-Small_Trans
+Train events: 3,047,007
+Val events:   1,015,669
+Test events:  1,015,669
+pos_weight: 100.00
+
+Starting training for 350 epochs...
+
+Epoch 001 | loss=0.2774 | val_F1=0.0028 | val_AUPR=0.0013 | time=50.36s
+Epoch 002 | loss=0.2756 | val_F1=0.0027 | val_AUPR=0.0011 | time=49.04s
+Epoch 003 | loss=0.2777 | val_F1=0.0069 | val_AUPR=0.0014 | time=46.92s
+Epoch 004 | loss=0.2777 | val_F1=0.0027 | val_AUPR=0.0010 | time=47.01s
+Epoch 005 | loss=0.2769 | val_F1=0.0027 | val_AUPR=0.0010 | time=46.80s
+Epoch 006 | loss=0.2767 | val_F1=0.0027 | val_AUPR=0.0010 | time=49.14s
+Epoch 007 | loss=0.2753 | val_F1=0.0024 | val_AUPR=0.0011 | time=51.65s
+Epoch 008 | loss=0.2742 | val_F1=0.0030 | val_AUPR=0.0012 | time=49.28s
+Epoch 009 | loss=0.2738 | val_F1=0.0027 | val_AUPR=0.0012 | time=51.37s
+Epoch 010 | loss=0.2752 | val_F1=0.0027 | val_AUPR=0.0012 | time=48.28s
+Epoch 011 | loss=0.2742 | val_F1=0.0027 | val_AUPR=0.0011 | time=47.94s
+Epoch 012 | loss=0.2751 | val_F1=0.0026 | val_AUPR=0.0012 | time=47.31s
+Epoch 013 | loss=0.2738 | val_F1=0.0027 | val_AUPR=0.0012 | time=46.76s
+Epoch 014 | loss=0.2746 | val_F1=0.0027 | val_AUPR=0.0011 | time=50.39s
+Epoch 015 | loss=0.2744 | val_F1=0.0027 | val_AUPR=0.0011 | time=46.11s
+Epoch 016 | loss=0.2739 | val_F1=0.0027 | val_AUPR=0.0012 | time=49.95s
+Epoch 017 | loss=0.2738 | val_F1=0.0027 | val_AUPR=0.0011 | time=50.24s
+Epoch 018 | loss=0.2749 | val_F1=0.0027 | val_AUPR=0.0011 | time=47.70s
+Epoch 019 | loss=0.2728 | val_F1=0.0035 | val_AUPR=0.0014 | time=46.06s
+Epoch 020 | loss=0.2735 | val_F1=0.0034 | val_AUPR=0.0013 | time=46.00s
+Epoch 021 | loss=0.2729 | val_F1=0.0027 | val_AUPR=0.0011 | time=47.56s
+Epoch 022 | loss=0.2735 | val_F1=0.0030 | val_AUPR=0.0011 | time=46.72s
+Epoch 023 | loss=0.2737 | val_F1=0.0027 | val_AUPR=0.0011 | time=47.45s
+Epoch 024 | loss=0.2742 | val_F1=0.0027 | val_AUPR=0.0011 | time=50.57s
+Epoch 025 | loss=0.2739 | val_F1=0.0026 | val_AUPR=0.0010 | time=45.71s
+Epoch 026 | loss=0.2738 | val_F1=0.0027 | val_AUPR=0.0011 | time=48.89s
+Epoch 027 | loss=0.2740 | val_F1=0.0027 | val_AUPR=0.0011 | time=45.35s
+Epoch 028 | loss=0.2736 | val_F1=0.0027 | val_AUPR=0.0011 | time=46.33s
+
+Early stopping at epoch 28
+
+Total training time: 1346.91s (22.4 min)
+
+Loading best model from epoch 3...
+Evaluating on train/val/test...
+======================================================================
+EVALUATION RESULTS: baseline_TGAT TRAIN
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.0015
+  Recall:           0.0735
+  F1-Score:         0.0030
+  ROC-AUC:          0.4784
+  AUPR:             0.0008
+  Balanced Acc:     0.5189
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.0056
+  Cohen Kappa:      0.0016
+  Specificity:      0.9642
+
+THRESHOLD: 0.094
+
+CONFUSION MATRIX:
+  True Negatives:   2935808
+  False Positives:  108901
+  False Negatives:  2129
+  True Positives:   169
+
+TOP-K PRECISION:
+  precision_at_100: 0.0000
+  precision_at_500: 0.0000
+  precision_at_1000: 0.0020
+======================================================================
+======================================================================
+EVALUATION RESULTS: baseline_TGAT VAL
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.0064
+  Recall:           0.0074
+  F1-Score:         0.0069
+  ROC-AUC:          0.4972
+  AUPR:             0.0014
+  Balanced Acc:     0.5031
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.0057
+  Cohen Kappa:      0.0057
+  Specificity:      0.9988
+
+THRESHOLD: 0.104
+
+CONFUSION MATRIX:
+  True Negatives:   1013342
+  False Positives:  1245
+  False Negatives:  1074
+  True Positives:   8
+
+TOP-K PRECISION:
+  precision_at_100: 0.0100
+  precision_at_500: 0.0100
+  precision_at_1000: 0.0070
+======================================================================
+======================================================================
+EVALUATION RESULTS: baseline_TGAT TEST
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.0131
+  Recall:           0.0022
+  F1-Score:         0.0038
+  ROC-AUC:          0.7144
+  AUPR:             0.0041
+  Balanced Acc:     0.5010
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.0047
+  Cohen Kappa:      0.0033
+  Specificity:      0.9997
+
+THRESHOLD: 0.104
+
+CONFUSION MATRIX:
+  True Negatives:   1013570
+  False Positives:  302
+  False Negatives:  1793
+  True Positives:   4
+
+TOP-K PRECISION:
+  precision_at_100: 0.0100
+  precision_at_500: 0.0080
+  precision_at_1000: 0.0040
+======================================================================
+
+======================================================================
+TGAT Training Complete!
+======================================================================
+
+================================================================================
+Logging ended at: 2025-11-27 19:26:42
+================================================================================

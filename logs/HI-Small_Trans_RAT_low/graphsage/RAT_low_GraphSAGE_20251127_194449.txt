@@ -1,0 +1,99 @@
+
+================================================================================
+Logging started at: 2025-11-27 19:44:49
+Log file: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_low\graphsage\RAT_low_GraphSAGE_20251127_194449.txt
+================================================================================
+
+[INFO] Logging to: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_low\graphsage\RAT_low_GraphSAGE_20251127_194449.txt
+================================================================================
+EXPERIMENT CONFIGURATION
+================================================================================
+
+[DATASET]
+  Theory:       RAT
+  Intensity:    low
+  Full name:    HI-Small_Trans_RAT_low
+
+[MODEL] GraphSAGE
+  Hidden dim:   128
+  Num layers:   2
+  Dropout:      0.2
+
+[TRAINING]
+  Device:       cuda
+  Batch size:   8192
+  Learning rate: 0.0001
+  Epochs:       350
+  Early stop:   25 epochs
+
+[PATHS]
+  Graphs:       C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs\HI-Small_Trans_RAT_low
+  Splits:       C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits\HI-Small_Trans_RAT_low
+  Results:      C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_low\graphsage
+  Logs:         C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_low\graphsage
+
+[EXPERIMENT]
+  Seed:         42
+  Exp name:     default_experiment
+
+================================================================================
+
+[DEVICE] cuda
+
+
+======================================================================
+GPU Mini-Batch Training (GraphSAGE Stable)
+======================================================================
+Train batch size: 8192
+Eval batch size:  16384
+Mixed Precision:  False (disabled)
+Device:           cuda
+======================================================================
+
+Loading graph tensors...
+Nodes: 515,080, Edges: 5,078,415
+Node features: 4, Edge features: 38
+Train: 3,047,049, Val: 1,015,683, Test: 1,015,683
+pos_weight: 100.00
+
+Starting training for 350 epochs...
+
+Epoch 001 | loss=67.0202 | val_F1=0.0145 | val_AUPR=0.0021 | time=49.15s
+Epoch 002 | loss=17.6759 | val_F1=0.0064 | val_AUPR=0.0019 | time=49.33s
+Epoch 003 | loss=5.9214 | val_F1=0.0061 | val_AUPR=0.0011 | time=49.53s
+Epoch 004 | loss=1.6373 | val_F1=0.0070 | val_AUPR=0.0014 | time=50.23s
+Epoch 005 | loss=0.9104 | val_F1=0.0022 | val_AUPR=0.0013 | time=49.67s
+Epoch 006 | loss=0.7157 | val_F1=0.0022 | val_AUPR=0.0013 | time=49.03s
+Epoch 007 | loss=0.6568 | val_F1=0.0029 | val_AUPR=0.0013 | time=48.37s
+Epoch 008 | loss=0.6273 | val_F1=0.0024 | val_AUPR=0.0013 | time=48.49s
+Epoch 009 | loss=0.6186 | val_F1=0.0022 | val_AUPR=0.0012 | time=48.85s
+Epoch 010 | loss=0.5924 | val_F1=0.0217 | val_AUPR=0.0022 | time=54.64s
+Epoch 011 | loss=0.5829 | val_F1=0.0022 | val_AUPR=0.0013 | time=58.17s
+Epoch 012 | loss=0.5723 | val_F1=0.0032 | val_AUPR=0.0015 | time=53.87s
+Epoch 013 | loss=0.5660 | val_F1=0.0036 | val_AUPR=0.0014 | time=49.58s
+Epoch 014 | loss=0.5403 | val_F1=0.0028 | val_AUPR=0.0014 | time=52.85s
+Epoch 015 | loss=0.5719 | val_F1=0.0071 | val_AUPR=0.0015 | time=56.38s
+Epoch 016 | loss=0.5250 | val_F1=0.0023 | val_AUPR=0.0015 | time=57.30s
+Epoch 017 | loss=0.5475 | val_F1=0.0085 | val_AUPR=0.0019 | time=49.73s
+Epoch 018 | loss=0.4491 | val_F1=0.0194 | val_AUPR=0.0028 | time=55.63s
+Epoch 019 | loss=0.4292 | val_F1=0.0046 | val_AUPR=0.0019 | time=50.48s
+Epoch 020 | loss=0.4148 | val_F1=0.0051 | val_AUPR=0.0020 | time=53.17s
+Epoch 021 | loss=0.4216 | val_F1=0.0080 | val_AUPR=0.0022 | time=48.51s
+Epoch 022 | loss=0.4072 | val_F1=0.0204 | val_AUPR=0.0033 | time=48.52s
+Epoch 023 | loss=0.3945 | val_F1=0.0196 | val_AUPR=0.0025 | time=49.10s
+Epoch 024 | loss=0.3866 | val_F1=0.0214 | val_AUPR=0.0036 | time=48.22s
+Epoch 025 | loss=0.3974 | val_F1=0.0154 | val_AUPR=0.0030 | time=51.59s
+Epoch 026 | loss=0.3689 | val_F1=0.0293 | val_AUPR=0.0044 | time=50.42s
+Epoch 027 | loss=0.3817 | val_F1=0.0236 | val_AUPR=0.0025 | time=48.26s
+Epoch 028 | loss=0.3636 | val_F1=0.0275 | val_AUPR=0.0043 | time=48.55s
+Epoch 029 | loss=0.3608 | val_F1=0.0361 | val_AUPR=0.0062 | time=49.72s
+Epoch 030 | loss=0.3747 | val_F1=0.0259 | val_AUPR=0.0045 | time=48.63s
+Epoch 031 | loss=0.3807 | val_F1=0.0293 | val_AUPR=0.0041 | time=49.71s
+Epoch 032 | loss=0.3578 | val_F1=0.0298 | val_AUPR=0.0057 | time=48.05s
+Epoch 033 | loss=0.3402 | val_F1=0.0304 | val_AUPR=0.0042 | time=50.58s
+Epoch 034 | loss=0.3537 | val_F1=0.0324 | val_AUPR=0.0065 | time=55.79s
+Epoch 035 | loss=0.3486 | val_F1=0.0323 | val_AUPR=0.0084 | time=49.83s
+Epoch 036 | loss=0.3431 | val_F1=0.0331 | val_AUPR=0.0068 | time=48.94s
+Epoch 037 | loss=0.3323 | val_F1=0.0340 | val_AUPR=0.0079 | time=49.24s
+Epoch 038 | loss=0.3272 | val_F1=0.0384 | val_AUPR=0.0087 | time=47.97s
+Epoch 039 | loss=0.3250 | val_F1=0.0490 | val_AUPR=0.0111 | time=51.14s

@@ -1,0 +1,27 @@
+model:
+  name: "GraphSAGE-T"
+  hidden_dim: 128
+  num_layers: 2
+  aggregator: "mean"
+  time_encoder: "sinusoidal"   # options: sinusoidal / mlp
+  time_dim: 32
+  dropout: 0.2
+
+training:
+  device: "cuda"
+  batch_size: 8192              # ← CHANGED: 4x larger for RTX 4080!
+  eval_batch_size: 16384        # ← ADDED: for evaluation
+  lr: 0.0005                    # ← CHANGED: reduced (larger batch = lower LR)
+  weight_decay: 0.0001
+  epochs: 350
+  early_stopping_patience: 25
+  gradient_clip: 1.0
+
+  optimizer:
+    type: "adam"
+    betas: [0.9, 0.999]
+    eps: 1e-8
+
+loss:
+  type: "bce"
+  pos_weight: null              # auto-computed

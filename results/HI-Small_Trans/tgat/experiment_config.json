@@ -1,0 +1,80 @@
+{
+  "timestamp": "2025-11-27T19:26:42.480675",
+  "base_config": {
+    "experiment": {
+      "seed": 42,
+      "name": "default_experiment"
+    },
+    "paths": {
+      "root": "",
+      "graphs_dir": "graphs",
+      "tgat_graphs_dir": "tgat_graphs",
+      "splits_dir": "splits",
+      "tgat_splits_dir": "tgat_splits",
+      "results_dir": "results",
+      "logs_dir": "logs"
+    },
+    "evaluation": {
+      "threshold": 0.5,
+      "auto_threshold": true,
+      "compute_top_k": true,
+      "top_k_values": [
+        100,
+        500,
+        1000
+      ]
+    },
+    "logging": {
+      "print_interval": 1,
+      "save_history": true,
+      "save_best_only": true
+    }
+  },
+  "model_config": {
+    "model": {
+      "name": "TGAT",
+      "hidden_dim": 128,
+      "num_heads": 4,
+      "num_layers": 2,
+      "time_dim": 32,
+      "dropout": 0.1,
+      "use_residual": true
+    },
+    "training": {
+      "device": "cuda",
+      "batch_size": 4096,
+      "eval_batch_size": 8192,
+      "lr": 0.001,
+      "weight_decay": 5e-05,
+      "epochs": 350,
+      "early_stopping_patience": 25,
+      "gradient_clip": 1.0,
+      "optimizer": {
+        "type": "adam",
+        "betas": [
+          0.9,
+          0.999
+        ],
+        "eps": "1e-8"
+      }
+    },
+    "loss": {
+      "type": "bce",
+      "pos_weight": 100.0
+    }
+  },
+  "dataset_config": {
+    "dataset": {
+      "theory": "baseline",
+      "prefix": "HI-Small_Trans",
+      "requires_intensity": false
+    }
+  },
+  "intensity": null,
+  "additional_info": {
+    "total_training_time_sec": 1346.9113623000449,
+    "batch_size": 4096,
+    "eval_batch_size": 8192,
+    "use_amp": false
+  }
+}
