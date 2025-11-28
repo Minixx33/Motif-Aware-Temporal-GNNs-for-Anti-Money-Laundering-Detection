@@ -10,21 +10,18 @@ Build a DyRep-compatible event stream from IBM HI-Small theory-injected datasets
 Design goals:
   ✓ Use EXACT same edge features as GraphSAGE / GraphSAGE-T
   ✓ Keep all original edges (no synthetic events, no row changes)
-  ✓ Temporal train/val/test split
+  ✓ NO train/val/test splits here (handled by a separate script)
   ✓ Event-based representation for DyRep
 
 Outputs (in graphs_dyrep/{dataset_name}/):
-  - src.pt              [E]
-  - dst.pt              [E]
-  - ts.pt               [E]   (int64 UNIX seconds)
-  - event_type.pt       [E]   (0 = communication event)
-  - edge_attr.pt        [E, F_e]
-  - node_features.pt    [N, F_n]
-  - labels.pt           [E]   (edge labels)
-  - y_node.pt           [N]   (node labels: laundering involvement)
-  - train_mask.pt       [E]
-  - val_mask.pt         [E]
-  - test_mask.pt        [E]
+  - src.pt
+  - dst.pt
+  - ts.pt
+  - event_type.pt
+  - edge_attr.pt
+  - node_features.pt
+  - labels.pt
+  - y_node.pt
   - edge_attr_cols.json
   - node_mapping.json
   - graph_stats.json
@@ -77,17 +74,12 @@ PCURR = "Payment Currency"
 PFORMAT = "Payment Format"
 LABEL_COL = "Is Laundering"
 
-# Temporal split ratios (by time-ordered edges)
-TRAIN_RATIO = 0.6
-VAL_RATIO = 0.20  # test will be 1 - TRAIN_RATIO - VAL_RATIO
-#test_ratio = 0.20
-
 # ============================================================
 # LOAD + SORT DATA
 # ============================================================
 
 print("=" * 70)
-print("DYREP EVENT-BASED GRAPH BUILDER")
+print("DYREP EVENT-BASED GRAPH BUILDER (THEORY/MOTIF, NO SPLITS)")
 print("=" * 70)
 print(f"Loading: {INPUT_PATH}")
 
@@ -119,16 +111,16 @@ elif has_strain:
     theory_prefix = ["STRAIN_", "motif_"]
     dataset_type = "STRAIN-injected"
 else:
-    dataset_type = "baseline-or-other"
     theory_prefix = []
+    dataset_type = "baseline-or-other"
 
 print(f"Detected dataset_type = {dataset_type}")
 
 # ============================================================
-# NODE MAPPING (same as static builder)
+# NODE MAPPING
 # ============================================================
 
-all_nodes = pd.concat([df[SRC_COL], df[DST_COL]]).unique()
+all_nodes = pd.concat([df[SRC_COL], df[DST_COL]], axis=0).unique()
 acct2idx = {acct: i for i, acct in enumerate(all_nodes)}
 num_nodes = len(acct2idx)
 
@@ -143,22 +135,22 @@ print(f"Num edges: {num_edges:,}")
 # LABELS
 # ============================================================
 
-y_edge = df[LABEL_COL].astype(int).values
+df[LABEL_COL] = df[LABEL_COL].astype(int)
+y_edge = df[LABEL_COL].values
 
-# Node labels: any account involved in laundering becomes 1
 y_node = np.zeros(num_nodes, dtype=np.int64)
-laund_src = df.loc[df[LABEL_COL] == 1, SRC_COL].astype(str)
-laund_dst = df.loc[df[LABEL_COL] == 1, DST_COL].astype(str)
+laund_src = df.loc[df[LABEL_COL] == 1, SRC_COL]
+laund_dst = df.loc[df[LABEL_COL] == 1, DST_COL]
 for acct in set(laund_src) | set(laund_dst):
     y_node[acct2idx[acct]] = 1
 
 # ============================================================
-# BASELINE EDGE FEATURES (copied from static builder)
+# BASELINE EDGE FEATURES
 # ============================================================
 
 def log1p_safe(x):
     x = np.asarray(x, dtype=np.float64)
-    x = np.where(x < 0, 0, x)
+    x = np.where(x < 0, 0.0, x)
     return np.log1p(x)
 
 amt_rec = df["Amount Received"].astype(float).values
@@ -174,11 +166,10 @@ hour = df[TS_COL].dt.hour.values.astype(float)
 weekday = df[TS_COL].dt.dayofweek.values.astype(float)
 is_weekend = (weekday >= 5).astype(float)
 
-# UNIX timestamps (seconds)
 timestamps = (df[TS_COL].astype("int64") // 10**9).values.astype(np.int64)
 ts_norm = (timestamps - timestamps.min()) / (timestamps.max() - timestamps.min() + 1e-9)
 
-# time since last src
+# time since src
 last_src = {}
 tsls = np.zeros(num_edges)
 for i, (s, ts) in enumerate(zip(src, timestamps)):
@@ -186,7 +177,7 @@ for i, (s, ts) in enumerate(zip(src, timestamps)):
     last_src[s] = ts
 tsls = np.log1p(tsls)
 
-# time since last dst
+# time since dst
 last_dst = {}
 tsld = np.zeros(num_edges)
 for i, (d, ts) in enumerate(zip(dst, timestamps)):
@@ -195,7 +186,7 @@ for i, (d, ts) in enumerate(zip(dst, timestamps)):
 tsld = np.log1p(tsld)
 
 pf = pd.get_dummies(df[PFORMAT].astype(str), prefix="pf")
-rc = pd.get_dummies(df[RCURR].astype(str), prefix="rc")
+rc = pd.get_dummies(df[RCURR].astype(str),  prefix="rc")
 
 baseline_df = pd.DataFrame({
     "log_amt_rec": log_amt_rec,
@@ -211,17 +202,10 @@ baseline_df = pd.DataFrame({
 })
 
 baseline_df = pd.concat([baseline_df, pf, rc], axis=1)
-baseline_cols = list(baseline_df.columns)
 
-# ============================================================
-# THEORY + MOTIF FEATURES (same as static builder)
-# ============================================================
 # ============================================================
 # THEORY + MOTIF FEATURES (z-score normalized)
 # ============================================================
-# NOTE: Baseline features are NOT normalized (same as GraphSAGE builder)
-#       Theory features ARE normalized to match their scale
-# This ensures fair competition between baseline and theory features
 
 theory_cols = [
     col for col in df.columns
@@ -231,7 +215,7 @@ theory_cols = [
 METADATA_COLS = {
     "RAT_injected", "RAT_intensity_level",
     "SLT_injected", "SLT_intensity_level",
-    "STRAIN_injected", "STRAIN_intensity_level"
+    "STRAIN_injected", "STRAIN_intensity_level",
 }
 theory_cols = [c for c in theory_cols if c not in METADATA_COLS]
 
@@ -240,8 +224,6 @@ print(f"Detected {len(theory_cols)} theory/motif features.")
 theory_df = df[theory_cols].copy() if theory_cols else pd.DataFrame(index=df.index)
 if not theory_df.empty:
     theory_df = theory_df.replace([np.inf, -np.inf], 0).fillna(0)
-    
-    # Z-score normalize ONLY theory/motif features
     for col in theory_cols:
         v = theory_df[col].astype(np.float32).values
         std = v.std() + 1e-6
@@ -259,27 +241,23 @@ edge_attr = edge_feat_df.values.astype(np.float32)
 print(f"Num edge features: {edge_attr.shape[1]}")
 
 # ============================================================
-# NODE FEATURES (with entity types - FAST vectorized version)
+# NODE FEATURES (degrees + entity types, vectorized)
 # ============================================================
 
 node_df = pd.DataFrame({"acct": list(acct2idx.keys())})
 node_df["node_id"] = node_df["acct"].map(acct2idx)
 
-# Degree features (same as before)
 out_deg = df.groupby(SRC_COL).size().reindex(node_df["acct"]).fillna(0).values
 in_deg  = df.groupby(DST_COL).size().reindex(node_df["acct"]).fillna(0).values
 
 node_df["out_degree"] = out_deg
-node_df["in_degree"] = in_deg
+node_df["in_degree"]  = in_deg
 node_df["total_degree"] = out_deg + in_deg
-
 node_df["log_out_degree"] = np.log1p(out_deg)
 node_df["log_in_degree"]  = np.log1p(in_deg)
 node_df["log_total_degree"] = np.log1p(node_df["total_degree"])
 
-# ============================================================
-# EXTRACT ENTITY TYPES (FAST - vectorized approach)
-# ============================================================
+# -------- ENTITY TYPES FROM RAT COLUMNS (vectorized) --------
 
 def parse_entity_type(entity_name: str) -> str:
     """Extract entity type from 'Entity Name' (same logic as baseline builder)."""
@@ -292,32 +270,29 @@ def parse_entity_type(entity_name: str) -> str:
         return entity_name.strip()
     return " ".join(parts[:-1]).strip()
 
-# Build entity name mappings for src and dst separately (FAST!)
+# Mode entity name per src account
 src_entity_map = (
     df.groupby(SRC_COL)["srcacct_Entity Name"]
     .apply(lambda x: x.mode()[0] if len(x.mode()) > 0 else "Unknown")
     .to_dict()
 )
 
+# Mode entity name per dst account
 dst_entity_map = (
     df.groupby(DST_COL)["dstacct_Entity Name"]
     .apply(lambda x: x.mode()[0] if len(x.mode()) > 0 else "Unknown")
     .to_dict()
 )
 
-# Combine: prefer src entity, fallback to dst, then "Unknown"
 def get_entity_name(acct):
     return src_entity_map.get(acct, dst_entity_map.get(acct, "Unknown"))
 
 node_df["entity_name"] = node_df["acct"].apply(get_entity_name)
 node_df["entity_type"] = node_df["entity_name"].apply(parse_entity_type)
 
-# One-hot encode entity types
 ent_dummies = pd.get_dummies(node_df["entity_type"], prefix="ent")
-
 print(f"Entity types found: {list(ent_dummies.columns)}")
 
-# Combine degree features + entity type features
 node_feat_df = pd.concat([
     node_df[[
         "out_degree", "in_degree", "total_degree",
@@ -327,63 +302,25 @@ node_feat_df = pd.concat([
 ], axis=1)
 
 node_features = node_feat_df.values.astype(np.float32)
-
 print(f"Num node features (with entity types): {node_features.shape[1]}")
 
 # ============================================================
 # EVENT TYPES (DyRep)
 # ============================================================
 
-# Option 2: Use payment format as event types (better!)
-# This gives DyRep more signal about event nature
-event_type_map = {pf: i for i, pf in enumerate(df[PFORMAT].unique())}
-event_type = df[PFORMAT].map(event_type_map).values.astype(np.int64)
+event_type_map = {pf: i for i, pf in enumerate(df[PFORMAT].astype(str).unique())}
+event_type = df[PFORMAT].astype(str).map(event_type_map).values.astype(np.int64)
 
-print(f"Event types: {len(event_type_map)} unique types")
-print(f"  Types: {list(event_type_map.keys())}")
+print(f"Event types: {event_type_map}")
 
 # ============================================================
-# TEMPORAL TRAIN/VAL/TEST SPLIT (by time order)
+# SANITY: TEMPORAL ORDER
 # ============================================================
 
-train_end = int(num_edges * TRAIN_RATIO)
-val_end = int(num_edges * (TRAIN_RATIO + VAL_RATIO))
-test_end = num_edges  # sanity
-
-train_mask = np.zeros(num_edges, dtype=bool)
-val_mask = np.zeros(num_edges, dtype=bool)
-test_mask = np.zeros(num_edges, dtype=bool)
-
-train_mask[:train_end] = True
-val_mask[train_end:val_end] = True
-test_mask[val_end:test_end] = True
-
-print("Split edges (by time):")
-print(f"  Train: {train_mask.sum():,}")
-print(f"  Val:   {val_mask.sum():,}")
-print(f"  Test:  {test_mask.sum():,}")
-
-# ============================================================
-# VALIDATE TEMPORAL ORDERING (critical for DyRep!)
-# ============================================================
 assert np.all(np.diff(timestamps) >= 0), "Timestamps must be non-decreasing for DyRep!"
 
-# Check temporal split boundaries
-train_times = timestamps[train_mask]
-val_times = timestamps[val_mask]
-test_times = timestamps[test_mask]
-
-print("\nTemporal split validation:")
-print(f"  Train time: {train_times.min()} → {train_times.max()}")
-print(f"  Val time:   {val_times.min()} → {val_times.max()}")
-print(f"  Test time:  {test_times.min()} → {test_times.max()}")
-
-assert train_times.max() <= val_times.min(), "Train/Val temporal overlap!"
-assert val_times.max() <= test_times.min(), "Val/Test temporal overlap!"
-print("  ✓ No temporal leakage")
-
 # ============================================================
-# SAVE EVERYTHING (DyRep format)
+# SAVE (NO SPLITS)
 # ============================================================
 
 torch.save(torch.tensor(src, dtype=torch.long), os.path.join(OUT_DIR, "src.pt"))
@@ -397,14 +334,10 @@ torch.save(torch.tensor(node_features, dtype=torch.float32), os.path.join(OUT_DI
 torch.save(torch.tensor(y_edge, dtype=torch.long), os.path.join(OUT_DIR, "labels.pt"))
 torch.save(torch.tensor(y_node, dtype=torch.long), os.path.join(OUT_DIR, "y_node.pt"))
 
-torch.save(torch.tensor(train_mask, dtype=torch.bool), os.path.join(OUT_DIR, "train_mask.pt"))
-torch.save(torch.tensor(val_mask, dtype=torch.bool), os.path.join(OUT_DIR, "val_mask.pt"))
-torch.save(torch.tensor(test_mask, dtype=torch.bool), os.path.join(OUT_DIR, "test_mask.pt"))
-
-with open(os.path.join(OUT_DIR, "edge_attr_cols.json"), "w") as f:
+with open(os.path.join(OUT_DIR, "edge_attr_cols.json"), "w", encoding="utf-8") as f:
     json.dump(edge_attr_cols, f, indent=2)
 
-with open(os.path.join(OUT_DIR, "node_mapping.json"), "w") as f:
+with open(os.path.join(OUT_DIR, "node_mapping.json"), "w", encoding="utf-8") as f:
     json.dump(acct2idx, f)
 
 graph_stats = {
@@ -418,14 +351,12 @@ graph_stats = {
     "has_rat": bool(has_rat),
     "has_slt": bool(has_slt),
     "has_strain": bool(has_strain),
-    "train_ratio": TRAIN_RATIO,
-    "val_ratio": VAL_RATIO,
-    "test_ratio": 1.0 - TRAIN_RATIO - VAL_RATIO,
 }
-with open(os.path.join(OUT_DIR, "graph_stats.json"), "w") as f:
+
+with open(os.path.join(OUT_DIR, "graph_stats.json"), "w", encoding="utf-8") as f:
     json.dump(graph_stats, f, indent=2)
 
 print("=" * 70)
-print("✓ DYREP EVENT GRAPH BUILT")
+print("✓ DYREP EVENT GRAPH BUILT (NO SPLITS)")
 print(f"Saved to: {OUT_DIR}")
 print("=" * 70)
