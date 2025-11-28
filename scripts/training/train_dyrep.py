@@ -361,13 +361,14 @@ def main():
     # -------------------------------------------------------
     # Load DyRep graph tensors
     # -------------------------------------------------------
-    src = torch.load(os.path.join(graph_folder, "src.pt")).long().to(device)
-    dst = torch.load(os.path.join(graph_folder, "dst.pt")).long().to(device)
-    ts = torch.load(os.path.join(graph_folder, "ts.pt")).long().to(device)
-    edge_attr = torch.load(os.path.join(graph_folder, "edge_attr.pt")).float().to(device)
-    event_type = torch.load(os.path.join(graph_folder, "event_type.pt")).long().to(device)
-    labels = torch.load(os.path.join(graph_folder, "labels.pt")).long().to(device)
-    node_features = torch.load(os.path.join(graph_folder, "node_features.pt")).float().to(device)
+    src = torch.load(os.path.join(graph_folder, "src.pt"), weights_only=False).long().to(device)
+    dst = torch.load(os.path.join(graph_folder, "dst.pt"), weights_only=False).long().to(device)
+    ts = torch.load(os.path.join(graph_folder, "ts.pt"), weights_only=False).long().to(device)
+    edge_attr = torch.load(os.path.join(graph_folder, "edge_attr.pt"), weights_only=False).float().to(device)
+    event_type = torch.load(os.path.join(graph_folder, "event_type.pt"), weights_only=False).long().to(device)
+    labels = torch.load(os.path.join(graph_folder, "labels.pt"), weights_only=False).long().to(device)
+    node_features = torch.load(os.path.join(graph_folder, "node_features.pt"), weights_only=False).float().to(device)
+
 
     num_nodes = node_features.size(0)
     node_feat_dim = node_features.size(1)
@@ -387,9 +388,10 @@ def main():
     # -------------------------------------------------------
     # Load splits (indices into events)
     # -------------------------------------------------------
-    train_idx = torch.load(os.path.join(split_folder, "train_edge_idx.pt")).long().to(device)
-    val_idx = torch.load(os.path.join(split_folder, "val_edge_idx.pt")).long().to(device)
-    test_idx = torch.load(os.path.join(split_folder, "test_edge_idx.pt")).long().to(device)
+    train_idx = torch.load(os.path.join(split_folder, "train_edge_idx.pt"), weights_only=False).long().to(device)
+    val_idx = torch.load(os.path.join(split_folder, "val_edge_idx.pt"), weights_only=False).long().to(device)
+    test_idx = torch.load(os.path.join(split_folder, "test_edge_idx.pt"), weights_only=False).long().to(device)
+
 
     print("\nSplit sizes:")
     print(f"  Train: {train_idx.size(0):,}")
@@ -520,7 +522,9 @@ def main():
     # Final evaluation on best model
     # -------------------------------------------------------
     print(f"\nLoading best model from epoch {best_epoch}...")
-    model.load_state_dict(torch.load(best_model_path, map_location=device))
+    model.load_state_dict(
+        torch.load(best_model_path, map_location=device, weights_only=False)
+    )
 
     print("Evaluating final model on train/val/test...")
 
