@@ -47,16 +47,6 @@ DATA_DIR = os.path.join(BASE_DIR, "ibm_transcations_datasets")
 # DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_medium.csv")
 DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_high.csv")
 
-# SLT
-# DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_low.csv")
-# DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_medium.csv")
-# DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_high.csv")
-
-# STRAIN
-# DATASET = os.path.join("STRAIN", "HI-Small_Trans_STRAIN_low.csv")
-# DATASET = os.path.join("STRAIN", "HI-Small_Trans_STRAIN_medium.csv")
-# DATASET = os.path.join("STRAIN", "HI-Small_Trans_STRAIN_high.csv")
-
 INPUT_PATH = os.path.join(DATA_DIR, DATASET)
 dataset_name = os.path.splitext(os.path.basename(DATASET))[0]
 
