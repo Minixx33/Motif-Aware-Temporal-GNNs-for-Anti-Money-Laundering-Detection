@@ -1,11 +1,5 @@
 # ========================================================================
-# config_utils.py  (FULLY PATCHED VERSION)
-# ========================================================================
-# Includes:
-#   ✓ Seed-aware experiment names
-#   ✓ Optional experiment ID
-#   ✓ Non-overwriting results/log paths
-#   ✓ Backwards-compatible with all existing scripts
+# config_utils.py  (FINAL PATCHED VERSION)
 # ========================================================================
 
 import os
@@ -16,7 +10,6 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 import torch
 import numpy as np
-
 
 # ========================================================================
 # LOGGER
@@ -78,6 +71,10 @@ class Logger:
             self.terminal.flush()
             self.log.flush()
 
+
+# ========================================================================
+# LOGGING
+# ========================================================================
 
 def setup_logging(log_dir: str, experiment_name: str, timestamp: bool = True) -> str:
     os.makedirs(log_dir, exist_ok=True)
@@ -181,49 +178,30 @@ def set_seed(seed: int = 42, deterministic: bool = False):
 
 
 # ========================================================================
-# EXPERIMENT NAMING (PATCHED)
+# EXPERIMENT NAME
 # ========================================================================
 
 def build_experiment_name(
     dataset_cfg: Dict[str, Any],
     model_cfg: Dict[str, Any],
-    intensity: Optional[str] = None,
-    seed: Optional[int] = None,
-    exp_id: Optional[int] = None,
-    timestamp: bool = False
+    intensity: Optional[str],
+    seed: Optional[int],
+    exp_name: str,
 ) -> str:
-    """
-    NEW VERSION — supports:
-       ✓ seed-aware directory naming
-       ✓ exp_id (experiment number)
-    """
 
     theory = dataset_cfg["dataset"]["theory"]
     prefix = dataset_cfg["dataset"]["prefix"]
-    model_name = model_cfg["model"]["name"].replace(" ", "").replace("-", "_")
 
     if theory.lower() == "baseline":
-        base = prefix
+        ds_name = prefix
     else:
-        base = f"{prefix}_{intensity}"
+        ds_name = f"{prefix}_{intensity}"
 
-    # ---- PATCHED LOGIC ----
-    if seed is not None and exp_id is not None:
-        name = f"{base}_seed{seed}_exp{exp_id}"
-    elif seed is not None:
-        name = f"{base}_seed{seed}"
-    else:
-        name = base
-
-    if timestamp:
-        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        name = f"{name}_{ts}"
-
-    return name
+    return f"seed{seed}_{exp_name}"
 
 
 # ========================================================================
-# PATHS (UNCHANGED EXCEPT FOR EXPERIMENT NAME USAGE)
+# PATHS (FULLY PATCHED)
 # ========================================================================
 
 def build_paths(base_cfg, dataset_cfg, intensity, model_name):
@@ -242,33 +220,31 @@ def build_paths(base_cfg, dataset_cfg, intensity, model_name):
     else:
         dataset_name = f"{prefix}_{intensity}"
 
-    if "tgat" in model_name.lower():
-        graph_dir_key = "tgat_graphs_dir"
-        split_dir_key = "tgat_splits_dir"
-    else:
-        graph_dir_key = "graphs_dir"
-        split_dir_key = "splits_dir"
+    results_root = os.path.join(root, base_cfg["paths"]["results_dir"])
+    logs_root = os.path.join(root, base_cfg["paths"]["logs_dir"])
+
+    # Graph & split folders return unchanged
+    graph_dir_key = (
+        "tgat_graphs_dir" if "tgat" in model_name.lower() else "graphs_dir"
+    )
+    split_dir_key = (
+        "tgat_splits_dir" if "tgat" in model_name.lower() else "splits_dir"
+    )
 
     graphs_dir = os.path.join(root, base_cfg["paths"][graph_dir_key])
     splits_dir = os.path.join(root, base_cfg["paths"][split_dir_key])
-    results_root = os.path.join(root, base_cfg["paths"]["results_dir"])
-    logs_root = os.path.join(root, base_cfg["paths"]["logs_dir"])
 
     graph_folder = os.path.join(graphs_dir, dataset_name)
     split_folder = os.path.join(splits_dir, dataset_name)
 
-    results_dir = os.path.join(results_root, dataset_name, model_name)
-    logs_dir = os.path.join(logs_root, dataset_name, model_name)
-
-    os.makedirs(results_dir, exist_ok=True)
-    os.makedirs(logs_dir, exist_ok=True)
+    # Don't return final results/logs path yet (done inside setup_experiment)
 
     return {
         "dataset_name": dataset_name,
         "graph_folder": graph_folder,
         "split_folder": split_folder,
-        "results_dir": results_dir,
-        "logs_dir": logs_dir,
+        "results_root": results_root,
+        "logs_root": logs_root,
         "root": root,
     }
 
@@ -322,11 +298,6 @@ def print_config_summary(base_cfg, model_cfg, dataset_cfg, intensity, paths):
     print(f"  {model_cfg['model']['name']}")
     print(f"  Hidden dim: {model_cfg['model'].get('hidden_dim')}")
 
-    print("\n[TRAINING]")
-    t = model_cfg["training"]
-    print(f"  LR:         {t.get('lr')}")
-    print(f"  Epochs:     {t.get('epochs')}")
-
     print("\n[PATHS]")
     print(f"  Graphs:     {paths['graph_folder']}")
     print(f"  Splits:     {paths['split_folder']}")
@@ -337,7 +308,7 @@ def print_config_summary(base_cfg, model_cfg, dataset_cfg, intensity, paths):
 
 
 # ========================================================================
-# SETUP EXPERIMENT (PATCHED)
+# SETUP EXPERIMENT (FINAL VERSION)
 # ========================================================================
 
 def setup_experiment(
@@ -359,24 +330,22 @@ def setup_experiment(
     validate_config(base_cfg, model_cfg, dataset_cfg, intensity)
 
     seed = base_cfg.get("experiment", {}).get("seed", 42)
-    exp_id = base_cfg.get("experiment", {}).get("exp_id", None)
+    exp_name = base_cfg.get("experiment", {}).get("name", "exp")
 
     set_seed(seed)
 
     model_name = model_cfg["model"]["name"].lower().replace(" ", "_")
     paths = build_paths(base_cfg, dataset_cfg, intensity, model_name)
 
-    experiment_name = build_experiment_name(
-        dataset_cfg,
-        model_cfg,
-        intensity,
-        seed=seed,
-        exp_id=exp_id,
-        timestamp=False
-    )
+    # 👇 NEW FOLDER STRUCTURE
+    experiment_name = f"seed{seed}_{exp_name}"
 
-    results_dir = os.path.join(paths["results_dir"], experiment_name)
-    logs_dir = os.path.join(paths["logs_dir"], experiment_name)
+    results_dir = os.path.join(
+        paths["results_root"], paths["dataset_name"], experiment_name, model_name
+    )
+    logs_dir = os.path.join(
+        paths["logs_root"], paths["dataset_name"], experiment_name, model_name
+    )
 
     os.makedirs(results_dir, exist_ok=True)
     os.makedirs(logs_dir, exist_ok=True)
@@ -391,15 +360,14 @@ def setup_experiment(
         logger = Logger(log_path)
         print(f"[INFO] Logging to: {log_path}")
 
+    device = torch.device(
+        model_cfg["training"].get("device", "cuda")
+        if torch.cuda.is_available() else "cpu"
+    )
+
     if verbose:
         print_config_summary(base_cfg, model_cfg, dataset_cfg, intensity, paths)
-        device = torch.device(
-            model_cfg["training"].get("device", "cuda")
-            if torch.cuda.is_available() else "cpu"
-        )
         print(f"\n[DEVICE] {device}\n")
-    else:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     return {
         "base_cfg": base_cfg,
