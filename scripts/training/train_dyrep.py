@@ -31,6 +31,35 @@
 # (no survival term). It is a temporal event classifier with
 # DyRep-style ingredients, tailored to your large-scale AML dataset.
 # -----------------------------------------------------------
+# Usage
+
+# baseline:
+#     python scripts/training/train_dyrep.py \
+#     --config configs/models/dyrep.yaml \
+#     --dataset configs/datasets/baseline.yaml \
+#     --base_config configs/base.yaml
+
+# rat_low:
+#     python scripts/training/train_dyrep.py \
+#     --config configs/models/dyrep.yaml \
+#     --dataset configs/datasets/rat.yaml \
+#     --intensity low \
+#     --base_config configs/base.yaml 
+
+# rat_medium:
+#     python scripts/training/train_dyrep.py \
+#     --config configs/models/dyrep.yaml \
+#     --dataset configs/datasets/rat.yaml \
+#     --intensity medium \
+#     --base_config configs/base.yaml
+    
+# rat_high:
+#     python scripts/training/train_dyrep.py \
+#     --config configs/models/dyrep.yaml \
+#     --dataset configs/datasets/rat.yaml \
+#     --intensity high \
+#     --base_config configs/base.yaml
+# -----------------------------------------------------------
 
 import os
 import sys
