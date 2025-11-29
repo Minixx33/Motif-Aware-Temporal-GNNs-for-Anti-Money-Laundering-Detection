@@ -4,7 +4,7 @@ set -o pipefail
 
 # =============================================================================
 # RUN ALL RAT EXPERIMENTS (LOW, MEDIUM, HIGH)
-# Models: GraphSAGE, GraphSAGE-T, TGAT
+# Models: GraphSAGE, GraphSAGE-T, DyRep
 # Dataset config: configs/datasets/rat.yaml
 # =============================================================================
 
@@ -15,7 +15,7 @@ PROJECT_ROOT="$(pwd)"
 echo "Running from project root: $PROJECT_ROOT"
 
 # ---------------------------------------------------------------------------
-# Conda Activation (edit if needed)
+# Conda Activation (adjust if teammate uses a different path)
 # ---------------------------------------------------------------------------
 source "/c/ProgramData/Anaconda3/etc/profile.d/conda.sh"
 conda activate aml_project
@@ -47,9 +47,9 @@ INTENSITIES=("low" "medium" "high")
 # ---------------------------------------------------------------------------
 TRAIN_SAGE="scripts/training/train_graphsage.py"
 TRAIN_SAGET="scripts/training/train_graphsage_t.py"
-TRAIN_TGAT="scripts/training/train_tgat.py"
+TRAIN_DYREP="scripts/training/train_dyrep.py"
 
-for script in "$TRAIN_SAGE" "$TRAIN_SAGET" "$TRAIN_TGAT"; do
+for script in "$TRAIN_SAGE" "$TRAIN_SAGET" "$TRAIN_DYREP"; do
     [ ! -f "$script" ] && echo "ERROR: Missing training script: $script" && exit 1
 done
 
@@ -58,9 +58,9 @@ done
 # ---------------------------------------------------------------------------
 SAGE_CONFIG="configs/models/graphsage.yaml"
 SAGET_CONFIG="configs/models/graphsage_t.yaml"
-TGAT_CONFIG="configs/models/tgat.yaml"
+DYREP_CONFIG="configs/models/dyrep.yaml"
 
-for config in "$SAGE_CONFIG" "$SAGET_CONFIG" "$TGAT_CONFIG"; do
+for config in "$SAGE_CONFIG" "$SAGET_CONFIG" "$DYREP_CONFIG"; do
     [ ! -f "$config" ] && echo "ERROR: Missing model config: $config" && exit 1
 done
 
@@ -75,8 +75,8 @@ LOG_FILE="$LOG_DIR/rat_all_${ts}.log"
 echo "" | tee -a "$LOG_FILE"
 echo "===============================================================" | tee -a "$LOG_FILE"
 echo " RUNNING ALL RAT EXPERIMENTS: LOW → MEDIUM → HIGH " | tee -a "$LOG_FILE"
+echo " Models: GraphSAGE, GraphSAGE-T, DyRep " | tee -a "$LOG_FILE"
 echo " Timestamp: $ts " | tee -a "$LOG_FILE"
-echo " Models: GraphSAGE, GraphSAGE-T, TGAT " | tee -a "$LOG_FILE"
 echo "===============================================================" | tee -a "$LOG_FILE"
 
 # GPU Info
@@ -126,9 +126,9 @@ for INTENSITY in "${INTENSITIES[@]}"; do
     echo ">>> STARTING RAT INTENSITY: $INTENSITY" | tee -a "$LOG_FILE"
     echo "---------------------------------------------------------------" | tee -a "$LOG_FILE"
 
-    # run_model "GraphSAGE"   "$TRAIN_SAGE"   "$SAGE_CONFIG"   "$INTENSITY"
-    # run_model "GraphSAGE-T" "$TRAIN_SAGET"  "$SAGET_CONFIG"  "$INTENSITY"
-    run_model "TGAT"        "$TRAIN_TGAT"   "$TGAT_CONFIG"   "$INTENSITY"
+    run_model "GraphSAGE"   "$TRAIN_SAGE"   "$SAGE_CONFIG"   "$INTENSITY"
+    run_model "GraphSAGE-T" "$TRAIN_SAGET"  "$SAGET_CONFIG"  "$INTENSITY"
+    run_model "DyRep"       "$TRAIN_DYREP"  "$DYREP_CONFIG"  "$INTENSITY"
 done
 
 end_time=$(date +%s)
