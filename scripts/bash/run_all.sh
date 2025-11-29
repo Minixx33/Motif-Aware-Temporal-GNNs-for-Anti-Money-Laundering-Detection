@@ -35,17 +35,13 @@ fi
 # ============================================================
 DATASETS=(
     "baseline"
-    "rat_low"
-    "rat_medium"
-    "rat_high"
+    "rat"
 )
 
 # dataset → config path
 declare -A DATASET_CONFIGS
 DATASET_CONFIGS["baseline"]="configs/datasets/baseline.yaml"
-DATASET_CONFIGS["rat_low"]="configs/datasets/rat_low.yaml"
-DATASET_CONFIGS["rat_medium"]="configs/datasets/rat_medium.yaml"
-DATASET_CONFIGS["rat_high"]="configs/datasets/rat_high.yaml"
+DATASET_CONFIGS["rat"]="configs/datasets/rat.yaml"
 
 # ============================================================
 # MODELS TO LOOP OVER
