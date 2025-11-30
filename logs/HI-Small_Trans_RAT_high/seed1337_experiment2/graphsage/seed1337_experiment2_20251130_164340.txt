@@ -1,0 +1,500 @@
+
+================================================================================
+Logging started at: 2025-11-30 16:43:40.226143
+Log file: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_high\seed1337_experiment2\graphsage\seed1337_experiment2_20251130_164340.txt
+================================================================================
+
+[INFO] Logging to: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_high\seed1337_experiment2\graphsage\seed1337_experiment2_20251130_164340.txt
+================================================================================
+EXPERIMENT CONFIG SUMMARY
+================================================================================
+
+[DATASET]
+  Name:       HI-Small_Trans_RAT_high
+  Theory:     RAT
+  Intensity:  high
+
+[MODEL]
+  GraphSAGE
+  Hidden dim: 128
+
+[PATHS]
+  Graphs:     C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs\HI-Small_Trans_RAT_high
+  Splits:     C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits\HI-Small_Trans_RAT_high
+  Results:    C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_high\seed1337_experiment2\graphsage
+  Logs:       C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_high\seed1337_experiment2\graphsage
+================================================================================
+
+[DEVICE] cuda
+
+
+======================================================================
+GPU Mini-Batch Training (GraphSAGE Stable)
+======================================================================
+Train batch size: 8192
+Eval batch size:  16384
+Mixed Precision:  False (disabled)
+Device:           cuda
+======================================================================
+
+Loading graph tensors...
+Nodes: 515,080, Edges: 5,078,415
+Node features: 6, Edge features: 58
+Train: 3,047,049, Val: 1,015,683, Test: 1,015,683
+pos_weight: 100.00
+
+Starting training for 350 epochs...
+
+Epoch 001 | loss=40.4988 | val_F1=0.0240 | val_AUPR=0.0018 | time=47.11s
+Epoch 002 | loss=10.6884 | val_F1=0.0038 | val_AUPR=0.0012 | time=47.99s
+Epoch 003 | loss=4.0297 | val_F1=0.0213 | val_AUPR=0.0021 | time=47.66s
+Epoch 004 | loss=1.2883 | val_F1=0.0038 | val_AUPR=0.0014 | time=49.29s
+Epoch 005 | loss=0.6873 | val_F1=0.0037 | val_AUPR=0.0015 | time=48.89s
+Epoch 006 | loss=0.5221 | val_F1=0.0038 | val_AUPR=0.0015 | time=49.45s
+Epoch 007 | loss=0.4829 | val_F1=0.0035 | val_AUPR=0.0015 | time=51.68s
+Epoch 008 | loss=0.4375 | val_F1=0.0041 | val_AUPR=0.0018 | time=48.73s
+Epoch 009 | loss=0.4275 | val_F1=0.0156 | val_AUPR=0.0027 | time=49.82s
+Epoch 010 | loss=0.4058 | val_F1=0.0189 | val_AUPR=0.0029 | time=49.36s
+Epoch 011 | loss=0.3962 | val_F1=0.0411 | val_AUPR=0.0056 | time=49.03s
+Epoch 012 | loss=0.4110 | val_F1=0.0423 | val_AUPR=0.0056 | time=48.98s
+Epoch 013 | loss=0.3901 | val_F1=0.0386 | val_AUPR=0.0054 | time=49.02s
+Epoch 014 | loss=0.3622 | val_F1=0.0531 | val_AUPR=0.0110 | time=49.13s
+Epoch 015 | loss=0.3660 | val_F1=0.0597 | val_AUPR=0.0109 | time=49.30s
+Epoch 016 | loss=0.3526 | val_F1=0.0592 | val_AUPR=0.0113 | time=49.32s
+Epoch 017 | loss=0.3524 | val_F1=0.0575 | val_AUPR=0.0135 | time=49.15s
+Epoch 018 | loss=0.3457 | val_F1=0.0466 | val_AUPR=0.0082 | time=49.03s
+Epoch 019 | loss=0.3421 | val_F1=0.0687 | val_AUPR=0.0152 | time=49.19s
+Epoch 020 | loss=0.3348 | val_F1=0.0739 | val_AUPR=0.0167 | time=49.22s
+Epoch 021 | loss=0.3390 | val_F1=0.0610 | val_AUPR=0.0115 | time=49.19s
+Epoch 022 | loss=0.3325 | val_F1=0.0511 | val_AUPR=0.0098 | time=47.90s
+Epoch 023 | loss=0.3304 | val_F1=0.0646 | val_AUPR=0.0134 | time=49.01s
+Epoch 024 | loss=0.3420 | val_F1=0.0772 | val_AUPR=0.0163 | time=49.22s
+Epoch 025 | loss=0.3307 | val_F1=0.0793 | val_AUPR=0.0187 | time=49.54s
+Epoch 026 | loss=0.3172 | val_F1=0.0907 | val_AUPR=0.0250 | time=48.72s
+Epoch 027 | loss=0.3113 | val_F1=0.0796 | val_AUPR=0.0164 | time=49.25s
+Epoch 028 | loss=0.3107 | val_F1=0.0952 | val_AUPR=0.0277 | time=49.02s
+Epoch 029 | loss=0.3110 | val_F1=0.0957 | val_AUPR=0.0285 | time=48.23s
+Epoch 030 | loss=0.3044 | val_F1=0.1049 | val_AUPR=0.0298 | time=49.17s
+Epoch 031 | loss=0.3083 | val_F1=0.0930 | val_AUPR=0.0241 | time=49.38s
+Epoch 032 | loss=0.3072 | val_F1=0.1065 | val_AUPR=0.0333 | time=47.74s
+Epoch 033 | loss=0.2941 | val_F1=0.1085 | val_AUPR=0.0336 | time=47.75s
+Epoch 034 | loss=0.2995 | val_F1=0.1087 | val_AUPR=0.0336 | time=47.86s
+Epoch 035 | loss=0.2883 | val_F1=0.1178 | val_AUPR=0.0376 | time=48.16s
+Epoch 036 | loss=0.2835 | val_F1=0.1165 | val_AUPR=0.0356 | time=48.90s
+Epoch 037 | loss=0.2816 | val_F1=0.1218 | val_AUPR=0.0390 | time=49.75s
+Epoch 038 | loss=0.2990 | val_F1=0.1182 | val_AUPR=0.0375 | time=49.21s
+Epoch 039 | loss=0.2861 | val_F1=0.1227 | val_AUPR=0.0447 | time=48.67s
+Epoch 040 | loss=0.2794 | val_F1=0.1249 | val_AUPR=0.0410 | time=48.85s
+Epoch 041 | loss=0.2765 | val_F1=0.1238 | val_AUPR=0.0444 | time=49.02s
+Epoch 042 | loss=0.2716 | val_F1=0.1348 | val_AUPR=0.0507 | time=47.98s
+Epoch 043 | loss=0.2585 | val_F1=0.1181 | val_AUPR=0.0448 | time=48.08s
+Epoch 044 | loss=0.2608 | val_F1=0.1355 | val_AUPR=0.0539 | time=47.78s
+Epoch 045 | loss=0.2585 | val_F1=0.1378 | val_AUPR=0.0554 | time=48.85s
+Epoch 046 | loss=0.2520 | val_F1=0.1483 | val_AUPR=0.0607 | time=49.12s
+Epoch 047 | loss=0.2473 | val_F1=0.1517 | val_AUPR=0.0676 | time=48.89s
+Epoch 048 | loss=0.2532 | val_F1=0.1577 | val_AUPR=0.0687 | time=49.09s
+Epoch 049 | loss=0.2378 | val_F1=0.1581 | val_AUPR=0.0701 | time=48.60s
+Epoch 050 | loss=0.2427 | val_F1=0.1727 | val_AUPR=0.0782 | time=47.66s
+Epoch 051 | loss=0.2261 | val_F1=0.1649 | val_AUPR=0.0733 | time=48.59s
+Epoch 052 | loss=0.2259 | val_F1=0.1783 | val_AUPR=0.0843 | time=48.72s
+Epoch 053 | loss=0.2225 | val_F1=0.1836 | val_AUPR=0.0856 | time=48.94s
+Epoch 054 | loss=0.2180 | val_F1=0.1899 | val_AUPR=0.0957 | time=48.34s
+Epoch 055 | loss=0.2281 | val_F1=0.1865 | val_AUPR=0.0921 | time=48.72s
+Epoch 056 | loss=0.2120 | val_F1=0.2016 | val_AUPR=0.0972 | time=48.48s
+Epoch 057 | loss=0.2159 | val_F1=0.1959 | val_AUPR=0.0974 | time=48.74s
+Epoch 058 | loss=0.2092 | val_F1=0.1929 | val_AUPR=0.1088 | time=47.89s
+Epoch 059 | loss=0.2113 | val_F1=0.2037 | val_AUPR=0.1079 | time=47.90s
+Epoch 060 | loss=0.2113 | val_F1=0.2144 | val_AUPR=0.1150 | time=47.70s
+Epoch 061 | loss=0.2030 | val_F1=0.2124 | val_AUPR=0.1181 | time=47.55s
+Epoch 062 | loss=0.2004 | val_F1=0.2098 | val_AUPR=0.1145 | time=47.62s
+Epoch 063 | loss=0.1985 | val_F1=0.2193 | val_AUPR=0.1276 | time=47.48s
+Epoch 064 | loss=0.2051 | val_F1=0.2342 | val_AUPR=0.1353 | time=47.64s
+Epoch 065 | loss=0.2169 | val_F1=0.2252 | val_AUPR=0.1348 | time=47.44s
+Epoch 066 | loss=0.1877 | val_F1=0.2549 | val_AUPR=0.1572 | time=47.68s
+Epoch 067 | loss=0.1704 | val_F1=0.2505 | val_AUPR=0.1619 | time=47.51s
+Epoch 068 | loss=0.1702 | val_F1=0.2540 | val_AUPR=0.1593 | time=47.58s
+Epoch 069 | loss=0.1609 | val_F1=0.2512 | val_AUPR=0.1664 | time=47.63s
+Epoch 070 | loss=0.1536 | val_F1=0.2500 | val_AUPR=0.1654 | time=47.34s
+Epoch 071 | loss=0.1637 | val_F1=0.2521 | val_AUPR=0.1608 | time=47.66s
+Epoch 072 | loss=0.1593 | val_F1=0.2707 | val_AUPR=0.1823 | time=47.41s
+Epoch 073 | loss=0.1468 | val_F1=0.2625 | val_AUPR=0.1817 | time=47.53s
+Epoch 074 | loss=0.1451 | val_F1=0.2688 | val_AUPR=0.1862 | time=47.52s
+Epoch 075 | loss=0.1399 | val_F1=0.2701 | val_AUPR=0.1873 | time=47.46s
+Epoch 076 | loss=0.1480 | val_F1=0.2705 | val_AUPR=0.1933 | time=47.93s
+Epoch 077 | loss=0.1567 | val_F1=0.2726 | val_AUPR=0.1873 | time=47.49s
+Epoch 078 | loss=0.1531 | val_F1=0.2809 | val_AUPR=0.2007 | time=47.45s
+Epoch 079 | loss=0.1518 | val_F1=0.2815 | val_AUPR=0.1983 | time=47.45s
+Epoch 080 | loss=0.1337 | val_F1=0.2890 | val_AUPR=0.2087 | time=47.44s
+Epoch 081 | loss=0.1339 | val_F1=0.2805 | val_AUPR=0.1983 | time=47.70s
+Epoch 082 | loss=0.1344 | val_F1=0.2895 | val_AUPR=0.2082 | time=47.28s
+Epoch 083 | loss=0.1513 | val_F1=0.2977 | val_AUPR=0.2127 | time=47.62s
+Epoch 084 | loss=0.1283 | val_F1=0.2907 | val_AUPR=0.2077 | time=47.48s
+Epoch 085 | loss=0.1339 | val_F1=0.2989 | val_AUPR=0.2123 | time=47.41s
+Epoch 086 | loss=0.1434 | val_F1=0.2949 | val_AUPR=0.2181 | time=47.30s
+Epoch 087 | loss=0.1369 | val_F1=0.3036 | val_AUPR=0.2234 | time=47.29s
+Epoch 088 | loss=0.1397 | val_F1=0.3001 | val_AUPR=0.2175 | time=47.38s
+Epoch 089 | loss=0.1787 | val_F1=0.3048 | val_AUPR=0.2217 | time=47.47s
+Epoch 090 | loss=0.2080 | val_F1=0.3092 | val_AUPR=0.2271 | time=47.77s
+Epoch 091 | loss=0.1659 | val_F1=0.3058 | val_AUPR=0.2249 | time=47.61s
+Epoch 092 | loss=0.1524 | val_F1=0.3104 | val_AUPR=0.2296 | time=47.38s
+Epoch 093 | loss=0.1485 | val_F1=0.3065 | val_AUPR=0.2269 | time=47.58s
+Epoch 094 | loss=0.1546 | val_F1=0.3160 | val_AUPR=0.2267 | time=47.65s
+Epoch 095 | loss=0.1523 | val_F1=0.3178 | val_AUPR=0.2361 | time=47.37s
+Epoch 096 | loss=0.1414 | val_F1=0.3182 | val_AUPR=0.2333 | time=47.64s
+Epoch 097 | loss=0.1382 | val_F1=0.3134 | val_AUPR=0.2312 | time=47.76s
+Epoch 098 | loss=0.1381 | val_F1=0.3137 | val_AUPR=0.2306 | time=47.55s
+Epoch 099 | loss=0.1335 | val_F1=0.3121 | val_AUPR=0.2294 | time=47.50s
+Epoch 100 | loss=0.1276 | val_F1=0.3004 | val_AUPR=0.2163 | time=47.52s
+Epoch 101 | loss=0.1329 | val_F1=0.3160 | val_AUPR=0.2322 | time=47.32s
+Epoch 102 | loss=0.1349 | val_F1=0.3037 | val_AUPR=0.2143 | time=47.97s
+Epoch 103 | loss=0.1341 | val_F1=0.3194 | val_AUPR=0.2341 | time=48.83s
+Epoch 104 | loss=0.1388 | val_F1=0.3218 | val_AUPR=0.2361 | time=47.54s
+Epoch 105 | loss=0.1339 | val_F1=0.3177 | val_AUPR=0.2352 | time=47.43s
+Epoch 106 | loss=0.1206 | val_F1=0.3275 | val_AUPR=0.2465 | time=47.32s
+Epoch 107 | loss=0.1323 | val_F1=0.3288 | val_AUPR=0.2468 | time=47.81s
+Epoch 108 | loss=0.1210 | val_F1=0.3276 | val_AUPR=0.2459 | time=47.33s
+Epoch 109 | loss=0.1475 | val_F1=0.3236 | val_AUPR=0.2399 | time=47.42s
+Epoch 110 | loss=0.1378 | val_F1=0.3171 | val_AUPR=0.2327 | time=47.79s
+Epoch 111 | loss=0.1436 | val_F1=0.3284 | val_AUPR=0.2445 | time=48.30s
+Epoch 112 | loss=0.1565 | val_F1=0.3296 | val_AUPR=0.2578 | time=48.30s
+Epoch 113 | loss=0.1455 | val_F1=0.3366 | val_AUPR=0.2476 | time=49.23s
+Epoch 114 | loss=0.1277 | val_F1=0.3238 | val_AUPR=0.2387 | time=48.25s
+Epoch 115 | loss=0.1327 | val_F1=0.3387 | val_AUPR=0.2574 | time=48.82s
+Epoch 116 | loss=0.1360 | val_F1=0.3397 | val_AUPR=0.2590 | time=47.20s
+Epoch 117 | loss=0.1267 | val_F1=0.3406 | val_AUPR=0.2512 | time=47.38s
+Epoch 118 | loss=0.1194 | val_F1=0.3324 | val_AUPR=0.2530 | time=47.49s
+Epoch 119 | loss=0.1309 | val_F1=0.3375 | val_AUPR=0.2528 | time=47.31s
+Epoch 120 | loss=0.1264 | val_F1=0.3433 | val_AUPR=0.2637 | time=47.36s
+Epoch 121 | loss=0.1287 | val_F1=0.3420 | val_AUPR=0.2569 | time=47.66s
+Epoch 122 | loss=0.1234 | val_F1=0.3375 | val_AUPR=0.2532 | time=48.13s
+Epoch 123 | loss=0.1241 | val_F1=0.3368 | val_AUPR=0.2590 | time=48.73s
+Epoch 124 | loss=0.1197 | val_F1=0.3366 | val_AUPR=0.2583 | time=48.47s
+Epoch 125 | loss=0.1215 | val_F1=0.3413 | val_AUPR=0.2551 | time=48.40s
+Epoch 126 | loss=0.1319 | val_F1=0.3427 | val_AUPR=0.2645 | time=48.41s
+Epoch 127 | loss=0.1218 | val_F1=0.3458 | val_AUPR=0.2610 | time=49.18s
+Epoch 128 | loss=0.1279 | val_F1=0.3390 | val_AUPR=0.2589 | time=48.42s
+Epoch 129 | loss=0.1492 | val_F1=0.3409 | val_AUPR=0.2664 | time=48.31s
+Epoch 130 | loss=0.1222 | val_F1=0.3414 | val_AUPR=0.2659 | time=48.48s
+Epoch 131 | loss=0.1312 | val_F1=0.3507 | val_AUPR=0.2605 | time=48.46s
+Epoch 132 | loss=0.1265 | val_F1=0.3391 | val_AUPR=0.2590 | time=48.68s
+Epoch 133 | loss=0.1183 | val_F1=0.3386 | val_AUPR=0.2561 | time=54.87s
+Epoch 134 | loss=0.1177 | val_F1=0.3480 | val_AUPR=0.2696 | time=51.27s
+Epoch 135 | loss=0.1298 | val_F1=0.3394 | val_AUPR=0.2594 | time=48.06s
+Epoch 136 | loss=0.1211 | val_F1=0.3441 | val_AUPR=0.2638 | time=48.09s
+Epoch 137 | loss=0.1217 | val_F1=0.3484 | val_AUPR=0.2685 | time=48.06s
+Epoch 138 | loss=0.1200 | val_F1=0.3501 | val_AUPR=0.2672 | time=47.81s
+Epoch 139 | loss=0.1213 | val_F1=0.3497 | val_AUPR=0.2674 | time=47.89s
+Epoch 140 | loss=0.1160 | val_F1=0.3468 | val_AUPR=0.2696 | time=47.60s
+Epoch 141 | loss=0.1260 | val_F1=0.3403 | val_AUPR=0.2631 | time=47.59s
+Epoch 142 | loss=0.1199 | val_F1=0.3425 | val_AUPR=0.2695 | time=47.63s
+Epoch 143 | loss=0.1148 | val_F1=0.3434 | val_AUPR=0.2631 | time=47.88s
+Epoch 144 | loss=0.1166 | val_F1=0.3441 | val_AUPR=0.2679 | time=47.64s
+Epoch 145 | loss=0.1226 | val_F1=0.3539 | val_AUPR=0.2743 | time=47.78s
+Epoch 146 | loss=0.1150 | val_F1=0.3479 | val_AUPR=0.2715 | time=47.83s
+Epoch 147 | loss=0.1121 | val_F1=0.3330 | val_AUPR=0.2569 | time=47.51s
+Epoch 148 | loss=0.1102 | val_F1=0.3407 | val_AUPR=0.2696 | time=47.75s
+Epoch 149 | loss=0.1180 | val_F1=0.3525 | val_AUPR=0.2694 | time=47.55s
+Epoch 150 | loss=0.1176 | val_F1=0.3497 | val_AUPR=0.2714 | time=47.80s
+Epoch 151 | loss=0.1153 | val_F1=0.3516 | val_AUPR=0.2747 | time=47.72s
+Epoch 152 | loss=0.1160 | val_F1=0.3531 | val_AUPR=0.2778 | time=47.64s
+Epoch 153 | loss=0.1147 | val_F1=0.3493 | val_AUPR=0.2727 | time=48.05s
+Epoch 154 | loss=0.1142 | val_F1=0.3590 | val_AUPR=0.2800 | time=47.70s
+Epoch 155 | loss=0.1315 | val_F1=0.3615 | val_AUPR=0.2874 | time=47.85s
+Epoch 156 | loss=0.1057 | val_F1=0.3528 | val_AUPR=0.2793 | time=47.85s
+Epoch 157 | loss=0.1082 | val_F1=0.3581 | val_AUPR=0.2810 | time=47.77s
+Epoch 158 | loss=0.1105 | val_F1=0.3624 | val_AUPR=0.2899 | time=47.71s
+Epoch 159 | loss=0.1173 | val_F1=0.3503 | val_AUPR=0.2726 | time=47.76s
+Epoch 160 | loss=0.1103 | val_F1=0.3597 | val_AUPR=0.2834 | time=47.76s
+Epoch 161 | loss=0.1116 | val_F1=0.3633 | val_AUPR=0.2831 | time=47.73s
+Epoch 162 | loss=0.1092 | val_F1=0.3625 | val_AUPR=0.2953 | time=47.78s
+Epoch 163 | loss=0.1155 | val_F1=0.3589 | val_AUPR=0.2886 | time=47.52s
+Epoch 164 | loss=0.1198 | val_F1=0.3564 | val_AUPR=0.2830 | time=47.70s
+Epoch 165 | loss=0.1275 | val_F1=0.3611 | val_AUPR=0.2864 | time=47.75s
+Epoch 166 | loss=0.1150 | val_F1=0.3581 | val_AUPR=0.2825 | time=48.17s
+Epoch 167 | loss=0.1089 | val_F1=0.3554 | val_AUPR=0.2902 | time=47.64s
+Epoch 168 | loss=0.1170 | val_F1=0.3649 | val_AUPR=0.2936 | time=47.73s
+Epoch 169 | loss=0.1106 | val_F1=0.3597 | val_AUPR=0.2907 | time=47.72s
+Epoch 170 | loss=0.1094 | val_F1=0.3624 | val_AUPR=0.2979 | time=47.57s
+Epoch 171 | loss=0.1203 | val_F1=0.3619 | val_AUPR=0.2983 | time=47.61s
+Epoch 172 | loss=0.1181 | val_F1=0.3604 | val_AUPR=0.2937 | time=47.88s
+Epoch 173 | loss=0.1116 | val_F1=0.3618 | val_AUPR=0.2905 | time=47.80s
+Epoch 174 | loss=0.1090 | val_F1=0.3597 | val_AUPR=0.2898 | time=47.81s
+Epoch 175 | loss=0.1180 | val_F1=0.3648 | val_AUPR=0.3017 | time=47.75s
+Epoch 176 | loss=0.1117 | val_F1=0.3648 | val_AUPR=0.2924 | time=47.70s
+Epoch 177 | loss=0.1163 | val_F1=0.3723 | val_AUPR=0.3062 | time=47.76s
+Epoch 178 | loss=0.1240 | val_F1=0.3632 | val_AUPR=0.2943 | time=47.70s
+Epoch 179 | loss=0.1060 | val_F1=0.3607 | val_AUPR=0.3025 | time=48.03s
+Epoch 180 | loss=0.1136 | val_F1=0.3654 | val_AUPR=0.2962 | time=47.80s
+Epoch 181 | loss=0.1091 | val_F1=0.3647 | val_AUPR=0.2993 | time=47.79s
+Epoch 182 | loss=0.1145 | val_F1=0.3753 | val_AUPR=0.3099 | time=47.67s
+Epoch 183 | loss=0.1124 | val_F1=0.3617 | val_AUPR=0.2945 | time=47.69s
+Epoch 184 | loss=0.1185 | val_F1=0.3649 | val_AUPR=0.2971 | time=47.66s
+Epoch 185 | loss=0.1098 | val_F1=0.3600 | val_AUPR=0.2930 | time=48.04s
+Epoch 186 | loss=0.1143 | val_F1=0.3659 | val_AUPR=0.2968 | time=47.59s
+Epoch 187 | loss=0.1170 | val_F1=0.3732 | val_AUPR=0.3031 | time=48.14s
+Epoch 188 | loss=0.1237 | val_F1=0.3631 | val_AUPR=0.2948 | time=47.66s
+Epoch 189 | loss=0.1137 | val_F1=0.3694 | val_AUPR=0.3085 | time=47.52s
+Epoch 190 | loss=0.1207 | val_F1=0.3623 | val_AUPR=0.2998 | time=47.56s
+Epoch 191 | loss=0.1207 | val_F1=0.3725 | val_AUPR=0.3083 | time=47.58s
+Epoch 192 | loss=0.1341 | val_F1=0.3709 | val_AUPR=0.3063 | time=47.67s
+Epoch 193 | loss=0.1361 | val_F1=0.3661 | val_AUPR=0.3072 | time=47.54s
+Epoch 194 | loss=0.1163 | val_F1=0.3784 | val_AUPR=0.3185 | time=47.79s
+Epoch 195 | loss=0.1202 | val_F1=0.3779 | val_AUPR=0.3159 | time=47.83s
+Epoch 196 | loss=0.1107 | val_F1=0.3756 | val_AUPR=0.3131 | time=48.07s
+Epoch 197 | loss=0.1197 | val_F1=0.3706 | val_AUPR=0.3106 | time=47.74s
+Epoch 198 | loss=0.1089 | val_F1=0.3715 | val_AUPR=0.3126 | time=47.71s
+Epoch 199 | loss=0.1094 | val_F1=0.3735 | val_AUPR=0.3139 | time=47.58s
+Epoch 200 | loss=0.1113 | val_F1=0.3785 | val_AUPR=0.3139 | time=47.52s
+Epoch 201 | loss=0.1116 | val_F1=0.3819 | val_AUPR=0.3215 | time=47.78s
+Epoch 202 | loss=0.1196 | val_F1=0.3749 | val_AUPR=0.3137 | time=47.61s
+Epoch 203 | loss=0.1057 | val_F1=0.3764 | val_AUPR=0.3216 | time=47.80s
+Epoch 204 | loss=0.1198 | val_F1=0.3825 | val_AUPR=0.3277 | time=47.66s
+Epoch 205 | loss=0.1176 | val_F1=0.3755 | val_AUPR=0.3163 | time=47.67s
+Epoch 206 | loss=0.1110 | val_F1=0.3801 | val_AUPR=0.3167 | time=47.53s
+Epoch 207 | loss=0.1063 | val_F1=0.3744 | val_AUPR=0.3128 | time=47.71s
+Epoch 208 | loss=0.1094 | val_F1=0.3808 | val_AUPR=0.3205 | time=47.35s
+Epoch 209 | loss=0.1125 | val_F1=0.3853 | val_AUPR=0.3295 | time=47.78s
+Epoch 210 | loss=0.1141 | val_F1=0.3749 | val_AUPR=0.3055 | time=47.65s
+Epoch 211 | loss=0.1088 | val_F1=0.3813 | val_AUPR=0.3216 | time=47.84s
+Epoch 212 | loss=0.1369 | val_F1=0.3911 | val_AUPR=0.3352 | time=47.93s
+Epoch 213 | loss=0.1033 | val_F1=0.3895 | val_AUPR=0.3312 | time=47.78s
+Epoch 214 | loss=0.1106 | val_F1=0.3804 | val_AUPR=0.3202 | time=47.68s
+Epoch 215 | loss=0.1188 | val_F1=0.3898 | val_AUPR=0.3328 | time=47.80s
+Epoch 216 | loss=0.1103 | val_F1=0.3856 | val_AUPR=0.3278 | time=47.75s
+Epoch 217 | loss=0.1062 | val_F1=0.3846 | val_AUPR=0.3313 | time=48.76s
+Epoch 218 | loss=0.1167 | val_F1=0.3958 | val_AUPR=0.3392 | time=49.17s
+Epoch 219 | loss=0.1043 | val_F1=0.3919 | val_AUPR=0.3302 | time=48.75s
+Epoch 220 | loss=0.1112 | val_F1=0.3886 | val_AUPR=0.3344 | time=48.91s
+Epoch 221 | loss=0.1102 | val_F1=0.3904 | val_AUPR=0.3404 | time=49.51s
+Epoch 222 | loss=0.1255 | val_F1=0.3923 | val_AUPR=0.3418 | time=48.26s
+Epoch 223 | loss=0.1110 | val_F1=0.3882 | val_AUPR=0.3310 | time=48.64s
+Epoch 224 | loss=0.1203 | val_F1=0.3930 | val_AUPR=0.3403 | time=48.16s
+Epoch 225 | loss=0.1374 | val_F1=0.3978 | val_AUPR=0.3452 | time=47.84s
+Epoch 226 | loss=0.1250 | val_F1=0.3951 | val_AUPR=0.3422 | time=48.19s
+Epoch 227 | loss=0.1101 | val_F1=0.3882 | val_AUPR=0.3339 | time=47.60s
+Epoch 228 | loss=0.1090 | val_F1=0.3961 | val_AUPR=0.3456 | time=47.58s
+Epoch 229 | loss=0.1026 | val_F1=0.3983 | val_AUPR=0.3429 | time=47.48s
+Epoch 230 | loss=0.1087 | val_F1=0.3940 | val_AUPR=0.3433 | time=47.25s
+Epoch 231 | loss=0.1034 | val_F1=0.3861 | val_AUPR=0.3351 | time=48.84s
+Epoch 232 | loss=0.1045 | val_F1=0.3987 | val_AUPR=0.3489 | time=47.83s
+Epoch 233 | loss=0.1034 | val_F1=0.3969 | val_AUPR=0.3452 | time=47.61s
+Epoch 234 | loss=0.1040 | val_F1=0.3996 | val_AUPR=0.3489 | time=48.16s
+Epoch 235 | loss=0.1135 | val_F1=0.3922 | val_AUPR=0.3387 | time=48.67s
+Epoch 236 | loss=0.1110 | val_F1=0.4077 | val_AUPR=0.3528 | time=49.07s
+Epoch 237 | loss=0.1038 | val_F1=0.4086 | val_AUPR=0.3527 | time=48.91s
+Epoch 238 | loss=0.1060 | val_F1=0.4025 | val_AUPR=0.3447 | time=47.69s
+Epoch 239 | loss=0.1056 | val_F1=0.3979 | val_AUPR=0.3527 | time=52.95s
+Epoch 240 | loss=0.1100 | val_F1=0.4036 | val_AUPR=0.3576 | time=53.83s
+Epoch 241 | loss=0.1049 | val_F1=0.4010 | val_AUPR=0.3538 | time=52.69s
+Epoch 242 | loss=0.1082 | val_F1=0.4069 | val_AUPR=0.3599 | time=53.14s
+Epoch 243 | loss=0.1023 | val_F1=0.4023 | val_AUPR=0.3543 | time=54.91s
+Epoch 244 | loss=0.1187 | val_F1=0.4036 | val_AUPR=0.3545 | time=52.95s
+Epoch 245 | loss=0.1057 | val_F1=0.4106 | val_AUPR=0.3580 | time=52.96s
+Epoch 246 | loss=0.0987 | val_F1=0.4013 | val_AUPR=0.3485 | time=54.99s
+Epoch 247 | loss=0.1044 | val_F1=0.4131 | val_AUPR=0.3602 | time=52.95s
+Epoch 248 | loss=0.1073 | val_F1=0.3959 | val_AUPR=0.3422 | time=54.21s
+Epoch 249 | loss=0.1095 | val_F1=0.4046 | val_AUPR=0.3594 | time=52.63s
+Epoch 250 | loss=0.1026 | val_F1=0.4010 | val_AUPR=0.3543 | time=52.38s
+Epoch 251 | loss=0.1062 | val_F1=0.3941 | val_AUPR=0.3345 | time=55.44s
+Epoch 252 | loss=0.1080 | val_F1=0.4050 | val_AUPR=0.3562 | time=58.02s
+Epoch 253 | loss=0.1070 | val_F1=0.4031 | val_AUPR=0.3491 | time=47.61s
+Epoch 254 | loss=0.1045 | val_F1=0.4024 | val_AUPR=0.3452 | time=47.41s
+Epoch 255 | loss=0.0980 | val_F1=0.4043 | val_AUPR=0.3506 | time=47.32s
+Epoch 256 | loss=0.1063 | val_F1=0.4123 | val_AUPR=0.3602 | time=47.94s
+Epoch 257 | loss=0.1008 | val_F1=0.4139 | val_AUPR=0.3591 | time=48.05s
+Epoch 258 | loss=0.1000 | val_F1=0.4164 | val_AUPR=0.3630 | time=47.45s
+Epoch 259 | loss=0.1006 | val_F1=0.4089 | val_AUPR=0.3553 | time=48.05s
+Epoch 260 | loss=0.1028 | val_F1=0.4076 | val_AUPR=0.3564 | time=48.01s
+Epoch 261 | loss=0.1009 | val_F1=0.4214 | val_AUPR=0.3715 | time=47.67s
+Epoch 262 | loss=0.1046 | val_F1=0.4132 | val_AUPR=0.3624 | time=47.63s
+Epoch 263 | loss=0.1092 | val_F1=0.4187 | val_AUPR=0.3644 | time=47.49s
+Epoch 264 | loss=0.1019 | val_F1=0.4124 | val_AUPR=0.3634 | time=47.33s
+Epoch 265 | loss=0.1014 | val_F1=0.4209 | val_AUPR=0.3659 | time=47.42s
+Epoch 266 | loss=0.1019 | val_F1=0.4221 | val_AUPR=0.3700 | time=47.48s
+Epoch 267 | loss=0.1070 | val_F1=0.4244 | val_AUPR=0.3751 | time=47.58s
+Epoch 268 | loss=0.1054 | val_F1=0.4194 | val_AUPR=0.3712 | time=47.71s
+Epoch 269 | loss=0.1070 | val_F1=0.4258 | val_AUPR=0.3710 | time=47.68s
+Epoch 270 | loss=0.1084 | val_F1=0.4180 | val_AUPR=0.3654 | time=47.51s
+Epoch 271 | loss=0.1048 | val_F1=0.4263 | val_AUPR=0.3752 | time=47.52s
+Epoch 272 | loss=0.1151 | val_F1=0.4235 | val_AUPR=0.3694 | time=48.80s
+Epoch 273 | loss=0.1069 | val_F1=0.4257 | val_AUPR=0.3641 | time=48.35s
+Epoch 274 | loss=0.0997 | val_F1=0.4224 | val_AUPR=0.3699 | time=47.74s
+Epoch 275 | loss=0.1044 | val_F1=0.4263 | val_AUPR=0.3702 | time=47.67s
+Epoch 276 | loss=0.1005 | val_F1=0.4316 | val_AUPR=0.3799 | time=47.69s
+Epoch 277 | loss=0.1114 | val_F1=0.4184 | val_AUPR=0.3725 | time=47.83s
+Epoch 278 | loss=0.0958 | val_F1=0.4266 | val_AUPR=0.3734 | time=47.37s
+Epoch 279 | loss=0.1002 | val_F1=0.4278 | val_AUPR=0.3769 | time=47.39s
+Epoch 280 | loss=0.0977 | val_F1=0.4171 | val_AUPR=0.3668 | time=47.34s
+Epoch 281 | loss=0.1181 | val_F1=0.4272 | val_AUPR=0.3789 | time=47.43s
+Epoch 282 | loss=0.1032 | val_F1=0.4312 | val_AUPR=0.3829 | time=47.40s
+Epoch 283 | loss=0.0981 | val_F1=0.4174 | val_AUPR=0.3685 | time=47.65s
+Epoch 284 | loss=0.1034 | val_F1=0.4309 | val_AUPR=0.3821 | time=47.47s
+Epoch 285 | loss=0.0986 | val_F1=0.4268 | val_AUPR=0.3810 | time=48.03s
+Epoch 286 | loss=0.0993 | val_F1=0.4259 | val_AUPR=0.3746 | time=47.72s
+Epoch 287 | loss=0.1011 | val_F1=0.4325 | val_AUPR=0.3818 | time=47.33s
+Epoch 288 | loss=0.0983 | val_F1=0.4379 | val_AUPR=0.3819 | time=47.59s
+Epoch 289 | loss=0.1074 | val_F1=0.4273 | val_AUPR=0.3788 | time=47.44s
+Epoch 290 | loss=0.1007 | val_F1=0.4199 | val_AUPR=0.3677 | time=47.51s
+Epoch 291 | loss=0.0989 | val_F1=0.4340 | val_AUPR=0.3889 | time=47.60s
+Epoch 292 | loss=0.0958 | val_F1=0.4336 | val_AUPR=0.3794 | time=47.65s
+Epoch 293 | loss=0.1012 | val_F1=0.4360 | val_AUPR=0.3815 | time=47.44s
+Epoch 294 | loss=0.1020 | val_F1=0.4312 | val_AUPR=0.3891 | time=47.41s
+Epoch 295 | loss=0.0995 | val_F1=0.4326 | val_AUPR=0.3864 | time=47.62s
+Epoch 296 | loss=0.1001 | val_F1=0.4326 | val_AUPR=0.3851 | time=47.38s
+Epoch 297 | loss=0.0984 | val_F1=0.4336 | val_AUPR=0.3780 | time=47.64s
+Epoch 298 | loss=0.0943 | val_F1=0.4323 | val_AUPR=0.3888 | time=47.61s
+Epoch 299 | loss=0.0971 | val_F1=0.4405 | val_AUPR=0.3946 | time=48.51s
+Epoch 300 | loss=0.0939 | val_F1=0.4317 | val_AUPR=0.3832 | time=47.93s
+Epoch 301 | loss=0.0938 | val_F1=0.4390 | val_AUPR=0.3931 | time=47.54s
+Epoch 302 | loss=0.0981 | val_F1=0.4400 | val_AUPR=0.3941 | time=47.34s
+Epoch 303 | loss=0.0994 | val_F1=0.4357 | val_AUPR=0.3742 | time=47.78s
+Epoch 304 | loss=0.0933 | val_F1=0.4424 | val_AUPR=0.3902 | time=47.56s
+Epoch 305 | loss=0.0941 | val_F1=0.4238 | val_AUPR=0.3784 | time=47.53s
+Epoch 306 | loss=0.1055 | val_F1=0.4384 | val_AUPR=0.3943 | time=47.65s
+Epoch 307 | loss=0.0953 | val_F1=0.4331 | val_AUPR=0.3913 | time=47.55s
+Epoch 308 | loss=0.0973 | val_F1=0.4332 | val_AUPR=0.3905 | time=47.46s
+Epoch 309 | loss=0.0964 | val_F1=0.4316 | val_AUPR=0.3901 | time=47.47s
+Epoch 310 | loss=0.0942 | val_F1=0.4365 | val_AUPR=0.3900 | time=47.47s
+Epoch 311 | loss=0.1011 | val_F1=0.4434 | val_AUPR=0.3919 | time=47.67s
+Epoch 312 | loss=0.1144 | val_F1=0.4417 | val_AUPR=0.3982 | time=47.53s
+Epoch 313 | loss=0.0939 | val_F1=0.4456 | val_AUPR=0.4008 | time=47.44s
+Epoch 314 | loss=0.0942 | val_F1=0.4396 | val_AUPR=0.3998 | time=47.51s
+Epoch 315 | loss=0.1001 | val_F1=0.4399 | val_AUPR=0.3922 | time=47.47s
+Epoch 316 | loss=0.0950 | val_F1=0.4402 | val_AUPR=0.4000 | time=47.52s
+Epoch 317 | loss=0.0911 | val_F1=0.4377 | val_AUPR=0.3962 | time=47.40s
+Epoch 318 | loss=0.0938 | val_F1=0.4501 | val_AUPR=0.4060 | time=48.37s
+Epoch 319 | loss=0.0991 | val_F1=0.4402 | val_AUPR=0.3962 | time=48.56s
+Epoch 320 | loss=0.0949 | val_F1=0.4518 | val_AUPR=0.4031 | time=48.35s
+Epoch 321 | loss=0.0952 | val_F1=0.4461 | val_AUPR=0.4072 | time=49.18s
+Epoch 322 | loss=0.0986 | val_F1=0.4481 | val_AUPR=0.4070 | time=48.55s
+Epoch 323 | loss=0.0926 | val_F1=0.4458 | val_AUPR=0.4051 | time=48.45s
+Epoch 324 | loss=0.1024 | val_F1=0.4461 | val_AUPR=0.4052 | time=47.42s
+Epoch 325 | loss=0.1047 | val_F1=0.4510 | val_AUPR=0.4089 | time=47.47s
+Epoch 326 | loss=0.0942 | val_F1=0.4555 | val_AUPR=0.4128 | time=47.58s
+Epoch 327 | loss=0.1007 | val_F1=0.4458 | val_AUPR=0.4013 | time=47.94s
+Epoch 328 | loss=0.0953 | val_F1=0.4486 | val_AUPR=0.4013 | time=48.02s
+Epoch 329 | loss=0.1072 | val_F1=0.4499 | val_AUPR=0.4084 | time=47.73s
+Epoch 330 | loss=0.1004 | val_F1=0.4523 | val_AUPR=0.4115 | time=47.70s
+Epoch 331 | loss=0.1122 | val_F1=0.4444 | val_AUPR=0.4028 | time=47.55s
+Epoch 332 | loss=0.0903 | val_F1=0.4513 | val_AUPR=0.4066 | time=47.25s
+Epoch 333 | loss=0.1014 | val_F1=0.4501 | val_AUPR=0.4066 | time=47.44s
+Epoch 334 | loss=0.0947 | val_F1=0.4563 | val_AUPR=0.4196 | time=47.49s
+Epoch 335 | loss=0.0907 | val_F1=0.4543 | val_AUPR=0.4141 | time=47.71s
+Epoch 336 | loss=0.0914 | val_F1=0.4528 | val_AUPR=0.4152 | time=47.61s
+Epoch 337 | loss=0.0926 | val_F1=0.4575 | val_AUPR=0.4120 | time=47.89s
+Epoch 338 | loss=0.0903 | val_F1=0.4528 | val_AUPR=0.4114 | time=47.51s
+Epoch 339 | loss=0.0968 | val_F1=0.4506 | val_AUPR=0.4145 | time=47.47s
+Epoch 340 | loss=0.0922 | val_F1=0.4395 | val_AUPR=0.3998 | time=47.37s
+Epoch 341 | loss=0.0869 | val_F1=0.4553 | val_AUPR=0.4141 | time=47.50s
+Epoch 342 | loss=0.0940 | val_F1=0.4515 | val_AUPR=0.4119 | time=47.55s
+Epoch 343 | loss=0.0910 | val_F1=0.4483 | val_AUPR=0.4109 | time=47.59s
+Epoch 344 | loss=0.0892 | val_F1=0.4552 | val_AUPR=0.4147 | time=47.64s
+Epoch 345 | loss=0.0929 | val_F1=0.4349 | val_AUPR=0.3893 | time=47.77s
+Epoch 346 | loss=0.0966 | val_F1=0.4435 | val_AUPR=0.4034 | time=47.48s
+Epoch 347 | loss=0.0920 | val_F1=0.4474 | val_AUPR=0.4071 | time=47.76s
+Epoch 348 | loss=0.0933 | val_F1=0.4505 | val_AUPR=0.4106 | time=47.46s
+Epoch 349 | loss=0.0929 | val_F1=0.4498 | val_AUPR=0.4152 | time=47.35s
+Epoch 350 | loss=0.0943 | val_F1=0.4618 | val_AUPR=0.4242 | time=47.47s
+
+Total training time: 16874.88s (281.2 min)
+
+Loading best model from epoch 350...
+Evaluating on train/val/test...
+======================================================================
+EVALUATION RESULTS: seed1337_experiment2 TRAIN
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.5159
+  Recall:           0.4237
+  F1-Score:         0.4653
+  ROC-AUC:          0.9880
+  AUPR:             0.4557
+  Balanced Acc:     0.7116
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.4670
+  Cohen Kappa:      0.4648
+  Specificity:      0.9996
+
+THRESHOLD: 0.951
+
+CONFUSION MATRIX:
+  True Negatives:   3042708
+  False Positives:  1235
+  False Negatives:  1790
+  True Positives:   1316
+
+TOP-K PRECISION:
+  precision_at_100: 0.9600
+  precision_at_500: 0.9120
+  precision_at_1000: 0.8080
+======================================================================
+======================================================================
+EVALUATION RESULTS: seed1337_experiment2 VAL
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.5087
+  Recall:           0.4228
+  F1-Score:         0.4618
+  ROC-AUC:          0.9847
+  AUPR:             0.4242
+  Balanced Acc:     0.7112
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.4633
+  Cohen Kappa:      0.4613
+  Specificity:      0.9996
+
+THRESHOLD: 0.951
+
+CONFUSION MATRIX:
+  True Negatives:   1014224
+  False Positives:  423
+  False Negatives:  598
+  True Positives:   438
+
+TOP-K PRECISION:
+  precision_at_100: 0.8900
+  precision_at_500: 0.6560
+  precision_at_1000: 0.4630
+======================================================================
+======================================================================
+EVALUATION RESULTS: seed1337_experiment2 TEST
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.4896
+  Recall:           0.4097
+  F1-Score:         0.4461
+  ROC-AUC:          0.9840
+  AUPR:             0.4170
+  Balanced Acc:     0.7046
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.4473
+  Cohen Kappa:      0.4456
+  Specificity:      0.9996
+
+THRESHOLD: 0.951
+
+CONFUSION MATRIX:
+  True Negatives:   1014206
+  False Positives:  442
+  False Negatives:  611
+  True Positives:   424
+
+TOP-K PRECISION:
+  precision_at_100: 0.9400
+  precision_at_500: 0.6500
+  precision_at_1000: 0.4470
+======================================================================
+
+======================================================================
+Training Complete!
+======================================================================
+
+================================================================================
+Logging ended at: 2025-11-30 21:26:05.068092
+================================================================================
