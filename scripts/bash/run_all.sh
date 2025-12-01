@@ -47,9 +47,9 @@ DATASET_CONFIGS["rat"]="configs/datasets/rat.yaml"
 # MODELS TO LOOP OVER
 # ============================================================
 MODELS=(
-    "graphsage"
+    # "graphsage"
     "graphsage_t"
-    "dyrep"
+    # "dyrep"
 )
 
 # model → training script
