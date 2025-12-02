@@ -1,0 +1,56 @@
+
+================================================================================
+Logging started at: 2025-12-02 19:01:38.756680
+Log file: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_medium\seed0_ablations_experiment\dyrep\seed0_ablations_experiment_20251202_190138.txt
+================================================================================
+
+[INFO] Logging to: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_medium\seed0_ablations_experiment\dyrep\seed0_ablations_experiment_20251202_190138.txt
+================================================================================
+EXPERIMENT CONFIG SUMMARY
+================================================================================
+
+[DATASET]
+  Name:       HI-Small_Trans_RAT_medium
+  Theory:     RAT
+  Intensity:  medium
+
+[MODEL]
+  DyRep
+  Hidden dim: 128
+
+[PATHS]
+  Graphs:     C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs\HI-Small_Trans_RAT_medium
+  Splits:     C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits\HI-Small_Trans_RAT_medium
+  Results:    C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_medium\seed0_ablations_experiment\dyrep
+  Logs:       C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_medium\seed0_ablations_experiment\dyrep
+================================================================================
+
+[DEVICE] cuda
+
+[INFO] Using default graph directory: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs_dyrep\HI-Small_Trans_RAT_medium__no_struct
+
+======= DYREP-STYLE EVENT MODEL TRAINING (FP32) =======
+Graph folder:    C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs_dyrep\HI-Small_Trans_RAT_medium__no_struct
+Splits folder:   C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits_dyrep\HI-Small_Trans_RAT_medium
+Results folder:  C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_medium\seed0_ablations_experiment\dyrep
+Batch size:      8192
+Eval batch size: 16384
+Device:          cuda
+=======================================================
+
+Num nodes:        515,080
+Num events/edges: 5,078,415
+Node feat dim:    12
+Edge feat dim:    56
+Event types:      7
+
+Split sizes:
+  Train: 3,047,049
+  Val:   1,015,683
+  Test:  1,015,683
+
+pos_weight (train) = 100.000
+
+Starting training for up to 350 epochs...
+
+Epoch 001 | train_loss=9.3383 val_loss=3.2691 P=0.036 R=0.409 F1=0.066 ROC-AUC=0.791 AUPR=0.024 time=21.72s

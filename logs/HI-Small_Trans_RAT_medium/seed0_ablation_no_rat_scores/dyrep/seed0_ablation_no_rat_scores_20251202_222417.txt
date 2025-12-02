@@ -1,0 +1,251 @@
+
+================================================================================
+Logging started at: 2025-12-02 22:24:17.567228
+Log file: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_medium\seed0_ablation_no_rat_scores\dyrep\seed0_ablation_no_rat_scores_20251202_222417.txt
+================================================================================
+
+[INFO] Logging to: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_medium\seed0_ablation_no_rat_scores\dyrep\seed0_ablation_no_rat_scores_20251202_222417.txt
+================================================================================
+EXPERIMENT CONFIG SUMMARY
+================================================================================
+
+[DATASET]
+  Name:       HI-Small_Trans_RAT_medium
+  Theory:     RAT
+  Intensity:  medium
+
+[MODEL]
+  DyRep
+  Hidden dim: 128
+
+[PATHS]
+  Graphs:     C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs\HI-Small_Trans_RAT_medium
+  Splits:     C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits\HI-Small_Trans_RAT_medium
+  Results:    C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_medium\seed0_ablation_no_rat_scores\dyrep
+  Logs:       C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_medium\seed0_ablation_no_rat_scores\dyrep
+================================================================================
+
+[DEVICE] cuda
+
+[INFO] Using default graph directory: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs_dyrep\HI-Small_Trans_RAT_medium__no_rat_scores
+
+======= DYREP-STYLE EVENT MODEL TRAINING (FP32) =======
+Graph folder:    C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs_dyrep\HI-Small_Trans_RAT_medium__no_rat_scores
+Splits folder:   C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits_dyrep\HI-Small_Trans_RAT_medium
+Results folder:  C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_medium\seed0_ablation_no_rat_scores\dyrep
+Batch size:      8192
+Eval batch size: 16384
+Device:          cuda
+=======================================================
+
+Num nodes:        515,080
+Num events/edges: 5,078,415
+Node feat dim:    12
+Edge feat dim:    54
+Event types:      7
+
+Split sizes:
+  Train: 3,047,049
+  Val:   1,015,683
+  Test:  1,015,683
+
+pos_weight (train) = 100.000
+
+Starting training for up to 350 epochs...
+
+Epoch 001 | train_loss=14.9796 val_loss=0.4055 P=0.034 R=0.371 F1=0.063 ROC-AUC=0.837 AUPR=0.020 time=21.59s
+Epoch 002 | train_loss=0.7518 val_loss=0.2033 P=0.082 R=0.214 F1=0.118 ROC-AUC=0.923 AUPR=0.043 time=22.81s
+Epoch 003 | train_loss=0.7008 val_loss=0.2153 P=0.064 R=0.210 F1=0.099 ROC-AUC=0.923 AUPR=0.034 time=21.75s
+Epoch 004 | train_loss=0.6689 val_loss=0.1667 P=0.131 R=0.187 F1=0.154 ROC-AUC=0.952 AUPR=0.072 time=21.64s
+Epoch 005 | train_loss=0.4567 val_loss=0.1767 P=0.094 R=0.263 F1=0.138 ROC-AUC=0.945 AUPR=0.057 time=21.35s
+Epoch 006 | train_loss=0.3763 val_loss=0.8873 P=0.142 R=0.190 F1=0.163 ROC-AUC=0.873 AUPR=0.087 time=21.52s
+Epoch 007 | train_loss=0.5367 val_loss=1.5983 P=0.150 R=0.246 F1=0.186 ROC-AUC=0.864 AUPR=0.103 time=21.16s
+Epoch 008 | train_loss=0.3966 val_loss=0.1662 P=0.151 R=0.250 F1=0.188 ROC-AUC=0.936 AUPR=0.111 time=21.47s
+Epoch 009 | train_loss=0.4606 val_loss=2.0878 P=0.204 R=0.172 F1=0.186 ROC-AUC=0.865 AUPR=0.119 time=20.92s
+Epoch 010 | train_loss=0.4399 val_loss=0.1267 P=0.248 R=0.213 F1=0.229 ROC-AUC=0.976 AUPR=0.145 time=21.46s
+Epoch 011 | train_loss=0.3575 val_loss=0.6106 P=0.199 R=0.228 F1=0.213 ROC-AUC=0.896 AUPR=0.137 time=21.27s
+Epoch 012 | train_loss=0.5509 val_loss=0.1220 P=0.218 R=0.238 F1=0.228 ROC-AUC=0.977 AUPR=0.150 time=21.79s
+Epoch 013 | train_loss=0.3832 val_loss=0.1303 P=0.207 R=0.233 F1=0.219 ROC-AUC=0.971 AUPR=0.133 time=21.51s
+Epoch 014 | train_loss=0.4488 val_loss=0.1185 P=0.237 R=0.253 F1=0.245 ROC-AUC=0.978 AUPR=0.172 time=21.69s
+Epoch 015 | train_loss=0.2951 val_loss=0.1176 P=0.280 R=0.240 F1=0.259 ROC-AUC=0.976 AUPR=0.179 time=21.17s
+Epoch 016 | train_loss=0.2601 val_loss=0.1134 P=0.214 R=0.283 F1=0.244 ROC-AUC=0.979 AUPR=0.165 time=22.21s
+Epoch 017 | train_loss=0.1825 val_loss=0.1259 P=0.218 R=0.229 F1=0.223 ROC-AUC=0.975 AUPR=0.154 time=22.14s
+Epoch 018 | train_loss=0.4454 val_loss=0.1162 P=0.269 R=0.225 F1=0.245 ROC-AUC=0.979 AUPR=0.184 time=22.36s
+Epoch 019 | train_loss=0.1408 val_loss=0.1113 P=0.274 R=0.262 F1=0.268 ROC-AUC=0.978 AUPR=0.204 time=21.43s
+Epoch 020 | train_loss=0.1673 val_loss=1.0272 P=0.274 R=0.205 F1=0.235 ROC-AUC=0.886 AUPR=0.156 time=21.66s
+Epoch 021 | train_loss=0.1579 val_loss=0.1140 P=0.237 R=0.289 F1=0.261 ROC-AUC=0.978 AUPR=0.199 time=21.29s
+Epoch 022 | train_loss=0.1667 val_loss=0.1122 P=0.240 R=0.273 F1=0.255 ROC-AUC=0.980 AUPR=0.185 time=21.90s
+Epoch 023 | train_loss=0.2037 val_loss=0.1082 P=0.317 R=0.215 F1=0.256 ROC-AUC=0.981 AUPR=0.182 time=22.04s
+Epoch 024 | train_loss=0.1750 val_loss=0.1163 P=0.265 R=0.251 F1=0.258 ROC-AUC=0.978 AUPR=0.178 time=21.95s
+Epoch 025 | train_loss=0.2078 val_loss=0.1082 P=0.340 R=0.260 F1=0.295 ROC-AUC=0.981 AUPR=0.228 time=21.68s
+Epoch 026 | train_loss=0.1985 val_loss=0.1044 P=0.250 R=0.317 F1=0.279 ROC-AUC=0.981 AUPR=0.210 time=21.76s
+Epoch 027 | train_loss=0.1621 val_loss=0.1070 P=0.309 R=0.248 F1=0.275 ROC-AUC=0.982 AUPR=0.206 time=21.91s
+Epoch 028 | train_loss=0.0989 val_loss=0.1039 P=0.258 R=0.259 F1=0.258 ROC-AUC=0.982 AUPR=0.193 time=23.14s
+Epoch 029 | train_loss=0.1390 val_loss=1.7088 P=0.308 R=0.249 F1=0.275 ROC-AUC=0.869 AUPR=0.203 time=22.50s
+Epoch 030 | train_loss=0.1681 val_loss=0.1038 P=0.315 R=0.293 F1=0.304 ROC-AUC=0.982 AUPR=0.235 time=21.80s
+Epoch 031 | train_loss=0.1177 val_loss=0.1185 P=0.229 R=0.251 F1=0.240 ROC-AUC=0.979 AUPR=0.181 time=21.84s
+Epoch 032 | train_loss=0.1044 val_loss=0.1068 P=0.352 R=0.238 F1=0.284 ROC-AUC=0.982 AUPR=0.225 time=21.92s
+Epoch 033 | train_loss=0.1444 val_loss=0.1076 P=0.301 R=0.230 F1=0.261 ROC-AUC=0.981 AUPR=0.187 time=21.44s
+Epoch 034 | train_loss=0.1461 val_loss=0.1038 P=0.297 R=0.221 F1=0.253 ROC-AUC=0.982 AUPR=0.184 time=21.95s
+Epoch 035 | train_loss=0.1665 val_loss=0.1092 P=0.348 R=0.233 F1=0.279 ROC-AUC=0.982 AUPR=0.209 time=21.85s
+Epoch 036 | train_loss=0.0919 val_loss=0.5584 P=0.313 R=0.302 F1=0.307 ROC-AUC=0.911 AUPR=0.253 time=21.93s
+Epoch 037 | train_loss=0.1538 val_loss=0.1059 P=0.334 R=0.284 F1=0.307 ROC-AUC=0.982 AUPR=0.226 time=21.69s
+Epoch 038 | train_loss=0.1300 val_loss=0.1053 P=0.319 R=0.246 F1=0.278 ROC-AUC=0.982 AUPR=0.202 time=21.86s
+Epoch 039 | train_loss=0.0983 val_loss=0.1110 P=0.345 R=0.226 F1=0.273 ROC-AUC=0.980 AUPR=0.212 time=21.92s
+Epoch 040 | train_loss=0.1036 val_loss=0.1034 P=0.359 R=0.269 F1=0.308 ROC-AUC=0.983 AUPR=0.259 time=21.79s
+Epoch 041 | train_loss=0.0870 val_loss=0.1049 P=0.265 R=0.263 F1=0.264 ROC-AUC=0.982 AUPR=0.215 time=21.70s
+Epoch 042 | train_loss=0.1306 val_loss=0.1018 P=0.406 R=0.279 F1=0.331 ROC-AUC=0.983 AUPR=0.278 time=21.77s
+Epoch 043 | train_loss=0.1057 val_loss=0.0993 P=0.327 R=0.307 F1=0.317 ROC-AUC=0.984 AUPR=0.257 time=21.70s
+Epoch 044 | train_loss=0.0816 val_loss=0.1101 P=0.375 R=0.264 F1=0.310 ROC-AUC=0.981 AUPR=0.251 time=21.98s
+Epoch 045 | train_loss=0.1095 val_loss=0.1055 P=0.359 R=0.246 F1=0.292 ROC-AUC=0.982 AUPR=0.237 time=21.89s
+Epoch 046 | train_loss=0.0868 val_loss=0.1086 P=0.368 R=0.241 F1=0.291 ROC-AUC=0.981 AUPR=0.227 time=21.92s
+Epoch 047 | train_loss=0.0992 val_loss=0.1126 P=0.356 R=0.263 F1=0.303 ROC-AUC=0.980 AUPR=0.246 time=21.72s
+Epoch 048 | train_loss=0.0797 val_loss=0.1011 P=0.290 R=0.309 F1=0.299 ROC-AUC=0.983 AUPR=0.249 time=22.08s
+Epoch 049 | train_loss=0.1261 val_loss=0.1099 P=0.302 R=0.284 F1=0.293 ROC-AUC=0.980 AUPR=0.247 time=21.89s
+Epoch 050 | train_loss=0.1330 val_loss=0.0990 P=0.349 R=0.287 F1=0.315 ROC-AUC=0.984 AUPR=0.264 time=21.81s
+Epoch 051 | train_loss=0.2032 val_loss=0.2130 P=0.367 R=0.265 F1=0.308 ROC-AUC=0.941 AUPR=0.263 time=21.82s
+Epoch 052 | train_loss=0.0905 val_loss=0.1076 P=0.383 R=0.299 F1=0.336 ROC-AUC=0.981 AUPR=0.285 time=22.18s
+Epoch 053 | train_loss=0.1135 val_loss=0.0967 P=0.405 R=0.298 F1=0.343 ROC-AUC=0.983 AUPR=0.301 time=22.03s
+Epoch 054 | train_loss=0.1122 val_loss=0.1023 P=0.360 R=0.272 F1=0.310 ROC-AUC=0.984 AUPR=0.263 time=21.59s
+Epoch 055 | train_loss=0.0820 val_loss=0.1127 P=0.334 R=0.283 F1=0.306 ROC-AUC=0.980 AUPR=0.258 time=21.76s
+Epoch 056 | train_loss=0.1155 val_loss=0.1018 P=0.292 R=0.290 F1=0.291 ROC-AUC=0.983 AUPR=0.261 time=21.86s
+Epoch 057 | train_loss=0.1761 val_loss=0.1110 P=0.332 R=0.260 F1=0.291 ROC-AUC=0.981 AUPR=0.257 time=21.64s
+Epoch 058 | train_loss=0.0901 val_loss=0.0995 P=0.413 R=0.278 F1=0.333 ROC-AUC=0.983 AUPR=0.299 time=21.76s
+Epoch 059 | train_loss=0.0761 val_loss=2.6223 P=0.454 R=0.297 F1=0.359 ROC-AUC=0.872 AUPR=0.315 time=21.34s
+Epoch 060 | train_loss=0.2003 val_loss=0.1057 P=0.290 R=0.281 F1=0.286 ROC-AUC=0.982 AUPR=0.251 time=21.14s
+Epoch 061 | train_loss=0.0954 val_loss=0.1117 P=0.389 R=0.273 F1=0.321 ROC-AUC=0.980 AUPR=0.273 time=22.14s
+Epoch 062 | train_loss=0.1587 val_loss=0.1022 P=0.361 R=0.296 F1=0.325 ROC-AUC=0.983 AUPR=0.289 time=21.86s
+Epoch 063 | train_loss=0.0925 val_loss=0.1087 P=0.304 R=0.287 F1=0.295 ROC-AUC=0.981 AUPR=0.254 time=22.02s
+Epoch 064 | train_loss=0.0948 val_loss=0.0963 P=0.325 R=0.297 F1=0.310 ROC-AUC=0.984 AUPR=0.280 time=21.75s
+Epoch 065 | train_loss=0.1317 val_loss=0.1158 P=0.447 R=0.251 F1=0.322 ROC-AUC=0.979 AUPR=0.281 time=22.36s
+Epoch 066 | train_loss=0.1104 val_loss=0.0958 P=0.390 R=0.274 F1=0.322 ROC-AUC=0.984 AUPR=0.287 time=21.37s
+Epoch 067 | train_loss=0.0915 val_loss=0.1243 P=0.303 R=0.237 F1=0.266 ROC-AUC=0.977 AUPR=0.219 time=22.10s
+Epoch 068 | train_loss=0.0811 val_loss=0.1186 P=0.363 R=0.255 F1=0.300 ROC-AUC=0.979 AUPR=0.250 time=22.10s
+Epoch 069 | train_loss=0.0695 val_loss=0.1286 P=0.347 R=0.274 F1=0.306 ROC-AUC=0.977 AUPR=0.264 time=21.31s
+Epoch 070 | train_loss=0.1690 val_loss=0.0953 P=0.444 R=0.339 F1=0.384 ROC-AUC=0.984 AUPR=0.348 time=23.10s
+Epoch 071 | train_loss=0.0704 val_loss=0.0994 P=0.543 R=0.263 F1=0.355 ROC-AUC=0.983 AUPR=0.324 time=21.19s
+Epoch 072 | train_loss=0.1045 val_loss=0.1266 P=0.321 R=0.271 F1=0.294 ROC-AUC=0.977 AUPR=0.255 time=22.00s
+Epoch 073 | train_loss=0.1111 val_loss=0.1241 P=0.367 R=0.263 F1=0.307 ROC-AUC=0.977 AUPR=0.261 time=21.41s
+Epoch 074 | train_loss=0.1440 val_loss=0.1013 P=0.444 R=0.284 F1=0.346 ROC-AUC=0.983 AUPR=0.306 time=21.75s
+Epoch 075 | train_loss=0.0807 val_loss=0.1086 P=0.409 R=0.306 F1=0.350 ROC-AUC=0.980 AUPR=0.312 time=21.66s
+Epoch 076 | train_loss=0.1105 val_loss=0.1006 P=0.403 R=0.312 F1=0.352 ROC-AUC=0.982 AUPR=0.322 time=21.44s
+Epoch 077 | train_loss=0.0740 val_loss=0.1196 P=0.407 R=0.297 F1=0.343 ROC-AUC=0.978 AUPR=0.315 time=21.93s
+Epoch 078 | train_loss=0.0691 val_loss=0.2154 P=0.214 R=0.289 F1=0.246 ROC-AUC=0.959 AUPR=0.187 time=21.59s
+Epoch 079 | train_loss=0.1663 val_loss=0.1138 P=0.381 R=0.274 F1=0.319 ROC-AUC=0.979 AUPR=0.289 time=21.79s
+Epoch 080 | train_loss=0.0782 val_loss=0.1113 P=0.400 R=0.317 F1=0.354 ROC-AUC=0.980 AUPR=0.331 time=22.03s
+Epoch 081 | train_loss=0.1721 val_loss=0.1374 P=0.333 R=0.295 F1=0.313 ROC-AUC=0.974 AUPR=0.278 time=21.85s
+Epoch 082 | train_loss=0.2577 val_loss=0.1177 P=0.402 R=0.292 F1=0.338 ROC-AUC=0.978 AUPR=0.304 time=21.98s
+Epoch 083 | train_loss=0.0582 val_loss=0.1072 P=0.386 R=0.325 F1=0.353 ROC-AUC=0.981 AUPR=0.323 time=21.68s
+Epoch 084 | train_loss=0.0615 val_loss=0.1084 P=0.446 R=0.310 F1=0.366 ROC-AUC=0.980 AUPR=0.330 time=21.68s
+Epoch 085 | train_loss=0.0680 val_loss=0.1118 P=0.455 R=0.311 F1=0.370 ROC-AUC=0.979 AUPR=0.339 time=22.04s
+
+Early stopping at epoch 85 (no val AUPR improvement for 15 epochs)
+
+Total training time: 1863.80s (31.1 min)
+
+Loading best model from epoch 70...
+Evaluating final model on train/val/test...
+======================================================================
+EVALUATION RESULTS: seed0_ablation_no_rat_scores TRAIN
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.4814
+  Recall:           0.3046
+  F1-Score:         0.3731
+  ROC-AUC:          0.9887
+  AUPR:             0.3605
+  Balanced Acc:     0.6522
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.3826
+  Cohen Kappa:      0.3728
+  Specificity:      0.9998
+
+THRESHOLD: 0.975
+
+CONFUSION MATRIX:
+  True Negatives:   3043997
+  False Positives:  754
+  False Negatives:  1598
+  True Positives:   700
+
+TOP-K PRECISION:
+  precision_at_100: 0.9900
+  precision_at_500: 0.7680
+  precision_at_1000: 0.5820
+======================================================================
+======================================================================
+EVALUATION RESULTS: seed0_ablation_no_rat_scores VAL
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.4438
+  Recall:           0.3392
+  F1-Score:         0.3845
+  ROC-AUC:          0.9840
+  AUPR:             0.3478
+  Balanced Acc:     0.6694
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.3874
+  Cohen Kappa:      0.3839
+  Specificity:      0.9995
+
+THRESHOLD: 0.956
+
+CONFUSION MATRIX:
+  True Negatives:   1014141
+  False Positives:  460
+  False Negatives:  715
+  True Positives:   367
+
+TOP-K PRECISION:
+  precision_at_100: 0.9300
+  precision_at_500: 0.5700
+  precision_at_1000: 0.3960
+======================================================================
+======================================================================
+EVALUATION RESULTS: seed0_ablation_no_rat_scores TEST
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.5507
+  Recall:           0.4018
+  F1-Score:         0.4646
+  ROC-AUC:          0.9862
+  AUPR:             0.4640
+  Balanced Acc:     0.7006
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.4696
+  Cohen Kappa:      0.4638
+  Specificity:      0.9994
+
+THRESHOLD: 0.960
+
+CONFUSION MATRIX:
+  True Negatives:   1013297
+  False Positives:  589
+  False Negatives:  1075
+  True Positives:   722
+
+TOP-K PRECISION:
+  precision_at_100: 0.9800
+  precision_at_500: 0.8360
+  precision_at_1000: 0.6190
+======================================================================
+
+Saving results...
+  - Saved metrics to: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_medium\seed0_ablation_no_rat_scores\dyrep\metrics.json
+  - Saved prediction probabilities
+  - Saved experiment config
+
+======================================================================
+DyRep-style Training Complete!
+Results saved to: C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_medium\seed0_ablation_no_rat_scores\dyrep
+======================================================================
+
+================================================================================
+Logging ended at: 2025-12-02 22:56:31.884741
+================================================================================

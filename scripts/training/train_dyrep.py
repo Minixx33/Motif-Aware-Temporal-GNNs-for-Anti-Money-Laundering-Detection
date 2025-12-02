@@ -334,7 +334,7 @@ def main():
     parser.add_argument("--dataset", required=True, help="Dataset config YAML")
     parser.add_argument("--intensity", default=None, help="Theory intensity (low/medium/high)")
     parser.add_argument("--base_config", default="configs/base.yaml", help="Base config path")
-    parser.add_argument("--graph_dir", default=None, help="Override DyRep graph directory (for ablations)")
+    parser.add_argument("--graph_suffix", default="", help="Optional suffix for ablation graph folders")
     args = parser.parse_args()
 
     # Full experiment setup: configs, paths, device, logger
@@ -365,14 +365,10 @@ def main():
     dyrep_graphs_dir_rel = base_cfg["paths"].get("dyrep_graphs_dir", "graphs_dyrep")
     dyrep_splits_dir_rel = base_cfg["paths"].get("dyrep_splits_dir", "dyrep_splits")
 
-    if args.graph_dir is not None:
-        graph_folder = args.graph_dir
-        print(f"[INFO] Using OVERRIDDEN graph directory: {graph_folder}")
-    else:
-        graph_folder = os.path.join(root, dyrep_graphs_dir_rel, ds_name)
+    graph_folder = os.path.join(root, dyrep_graphs_dir_rel, ds_name + args.graph_suffix)
     print(f"[INFO] Using default graph directory: {graph_folder}")
 
-    split_folder = os.path.join(root, dyrep_splits_dir_rel, ds_name)
+    split_folder = os.path.join(root, dyrep_splits_dir_rel, ds_name)  
 
     results_dir = paths["results_dir"]
     logs_dir = paths["logs_dir"]
