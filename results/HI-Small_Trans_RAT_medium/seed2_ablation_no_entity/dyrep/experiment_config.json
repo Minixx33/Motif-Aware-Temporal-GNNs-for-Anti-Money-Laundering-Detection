@@ -1,0 +1,85 @@
+{
+  "timestamp": "2025-12-03T11:18:07.998899",
+  "base_config": {
+    "experiment": {
+      "seed": 2,
+      "name": "ablation_no_entity"
+    },
+    "paths": {
+      "root": "",
+      "graphs_dir": "graphs",
+      "tgat_graphs_dir": "graphs_tgat",
+      "dyrep_graphs_dir": "graphs_dyrep",
+      "splits_dir": "splits",
+      "tgat_splits_dir": "splits_tgat",
+      "dyrep_splits_dir": "splits_dyrep",
+      "results_dir": "results",
+      "logs_dir": "logs"
+    },
+    "evaluation": {
+      "threshold": 0.5,
+      "auto_threshold": true,
+      "compute_top_k": true,
+      "top_k_values": [
+        100,
+        500,
+        1000
+      ]
+    },
+    "logging": {
+      "print_interval": 1,
+      "save_history": true,
+      "save_best_only": true
+    }
+  },
+  "model_config": {
+    "model": {
+      "name": "DyRep",
+      "hidden_dim": 128,
+      "time_dim": 16,
+      "type_embedding_dim": 16,
+      "dropout": 0.2
+    },
+    "training": {
+      "device": "cuda",
+      "batch_size": 8192,
+      "eval_batch_size": 16384,
+      "lr": 0.0005,
+      "weight_decay": 0.0001,
+      "epochs": 350,
+      "early_stopping_patience": 15,
+      "optimizer": {
+        "type": "adam",
+        "betas": [
+          0.9,
+          0.999
+        ],
+        "eps": "1e-8"
+      }
+    },
+    "loss": {
+      "type": "bce",
+      "pos_weight": null
+    }
+  },
+  "dataset_config": {
+    "dataset": {
+      "theory": "RAT",
+      "prefix": "HI-Small_Trans_RAT",
+      "available_intensities": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "requires_intensity": true
+    }
+  },
+  "intensity": "medium",
+  "additional_info": {
+    "total_training_time_sec": 1589.279676399994,
+    "batch_size": 8192,
+    "eval_batch_size": 16384,
+    "graph_folder": "C:\\Users\\yasmi\\OneDrive\\Desktop\\Uni - Master's\\Fall 2025\\MLR 570\\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\\graphs_dyrep\\HI-Small_Trans_RAT_medium__no_entity",
+    "split_folder": "C:\\Users\\yasmi\\OneDrive\\Desktop\\Uni - Master's\\Fall 2025\\MLR 570\\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\\splits_dyrep\\HI-Small_Trans_RAT_medium"
+  }
+}

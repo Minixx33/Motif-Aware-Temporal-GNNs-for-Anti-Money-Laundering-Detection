@@ -105,15 +105,15 @@ run_dyrep_ablation() {
 # =========================================================
 
 declare -a ABLATIONS=(
-    # "no_struct"
-    "no_temp"
-    "no_amount"
-    "no_burst_pattern"
-    "no_entity"
-    "no_rat_scores"
-    "no_motif"
-    "no_crossbank"
-    "top20_features"
+    "no_struct"
+    # "no_temp"
+    # "no_amount"
+    # "no_burst_pattern"
+    # "no_entity"
+    # "no_rat_scores"
+    # "no_motif"
+    # "no_crossbank"
+    # "top20_features"
 )
 
 for ab in "${ABLATIONS[@]}"; do
