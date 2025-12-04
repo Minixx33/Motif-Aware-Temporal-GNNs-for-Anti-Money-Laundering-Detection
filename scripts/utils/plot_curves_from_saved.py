@@ -11,9 +11,9 @@ import os
 # ============================================================
 # CONFIGURE PATHS (edit only this part)
 # ============================================================
-RESULTS_DIR = r"results/HI-Small_Trans_RAT_medium/seed1337_experiment_3/dyrep"   # <-- change per run
-GRAPH_DIR   = r"graphs_dyrep/HI-Small_Trans_RAT_medium"                   # static/dataset folder
-SPLIT_DIR   = r"splits_dyrep/HI-Small_Trans_RAT_medium"
+RESULTS_DIR = r"results/HI-Small_Trans/seed2025_experiment_3/graphsage"   # <-- change per run
+GRAPH_DIR   = r"graphs/HI-Small_Trans"                   # static/dataset folder
+SPLIT_DIR   = r"splits/HI-Small_Trans"
 
 # ============================================================
 # LOAD TRUE LABELS
