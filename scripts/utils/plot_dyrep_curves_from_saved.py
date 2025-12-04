@@ -8,7 +8,7 @@ import os
 # DyRep Paths — CHANGE THESE
 # -------------------------------------------------------
 
-results_dir = r"results/HI-Small_Trans/seed1337_experiment2/dyrep"   # <-- change per run
+results_dir = r"results/HI-Small_Trans/seed2025_experiment_3/dyrep"   # <-- change per run
 graph_dir   = r"graphs_dyrep/HI-Small_Trans"                   # static/dataset folder
 split_dir   = r"splits_dyrep/HI-Small_Trans"
 
