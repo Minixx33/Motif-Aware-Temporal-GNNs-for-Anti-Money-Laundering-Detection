@@ -28,14 +28,4 @@ python "scripts/training/train_graphsage_t.py" \
     --intensity "low" \
 ```
 
-3. **DyRep:**
-
-```
-python "scripts/training/train_dyrep.py" \
-    --config "configs/models/dyrep.yaml" \
-    --dataset "configs/datasets/rat.yaml" \
-    --base_config "configs/base.yaml" \
-    --intensity "low" \
-```
-
-> [!NOTE]: There are bash scripts in scripts/bash for auto running the models but it may not work
+> [!NOTE]: DyRep is not going to run as the split script is not optimized yet.
