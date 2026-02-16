@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\scripts\training\train_graphsage.py", line 532, in <module>
+    main()
+  File "C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\scripts\training\train_graphsage.py", line 330, in main
+    train_idx = torch.load(os.path.join(split_folder, "train_edge_idx.pt")).to(device)
+  File "C:\ProgramData\anaconda3\envs\aml_project\lib\site-packages\torch\serialization.py", line 1319, in load
+    with _open_file_like(f, "rb") as opened_file:
+  File "C:\ProgramData\anaconda3\envs\aml_project\lib\site-packages\torch\serialization.py", line 659, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+  File "C:\ProgramData\anaconda3\envs\aml_project\lib\site-packages\torch\serialization.py", line 640, in __init__
+    super().__init__(open(name, mode))
+FileNotFoundError: [Errno 2] No such file or directory: "C:\\Users\\yasmi\\OneDrive\\Desktop\\Uni - Master's\\Fall 2025\\MLR 570\\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\\splits\\HI-Medium_Trans_RAT_low\\train_edge_idx.pt"

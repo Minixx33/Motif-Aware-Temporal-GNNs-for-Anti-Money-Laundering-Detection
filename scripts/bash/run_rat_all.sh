@@ -126,9 +126,9 @@ for INTENSITY in "${INTENSITIES[@]}"; do
     echo ">>> STARTING RAT INTENSITY: $INTENSITY" | tee -a "$LOG_FILE"
     echo "---------------------------------------------------------------" | tee -a "$LOG_FILE"
 
-    # run_model "GraphSAGE"   "$TRAIN_SAGE"   "$SAGE_CONFIG"   "$INTENSITY"
-    # run_model "GraphSAGE-T" "$TRAIN_SAGET"  "$SAGET_CONFIG"  "$INTENSITY"
-    run_model "DyRep"       "$TRAIN_DYREP"  "$DYREP_CONFIG"  "$INTENSITY"
+    run_model "GraphSAGE"   "$TRAIN_SAGE"   "$SAGE_CONFIG"   "$INTENSITY"
+    run_model "GraphSAGE-T" "$TRAIN_SAGET"  "$SAGET_CONFIG"  "$INTENSITY"
+    # run_model "DyRep"       "$TRAIN_DYREP"  "$DYREP_CONFIG"  "$INTENSITY"
 done
 
 end_time=$(date +%s)
