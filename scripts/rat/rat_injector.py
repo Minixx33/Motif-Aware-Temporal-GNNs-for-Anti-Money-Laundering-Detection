@@ -11,9 +11,9 @@ import pandas as pd
 
 BASE_DIR = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\ibm_transcations_datasets"
 
-TX_CSV_PATH       = os.path.join(BASE_DIR, "HI-Small_Trans.csv")
-ACCOUNTS_CSV_PATH = os.path.join(BASE_DIR, "HI-Small_accounts.csv")
-PATTERNS_TXT_PATH = os.path.join(BASE_DIR, "HI-Small_patterns.txt")  # optional
+TX_CSV_PATH       = os.path.join(BASE_DIR, "HI-Medium_Trans.csv")
+ACCOUNTS_CSV_PATH = os.path.join(BASE_DIR, "HI-Medium_accounts.csv")
+PATTERNS_TXT_PATH = os.path.join(BASE_DIR, "HI-Medium_patterns.txt")  # optional
 
 OUTPUT_DIR        = os.path.join(BASE_DIR, "RAT")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -58,13 +58,21 @@ print(f"Loading transactions from: {TX_CSV_PATH}")
 df = pd.read_csv(TX_CSV_PATH, low_memory=False).reset_index(drop=True)
 df[TS_COL] = pd.to_datetime(df[TS_COL], errors="raise")
 
-df[AMT_PAID] = pd.to_numeric(df[AMT_PAID], errors="coerce")
-df[AMT_REC]  = pd.to_numeric(df[AMT_REC], errors="coerce")
+df[AMT_PAID] = pd.to_numeric(df[AMT_PAID], errors="coerce", downcast="float")
+df[AMT_REC]  = pd.to_numeric(df[AMT_REC],  errors="coerce", downcast="float")
+df[LABEL_COL] = pd.to_numeric(df[LABEL_COL], errors="coerce", downcast="integer").fillna(0).astype(np.int8)
+
+df[SRC_COL] = df[SRC_COL].astype(str)
+df[DST_COL] = df[DST_COL].astype(str)
+
 
 # ===================== LOAD ACCOUNTS =====================
 
 print(f"Loading accounts from: {ACCOUNTS_CSV_PATH}")
 df_acct = pd.read_csv(ACCOUNTS_CSV_PATH, low_memory=False)
+
+# Make join key consistent BEFORE setting index
+df_acct[ACCT_ID_COL] = df_acct[ACCT_ID_COL].astype(str)
 df_acct = df_acct.set_index(ACCT_ID_COL)
 
 # Optional pattern accounts
@@ -170,7 +178,9 @@ df["RAT_mutual_flag"] = df["RAT_mutual_flag"].fillna(0)
 
 # ===================== MOTIF FEATURES =====================
 
-df["dst_out_degree"]    = df[DST_COL].map(src_group[DST_COL].nunique())
+src_outdeg_by_acct = df.groupby(SRC_COL)[DST_COL].nunique()
+df["dst_out_degree"] = df[DST_COL].map(src_outdeg_by_acct)
+
 df["dst_out_deg_norm"]  = norm_by_quantile(df["dst_out_degree"].fillna(0))
 
 df["motif_fanin"]   = df["RAT_dst_in_deg_norm"]
@@ -240,22 +250,23 @@ print(f"Valid laundering RAT_scores: {len(launder_scores)}")
 if len(launder_scores) < 10:
     raise RuntimeError("Too few valid laundering RAT scores — check calculations.")
 
-for name, frac in INTENSITIES.items():
+float_cols = [c for c in df.columns if c.startswith(("RAT_", "motif_")) or c.endswith("_norm")]
+df[float_cols] = df[float_cols].astype(np.float32)
 
+for name, frac in INTENSITIES.items():
     threshold = float(np.quantile(launder_scores, 1 - frac))
     print(f"{name}: threshold = {threshold:.4f}")
 
-    df_out = df.copy()
-    df_out["RAT_injected"] = (
-        (df_out[LABEL_COL] == 1) &
-        (df_out["RAT_score"] >= threshold)
-    ).astype(int)
+    df["RAT_injected"] = (
+        (df[LABEL_COL] == 1) &
+        (df["RAT_score"] >= threshold)
+    ).astype(np.int8)
 
-    df_out["RAT_intensity_level"] = df_out["RAT_injected"] * {"low": 1, "medium": 2, "high": 3}[name]
+    df["RAT_intensity_level"] = (df["RAT_injected"] * {"low": 1, "medium": 2, "high": 3}[name]).astype(np.int8)
 
-    out_path = os.path.join(OUTPUT_DIR, f"HI-Small_Trans_RAT_{name}.csv")
-    df_out.to_csv(out_path, index=False)
+    out_path = os.path.join(OUTPUT_DIR, f"HI-Medium_Trans_RAT_{name}.csv")
+    df.to_csv(out_path, index=False)
+    print(f"Saved {out_path} [{int(df['RAT_injected'].sum())} injected rows]")
 
-    print(f"Saved {out_path} [{df_out['RAT_injected'].sum()} injected rows]")
 
 print("DONE.")
