@@ -24,6 +24,16 @@ import json
 import numpy as np
 import pandas as pd
 import torch
+import gc
+import time
+import psutil
+import pyarrow as pa
+import pyarrow.parquet as pq
+
+
+def stamp(msg):
+    rss_gb = psutil.Process().memory_info().rss / (1024**3)
+    print(f"[{time.strftime('%H:%M:%S')}] {msg} | RAM={rss_gb:.2f} GB", flush=True)
 
 # ============================================================
 # CONFIG
@@ -33,9 +43,9 @@ BASE_DIR = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Mo
 DATA_DIR = os.path.join(BASE_DIR, "ibm_transcations_datasets")
 
 # RAT
-# DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_low.csv")
+DATASET = os.path.join("RAT", "HI-Medium_Trans_RAT_low.csv")
 # DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_medium.csv")
-DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_high.csv")
+# DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_high.csv")
 
 # SLT
 # DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_low.csv")
@@ -73,14 +83,96 @@ print("=" * 70)
 print("BASELINE-ALIGNED THEORY GRAPH BUILDER")
 print("=" * 70)
 
-df = pd.read_csv(INPUT_PATH, low_memory=False)
-print(f"Loaded {len(df):,} rows")
+NEEDED_COLS = [
+    TS_COL, SRC_COL, DST_COL, FROM_BANK, TO_BANK,
+    "Amount Received", "Amount Paid",
+    RCURR, PCURR, PFORMAT,
+    LABEL_COL,
+]
+# add theory/motif columns dynamically later, but without reading the whole file first:
+# safest approach: peek header, select columns, then load.
 
-df[TS_COL] = pd.to_datetime(df[TS_COL], errors="raise")
+stamp(f"Reading header: {INPUT_PATH}")
+all_cols = pd.read_csv(INPUT_PATH, nrows=0).columns
+
+theory_cols = [c for c in all_cols if c.startswith(("RAT_", "motif_", "SLT_", "STRAIN_"))]
+theory_cols = [c for c in theory_cols if c not in {
+    "RAT_injected","RAT_intensity_level",
+    "SLT_injected","SLT_intensity_level",
+    "STRAIN_injected","STRAIN_intensity_level"
+}]
+
+USECOLS = NEEDED_COLS + theory_cols
+
+DTYPES = {
+    SRC_COL: "string",
+    DST_COL: "string",
+    FROM_BANK: "string",
+    TO_BANK: "string",
+    RCURR: "string",
+    PCURR: "string",
+    PFORMAT: "string",
+    LABEL_COL: "int8",
+    "Amount Paid": "float32",
+    "Amount Received": "float32",
+}
+
+PARQUET_PATH = INPUT_PATH.replace(".csv", ".parquet")
+
+def build_parquet_from_csv_cengine(csv_path: str, pq_path: str):
+    stamp(f"Creating Parquet via C-engine chunks -> {pq_path}")
+    t0 = time.time()
+
+    writer = None
+    rows = 0
+
+    # IMPORTANT: use C engine here (fast) + chunksize (avoids tokenizer OOM)
+    for i, chunk in enumerate(pd.read_csv(
+        csv_path,
+        usecols=USECOLS,
+        dtype=DTYPES,
+        engine="c",
+        low_memory=False,
+        memory_map=True,
+        chunksize=500_000,
+    )):
+        # keep your exact timestamp logic
+        chunk[TS_COL] = pd.to_datetime(chunk[TS_COL], errors="raise")
+
+        # write parquet incrementally (no big RAM spike)
+        table = pa.Table.from_pandas(chunk, preserve_index=False)
+        if writer is None:
+            writer = pq.ParquetWriter(pq_path, table.schema, compression="zstd")
+        writer.write_table(table)
+
+        rows += len(chunk)
+        stamp(f"  wrote chunk {i:03d}: {len(chunk):,} rows (total {rows:,})")
+
+    if writer is not None:
+        writer.close()
+
+    stamp(f"Parquet built: {rows:,} rows in {time.time() - t0:.1f}s")
+
+# --- Load path: prefer parquet, build it if missing ---
+if not os.path.exists(PARQUET_PATH):
+    build_parquet_from_csv_cengine(INPUT_PATH, PARQUET_PATH)
+
+stamp(f"Reading Parquet: {PARQUET_PATH}")
+t0 = time.time()
+df = pd.read_parquet(PARQUET_PATH, columns=USECOLS)
+stamp(f"Loaded: {len(df):,} rows in {time.time() - t0:.1f}s")
+
+# keep your exact behavior
+stamp("Sorting by timestamp...")
+t0 = time.time()
 df = df.sort_values(TS_COL).reset_index(drop=True)
+stamp(f"Sorted in {time.time() - t0:.1f}s")
 
+stamp("Casting account IDs...")
 df[SRC_COL] = df[SRC_COL].astype(str)
 df[DST_COL] = df[DST_COL].astype(str)
+stamp("Account IDs casted")
+
 
 # ============================================================
 # DETECT THEORY TYPE
@@ -125,113 +217,120 @@ num_edges = len(src)
 y_edge = df[LABEL_COL].astype(int).values
 
 # Node labels: any account involved in laundering becomes 1
+laund_mask = (y_edge == 1)
+laund_accts = pd.unique(pd.concat([df.loc[laund_mask, SRC_COL], df.loc[laund_mask, DST_COL]]))
 y_node = np.zeros(num_nodes, dtype=np.int64)
-laund_src = df.loc[df[LABEL_COL] == 1, SRC_COL].astype(str)
-laund_dst = df.loc[df[LABEL_COL] == 1, DST_COL].astype(str)
-for acct in set(laund_src) | set(laund_dst):
-    y_node[acct2idx[acct]] = 1
+y_node[np.fromiter((acct2idx[a] for a in laund_accts), dtype=np.int64)] = 1
+
 
 # ============================================================
-# BASELINE FEATURES
-# (replicate EXACT baseline design)
+# BASELINE FEATURES (memory-safe, baseline-aligned)
 # ============================================================
 
 def log1p_safe(x):
-    x = np.asarray(x, dtype=np.float64)
+    x = np.asarray(x, dtype=np.float32)
     x = np.where(x < 0, 0, x)
-    return np.log1p(x)
+    return np.log1p(x, dtype=np.float32)
 
-amt_rec = df["Amount Received"].astype(float).values
-amt_paid = df["Amount Paid"].astype(float).values
+E = len(df)
 
-log_amt_rec = log1p_safe(amt_rec)
+amt_rec  = pd.to_numeric(df["Amount Received"], errors="coerce").fillna(0).to_numpy(np.float32)
+amt_paid = pd.to_numeric(df["Amount Paid"], errors="coerce").fillna(0).to_numpy(np.float32)
+
+log_amt_rec  = log1p_safe(amt_rec)
 log_amt_paid = log1p_safe(amt_paid)
 
-same_bank = (df[FROM_BANK].astype(str) == df[TO_BANK].astype(str)).astype(float)
-same_curr = (df[RCURR].astype(str) == df[PCURR].astype(str)).astype(float)
+same_bank = (df[FROM_BANK].astype(str).to_numpy() == df[TO_BANK].astype(str).to_numpy()).astype(np.float32)
+same_curr = (df[RCURR].astype(str).to_numpy() == df[PCURR].astype(str).to_numpy()).astype(np.float32)
 
-hour = df[TS_COL].dt.hour.values.astype(float)
-weekday = df[TS_COL].dt.dayofweek.values.astype(float)
-is_weekend = (weekday >= 5).astype(float)
+hour = df[TS_COL].dt.hour.to_numpy(np.float32)
+weekday = df[TS_COL].dt.dayofweek.to_numpy(np.float32)
+is_weekend = (weekday >= 5).astype(np.float32)
 
-# normalized timestamps
-timestamps = (df[TS_COL].astype("int64") // 10**9).values
-ts_norm = (timestamps - timestamps.min()) / (timestamps.max() - timestamps.min() + 1e-9)
+timestamps = (df[TS_COL].astype("int64") // 10**9).to_numpy(np.int64)
+ts_min = timestamps.min()
+ts_max = timestamps.max()
+ts_norm = ((timestamps - ts_min) / (ts_max - ts_min + 1e-9)).astype(np.float32)
 
-# time since last src
+# time since last src/dst (keep your logic, but ensure float32)
 last_src = {}
-tsls = np.zeros(num_edges)
+tsls = np.empty(E, dtype=np.float32)
 for i, (s, ts) in enumerate(zip(src, timestamps)):
-    tsls[i] = ts - last_src.get(s, ts)
+    prev = last_src.get(s, ts)
+    tsls[i] = np.log1p(ts - prev)
     last_src[s] = ts
-tsls = np.log1p(tsls)
 
-# time since last dst
 last_dst = {}
-tsld = np.zeros(num_edges)
+tsld = np.empty(E, dtype=np.float32)
 for i, (d, ts) in enumerate(zip(dst, timestamps)):
-    tsld[i] = ts - last_dst.get(d, ts)
+    prev = last_dst.get(d, ts)
+    tsld[i] = np.log1p(ts - prev)
     last_dst[d] = ts
-tsld = np.log1p(tsld)
 
-pf = pd.get_dummies(df[PFORMAT].astype(str), prefix="pf")
-rc = pd.get_dummies(df[RCURR].astype(str), prefix="rc")
+# categorical codes instead of one-hot
+pf_codes = df[PFORMAT].astype("category").cat.codes.to_numpy(np.int16).astype(np.float32)
+rc_codes = df[RCURR].astype("category").cat.codes.to_numpy(np.int16).astype(np.float32)
 
-baseline_df = pd.DataFrame({
-    "log_amt_rec": log_amt_rec,
-    "log_amt_paid": log_amt_paid,
-    "same_bank": same_bank,
-    "same_currency": same_curr,
-    "hour_of_day": hour,
-    "day_of_week": weekday,
-    "is_weekend": is_weekend,
-    "ts_normalized": ts_norm.astype(np.float32),
-    "log_time_since_src": tsls.astype(np.float32),
-    "log_time_since_dst": tsld.astype(np.float32),
-})
-
-baseline_df = pd.concat([baseline_df, pf, rc], axis=1)
-
-baseline_cols = list(baseline_df.columns)
-
-# ============================================================
-# THEORY + MOTIF FEATURES
-# ============================================================
-
-theory_cols = [
-    col for col in df.columns
-    if any(col.startswith(p) for p in theory_prefix)
+baseline_cols = [
+    "log_amt_rec", "log_amt_paid",
+    "same_bank", "same_currency",
+    "hour_of_day", "day_of_week", "is_weekend",
+    "ts_normalized", "log_time_since_src", "log_time_since_dst",
+    "pf_code", "rc_code"
 ]
 
-# Remove theory metadata flags (NOT real features)
+baseline_mat = np.column_stack([
+    log_amt_rec, log_amt_paid,
+    same_bank, same_curr,
+    hour, weekday, is_weekend,
+    ts_norm, tsls, tsld,
+    pf_codes, rc_codes
+]).astype(np.float32)
+
+# ============================================================
+# THEORY + MOTIF FEATURES (no big DataFrame copies)
+# ============================================================
 METADATA_COLS = {
     "RAT_injected", "RAT_intensity_level",
     "SLT_injected", "SLT_intensity_level",
     "STRAIN_injected", "STRAIN_intensity_level"
 }
 
-theory_cols = [c for c in theory_cols if c not in METADATA_COLS]
+theory_cols = [
+    col for col in df.columns
+    if any(col.startswith(p) for p in theory_prefix)
+    and col not in METADATA_COLS
+]
 
 print(f"Detected {len(theory_cols)} theory/motif features.")
 
-# sanitize theory df
-theory_df = df[theory_cols].copy()
-theory_df = theory_df.replace([np.inf, -np.inf], 0).fillna(0)
+# build theory matrix directly
+T = len(theory_cols)
+theory_mat = np.empty((E, T), dtype=np.float32)
 
-# normalize theory/motif features
-for col in theory_cols:
-    v = theory_df[col].astype(np.float32).values
-    std = v.std() + 1e-6
-    v = (v - v.mean()) / std
-    theory_df[col] = np.clip(v, -10, 10)
+for j, col in enumerate(theory_cols):
+    v = pd.to_numeric(df[col], errors="coerce").fillna(0).to_numpy(np.float32)
+    v = np.nan_to_num(v, nan=0.0, posinf=0.0, neginf=0.0)
+    mu = float(v.mean())
+    sd = float(v.std()) + 1e-6
+    v = (v - mu) / sd
+    theory_mat[:, j] = np.clip(v, -10, 10)
 
 # ============================================================
 # FINAL EDGE FEATURES
 # ============================================================
 
-edge_feat_df = pd.concat([baseline_df, theory_df], axis=1)
-edge_attr_cols = list(edge_feat_df.columns)
-edge_attr = edge_feat_df.values.astype(np.float32)
+edge_attr_cols = baseline_cols + theory_cols
+
+F0 = baseline_mat.shape[1]
+F1 = theory_mat.shape[1]
+edge_attr = np.empty((E, F0 + F1), dtype=np.float32)
+edge_attr[:, :F0] = baseline_mat
+edge_attr[:, F0:] = theory_mat
+
+del baseline_mat, theory_mat
+gc.collect()
+
 
 # ============================================================
 # NODE FEATURES (same as baseline)
@@ -255,6 +354,9 @@ x = node_df[[
     "out_degree", "in_degree", "total_degree",
     "log_out_degree", "log_in_degree", "log_total_degree"
 ]].values.astype(np.float32)
+
+del df
+gc.collect()
 
 # ============================================================
 # SAVE EVERYTHING
