@@ -6,6 +6,7 @@ Instruction on how to run code:
 All required packages are in the `requirements.txt` file. Recommended to also import the conda environment from `environment_full.yml`.
 
 - All datasets csv files should be in ibm_transactions_datasets
+- Download the full graphs from here: https://drive.google.com/drive/folders/1ZQMZdWmBJ0xpb0u2s3kI0ZjMw6AYYI1u?usp=sharing
 - Download the graph split from here: https://drive.google.com/file/d/1OCAxAsK-WrduOqznuZ4qmxd4_S6u_Y9_/view?usp=sharing
 - Make sure that the graph split is in splits/HI-Medium_RAT_low
 - To run one of the models, the following commands are needed:
