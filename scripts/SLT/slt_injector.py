@@ -30,12 +30,17 @@ Compared with the earlier prototype:
 
 import os
 import gc
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
 # ===================== CONFIG =====================
 
-BASE_DIR = r"C:\Users\kenzi\Documents\GitHub\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\ibm_transcations_datasets\base_dataset_small"
+# Resolve project root from this file's location so paths work on Windows / Linux / macOS.
+# scripts/SLT/slt_injector.py  →  parents[2] is the repo root.
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+BASE_DIR = str(PROJECT_ROOT / "ibm_transcations_datasets")
 
 TX_CSV_PATH       = os.path.join(BASE_DIR, "HI-Small_Trans.csv")
 ACCOUNTS_CSV_PATH = os.path.join(BASE_DIR, "HI-Small_accounts.csv")

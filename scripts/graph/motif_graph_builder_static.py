@@ -21,11 +21,13 @@ Only difference → added criminology theory + motif features.
 
 import os
 import json
+import gc
+import time
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import torch
-import gc
-import time
 import psutil
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -38,9 +40,12 @@ def stamp(msg):
 # ============================================================
 # CONFIG
 # ============================================================
+# Resolved from this file's location so the script is OS-agnostic.
+# scripts/graph/motif_graph_builder_static.py  →  parents[2] is the repo root.
 
-BASE_DIR = r"C:\Users\kenzi\Documents\GitHub\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection"
-DATA_DIR = os.path.join(BASE_DIR, "ibm_transcations_datasets", "base_dataset_small")
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+BASE_DIR = str(PROJECT_ROOT)
+DATA_DIR = str(PROJECT_ROOT / "ibm_transcations_datasets")
 
 # RAT
 # DATASET = os.path.join("RAT", "HI-Medium_Trans_RAT_low.csv")

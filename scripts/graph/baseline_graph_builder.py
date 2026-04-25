@@ -28,16 +28,22 @@ Outputs (to graphs/HI-Small_Trans/):
 
 import os
 import json
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import torch
 
 # ======================================================================
-# CONFIG – EDIT THESE PATHS FOR YOUR MACHINE
+# CONFIG
 # ======================================================================
+# Paths are resolved from this file's location, so the script works on
+# Windows, Linux, and macOS without editing.
+# scripts/graph/baseline_graph_builder.py  →  parents[2] is the repo root.
 
-BASE_DIR = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\ibm_transcations_datasets"
-OUT_DIR = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs"
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+BASE_DIR = str(PROJECT_ROOT / "ibm_transcations_datasets")
+OUT_DIR = str(PROJECT_ROOT / "graphs")
 
 TRANS_FILE = "HI-Small_Trans.csv"
 ACCOUNTS_FILE = "HI-Small_accounts.csv"

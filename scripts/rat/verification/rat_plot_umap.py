@@ -46,7 +46,10 @@ except ImportError:
 # ---------------------------------------------------------------------
 # CONFIG
 # ---------------------------------------------------------------------
-BASE_DIR = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\ibm_transcations_datasets"
+# scripts/rat/verification/rat_plot_umap.py  →  parents[3] is the repo root.
+from pathlib import Path
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+BASE_DIR = str(PROJECT_ROOT / "ibm_transcations_datasets")
 RAT_DIR = os.path.join(BASE_DIR, "RAT")
 PLOT_DIR = os.path.join(RAT_DIR, "plots_umap")
 

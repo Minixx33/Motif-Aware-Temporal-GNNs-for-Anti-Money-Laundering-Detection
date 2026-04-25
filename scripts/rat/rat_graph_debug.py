@@ -18,12 +18,14 @@ This notebook checks:
 
 import os
 import json
+import warnings
+from pathlib import Path
+
 import torch
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import warnings
 
 # Suppress warnings
 warnings.filterwarnings('ignore', category=FutureWarning)
@@ -36,8 +38,10 @@ plt.rcParams['figure.figsize'] = (12, 6)
 # ============================================================
 # 1. SETUP PATHS AND OUTPUT FILE
 # ============================================================
+# scripts/rat/rat_graph_debug.py  →  parents[2] is the repo root.
 
-GRAPH_DIR = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\ibm_transcations_datasets\graphs\HI-Small_Trans_RAT_high"
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+GRAPH_DIR = str(PROJECT_ROOT / "graphs" / "HI-Small_Trans_RAT_high")
 
 # Create output file for logging
 OUTPUT_FILE = os.path.join(GRAPH_DIR, "debug_report.txt")

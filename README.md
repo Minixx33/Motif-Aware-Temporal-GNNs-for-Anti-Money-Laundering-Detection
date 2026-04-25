@@ -176,7 +176,7 @@ Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/
 
 ### Software
 
-- **OS:** Linux, macOS, or Windows (paths in the bash scripts assume Git-Bash on Windows with Anaconda at `/c/ProgramData/Anaconda3`; adjust if your install differs).
+- **OS:** Linux, macOS, or Windows. All Python scripts resolve paths from the script's own location (`Path(__file__).resolve().parents[...]`), so no editing is required after `git clone`. The bash drivers under `scripts/bash/` auto-detect a conda install in the standard Linux / macOS / Windows-GitBash locations; override with `CONDA_EXE=...` or `CONDA_ENV=...` if needed.
 - **Python:** 3.10 (the conda env pins `python=3.10.19`).
 - **CUDA:** 12.1 to match the pinned `torch==2.5.1+cu121`. The conda env file pulls a full `cuda-toolkit=13.0.2`, but PyTorch wheels themselves use the cu121 runtime. Either works; the cu121 PyTorch wheel ships its own runtime libs.
 - **Git LFS:** required to clone the dataset CSVs from this repo (`*.csv` is LFS-tracked per `.gitattributes`).
@@ -488,7 +488,7 @@ The metrics computed by `scripts/utils/evaluation_utils.py::evaluate_binary_clas
 
 You only need this if you don't want to use the pre-built `.pt` graphs from Drive.
 
-> **Heads-up:** the graph builder scripts, `rat_injector.py`, and `slt_injector.py` currently hardcode `BASE_DIR` to a Windows path that points at the original author's machine. Open each script you intend to run and update `BASE_DIR` to your repo root before running. (A future cleanup will switch these to relative paths.)
+All injector and graph-builder scripts resolve their input/output paths from the script's own location, so they work on any OS without editing as long as the repo layout is intact (i.e. `scripts/...` and `ibm_transcations_datasets/` sit at the repo root).
 
 ### Step 1 — Theory feature injection
 
@@ -633,7 +633,15 @@ python scripts/analysis/feature_importance.py \
 
 ## 12. Bash Driver Scripts
 
-The scripts under `scripts/bash/` chain multiple training runs with timestamped logs in `logs/`. They were written for **Windows + Git-Bash + Anaconda** at `/c/ProgramData/Anaconda3`. Edit the `source ".../conda.sh"` line and the `conda activate aml_project` line if your install differs.
+The scripts under `scripts/bash/` chain multiple training runs with timestamped logs in `logs/`. They auto-detect a conda install in the usual Linux (`~/anaconda3`, `~/miniconda3`, `/opt/conda`, ...), macOS, and Windows-GitBash (`/c/ProgramData/Anaconda3`) locations. To force a specific install or env name:
+
+```bash
+# pick a non-default conda
+CONDA_EXE=/path/to/your/conda bash scripts/bash/run_rat_all.sh
+
+# pick a non-default env name
+CONDA_ENV=my_env bash scripts/bash/run_rat_all.sh
+```
 
 | Script              | Runs                                                                          |
 |---------------------|-------------------------------------------------------------------------------|
@@ -670,11 +678,17 @@ Lower `training.batch_size` / `training.eval_batch_size` in the model YAML. The 
 **Out-of-memory on CPU during graph build.**
 The `motif_graph_builder_static.py` and `rat_injector.py` scripts hold the full HI-Medium DataFrame (~30 M rows) in memory. Use the HI-Small variants on a low-RAM machine.
 
-**`run_*.sh` fails at the `source ... conda.sh` line.**
-Edit the path to match your conda install (e.g. `~/miniconda3/etc/profile.d/conda.sh` on Linux/macOS).
+**`run_*.sh` errors with "could not locate a conda install".**
+The bash drivers probe for conda in `$CONDA_EXE`, then on `$PATH`, then in the standard install locations. If none of those match your setup, set `CONDA_EXE` to your `conda` binary before running:
+
+```bash
+CONDA_EXE=/path/to/conda bash scripts/bash/run_rat_all.sh
+```
+
+If your env is not named `aml_project`, set `CONDA_ENV` similarly.
 
 **DyRep training errors.**
 Per the project status, DyRep splits are not yet optimised — the script is functional but the surrounding split pipeline needs work. Stick to GraphSAGE / GraphSAGE-T for reproducible results.
 
-**Stale paths in graph builders.**
-`rat_injector.py`, `baseline_graph_builder.py`, `motif_graph_builder_static.py`, `baseline_dyrep_graph_builder.py`, and `motif_dyrep_graph_builder.py` all hardcode `BASE_DIR` at the top of the file. Update it to match your local repo path before running.
+**`FileNotFoundError` from a graph builder or injector.**
+The graph builders and theory injectors resolve paths from their own location (`Path(__file__).resolve().parents[2]` → repo root). If you've moved a script outside the `scripts/<subdir>/` layout, update the `parents[N]` index, or move the script back into the standard layout.

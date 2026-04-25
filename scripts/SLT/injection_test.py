@@ -1,6 +1,10 @@
+from pathlib import Path
+
 import pandas as pd
 
-path = r"C:\Users\kenzi\Documents\GitHub\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\ibm_transcations_datasets\base_dataset_small\SLT\HI-Small_Trans_SLT_high.csv"
+# scripts/SLT/injection_test.py  →  parents[2] is the repo root.
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+path = str(PROJECT_ROOT / "ibm_transcations_datasets" / "SLT" / "HI-Small_Trans_SLT_high.csv")
 
 df = pd.read_csv(path)
 

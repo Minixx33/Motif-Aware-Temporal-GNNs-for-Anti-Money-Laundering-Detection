@@ -1,8 +1,12 @@
 from rat_ablation_groups import FULL_FEATURES, ABLATED_SETS, TOP20_FEATURES
 from run_ablation import run_ablation
 import os
+from pathlib import Path
 
-FULL = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs_dyrep\HI-Small_Trans_RAT_medium"
+# Resolve project root so this script runs on Windows / Linux / macOS.
+# scripts/ablations/run_all_ablation_graphs.py  →  parents[2] is the repo root.
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+FULL = str(PROJECT_ROOT / "graphs_dyrep" / "HI-Small_Trans_RAT_medium")
 
 def main():
     for name, removed in ABLATED_SETS.items():

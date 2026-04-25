@@ -1,10 +1,16 @@
+from pathlib import Path
+
 import pandas as pd
 
 # ------------------------------------------------------------
-# Paths
+# Paths (resolved relative to this file so the script works on
+# Windows, Linux, and macOS without editing).
+# scripts/analysis/analyze_dataset.py  →  parents[2] is the repo root.
 # ------------------------------------------------------------
-TX_PATH = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\ibm_transcations_datasets\HI-Small_Trans.csv"
-ACCOUNTS_PATH = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\ibm_transcations_datasets\HI-Small_accounts.csv"
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DATA_DIR = PROJECT_ROOT / "ibm_transcations_datasets"
+TX_PATH = str(DATA_DIR / "HI-Small_Trans.csv")
+ACCOUNTS_PATH = str(DATA_DIR / "HI-Small_accounts.csv")
 
 # ------------------------------------------------------------
 # Load data

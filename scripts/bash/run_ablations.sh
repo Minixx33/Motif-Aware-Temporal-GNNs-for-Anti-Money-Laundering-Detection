@@ -12,10 +12,35 @@ PROJECT_ROOT="$(pwd)"
 echo "Running from project root: $PROJECT_ROOT"
 
 # ---------------------------------------------------------
-# Activate Conda (Windows Git-Bash compatible)
+# Activate Conda (portable: Linux / macOS / Windows-GitBash)
 # ---------------------------------------------------------
-source "/c/ProgramData/Anaconda3/etc/profile.d/conda.sh"
-conda activate aml_project
+# Override the env name with: CONDA_ENV=my_env bash run_ablations.sh
+CONDA_BASE=""
+if [ -n "${CONDA_EXE:-}" ] && [ -x "${CONDA_EXE}" ]; then
+    CONDA_BASE="$("${CONDA_EXE}" info --base)"
+elif command -v conda > /dev/null 2>&1; then
+    CONDA_BASE="$(conda info --base)"
+else
+    for candidate in \
+        "$HOME/anaconda3" "$HOME/miniconda3" "$HOME/miniforge3" \
+        "/opt/anaconda3" "/opt/miniconda3" "/opt/conda" \
+        "/c/ProgramData/Anaconda3" "/c/ProgramData/Miniconda3"; do
+        if [ -f "$candidate/etc/profile.d/conda.sh" ]; then
+            CONDA_BASE="$candidate"
+            break
+        fi
+    done
+fi
+
+if [ -z "$CONDA_BASE" ] || [ ! -f "$CONDA_BASE/etc/profile.d/conda.sh" ]; then
+    echo "ERROR: could not locate a conda install."
+    echo "       Set CONDA_EXE, put conda on your PATH, or activate the env manually."
+    exit 1
+fi
+
+# shellcheck disable=SC1091
+source "$CONDA_BASE/etc/profile.d/conda.sh"
+conda activate "${CONDA_ENV:-aml_project}"
 
 echo "Using Python: $(which python)"
 python --version

@@ -28,6 +28,8 @@ Outputs (in graphs_dyrep/HI-Small_Trans/):
 
 import os
 import json
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import torch
@@ -35,9 +37,12 @@ import torch
 # ============================================================
 # CONFIG
 # ============================================================
+# Resolved from this file's location so the script is OS-agnostic.
+# scripts/graph/baseline_dyrep_graph_builder.py  →  parents[2] is the repo root.
 
-BASE_DIR = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection"
-DATA_DIR = os.path.join(BASE_DIR, "ibm_transcations_datasets")
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+BASE_DIR = str(PROJECT_ROOT)
+DATA_DIR = str(PROJECT_ROOT / "ibm_transcations_datasets")
 
 TRANS_FILE = "HI-Small_Trans.csv"
 ACCT_FILE  = "HI-Small_accounts.csv"
