@@ -579,8 +579,10 @@ Ablations strip groups of features out of an existing graph's `edge_attr.pt` and
 
 ```bash
 cd scripts/ablations
-python run_all_ablation_graphs.py     # ← edit FULL = ... at the top first
+python run_all_ablation_graphs.py
 ```
+
+By default this reads from `graphs_dyrep/HI-Small_Trans_RAT_medium`. To run ablations against a different source graph, edit the `FULL = ...` line at the top of the script.
 
 This produces sibling folders next to the source graph (e.g. `graphs_dyrep/HI-Small_Trans_RAT_medium__no_struct`).
 
