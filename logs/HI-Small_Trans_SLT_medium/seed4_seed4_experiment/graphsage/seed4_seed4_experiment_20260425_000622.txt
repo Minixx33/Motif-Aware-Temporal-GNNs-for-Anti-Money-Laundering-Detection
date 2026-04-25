@@ -1,0 +1,59 @@
+
+================================================================================
+Logging started at: 2026-04-25 00:06:22.022838
+Log file: C:\Users\kenzi\Documents\GitHub\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_medium\seed4_seed4_experiment\graphsage\seed4_seed4_experiment_20260425_000622.txt
+================================================================================
+
+[INFO] Logging to: C:\Users\kenzi\Documents\GitHub\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_medium\seed4_seed4_experiment\graphsage\seed4_seed4_experiment_20260425_000622.txt
+================================================================================
+EXPERIMENT CONFIG SUMMARY
+================================================================================
+
+[DATASET]
+  Name:       HI-Small_Trans_SLT_medium
+  Theory:     SLT
+  Intensity:  medium
+
+[MODEL]
+  GraphSAGE
+  Hidden dim: 128
+
+[PATHS]
+  Graphs:     C:\Users\kenzi\Documents\GitHub\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs\HI-Small_Trans_SLT_medium
+  Splits:     C:\Users\kenzi\Documents\GitHub\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits\HI-Small_Trans_SLT_medium
+  Results:    C:\Users\kenzi\Documents\GitHub\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_medium\seed4_seed4_experiment\graphsage
+  Logs:       C:\Users\kenzi\Documents\GitHub\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_medium\seed4_seed4_experiment\graphsage
+================================================================================
+
+[DEVICE] cuda
+
+
+======================================================================
+GPU Mini-Batch Training (GraphSAGE Stable)
+======================================================================
+Train batch size: 8192
+Eval batch size:  16384
+Mixed Precision:  False (disabled)
+Device:           cuda
+======================================================================
+
+Loading graph tensors...
+Nodes: 515,080, Edges: 5,078,415
+Node features: 6, Edge features: 16
+Train: 3,047,049, Val: 1,015,683, Test: 1,015,683
+pos_weight: 100.00
+
+Starting training for 350 epochs...
+
+Epoch 001 | loss=37.2760 | val_F1=0.0048 | val_AUPR=0.0018 | time=110.06s
+Epoch 002 | loss=10.5237 | val_F1=0.0197 | val_AUPR=0.0018 | time=133.53s
+Epoch 003 | loss=4.2311 | val_F1=0.0209 | val_AUPR=0.0019 | time=198.08s
+Epoch 004 | loss=1.8563 | val_F1=0.0178 | val_AUPR=0.0021 | time=163.55s
+Epoch 005 | loss=1.0240 | val_F1=0.0197 | val_AUPR=0.0029 | time=116.55s
+Epoch 006 | loss=0.6679 | val_F1=0.0046 | val_AUPR=0.0017 | time=132.00s
+Epoch 007 | loss=0.5074 | val_F1=0.0041 | val_AUPR=0.0017 | time=104.94s
+Epoch 008 | loss=0.4627 | val_F1=0.0041 | val_AUPR=0.0018 | time=169.94s
+Epoch 009 | loss=0.4417 | val_F1=0.0495 | val_AUPR=0.0058 | time=207.88s
+Epoch 010 | loss=0.4012 | val_F1=0.0641 | val_AUPR=0.0088 | time=134.97s
+Epoch 011 | loss=0.3942 | val_F1=0.0694 | val_AUPR=0.0136 | time=97.70s
+Epoch 012 | loss=0.3784 | val_F1=0.0772 | val_AUPR=0.0161 | time=148.22s

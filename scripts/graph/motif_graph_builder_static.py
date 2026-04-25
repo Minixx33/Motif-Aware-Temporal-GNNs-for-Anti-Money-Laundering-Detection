@@ -39,18 +39,18 @@ def stamp(msg):
 # CONFIG
 # ============================================================
 
-BASE_DIR = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection"
-DATA_DIR = os.path.join(BASE_DIR, "ibm_transcations_datasets")
+BASE_DIR = r"C:\Users\kenzi\Documents\GitHub\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection"
+DATA_DIR = os.path.join(BASE_DIR, "ibm_transcations_datasets", "base_dataset_small")
 
 # RAT
-DATASET = os.path.join("RAT", "HI-Medium_Trans_RAT_low.csv")
+# DATASET = os.path.join("RAT", "HI-Medium_Trans_RAT_low.csv")
 # DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_medium.csv")
 # DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_high.csv")
 
 # SLT
 # DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_low.csv")
-# DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_low.csv")
-# DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_low.csv")
+# DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_medium.csv")
+DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_high.csv")
 
 # STRAIN
 # DATASET = os.path.join("STRAIN", "HI-Small_Trans_STRAIN_low.csv")

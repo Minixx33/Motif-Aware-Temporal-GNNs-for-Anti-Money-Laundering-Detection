@@ -122,9 +122,14 @@ def print_mem_hint(df, name):
 
 print(f"Loading transactions from: {TX_CSV_PATH}")
 
-# Only load the columns we actually need.
+RCURR = "Receiving Currency"
+PCURR = "Payment Currency"
+PFORMAT = "Payment Format"
+
 tx_usecols = [
-    TS_COL, SRC_COL, DST_COL, FROM_BANK, TO_BANK, AMT_PAID, AMT_REC, LABEL_COL
+    TS_COL, SRC_COL, DST_COL, FROM_BANK, TO_BANK,
+    AMT_PAID, AMT_REC, LABEL_COL,
+    RCURR, PCURR, PFORMAT
 ]
 
 df = pd.read_csv(
@@ -152,6 +157,10 @@ df[TS_COL] = pd.to_datetime(df[TS_COL], errors="raise")
 # Convert account IDs to string first, then to category to save memory
 df[SRC_COL] = df[SRC_COL].astype(str)
 df[DST_COL] = df[DST_COL].astype(str)
+
+df[RCURR] = df[RCURR].astype(str).astype("category")
+df[PCURR] = df[PCURR].astype(str).astype("category")
+df[PFORMAT] = df[PFORMAT].astype(str).astype("category")
 
 # Compare bank codes while still plain strings, then convert to category for RAM savings.
 df[FROM_BANK] = df[FROM_BANK].astype(str)
