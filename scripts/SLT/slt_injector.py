@@ -44,7 +44,7 @@ BASE_DIR = str(PROJECT_ROOT / "ibm_transcations_datasets")
 
 TX_CSV_PATH       = os.path.join(BASE_DIR, "HI-Small_Trans.csv")
 ACCOUNTS_CSV_PATH = os.path.join(BASE_DIR, "HI-Small_accounts.csv")
-PATTERNS_TXT_PATH = os.path.join(BASE_DIR, "HI-Small_patterns.txt")   # optional
+PATTERNS_TXT_PATH = os.path.join(BASE_DIR, "HI-Small_Patterns.txt")   # optional
 
 OUTPUT_DIR = os.path.join(BASE_DIR, "SLT")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -643,6 +643,19 @@ df["SLT_score"] = (
 ).clip(0, 1).astype(np.float32)
 
 df["SLT_score"] = df["SLT_score"].replace([np.inf, -np.inf], np.nan).fillna(0).clip(0, 1).astype(np.float32)
+
+# Keep source/destination semantics while making every SLT feature discoverable
+# by graph builders that select columns with the "SLT_" prefix.
+slt_rename_map = {}
+for col in df.columns:
+    if col.startswith("src_SLT_"):
+        slt_rename_map[col] = col.replace("src_SLT_", "SLT_src_", 1)
+    elif col.startswith("dst_SLT_"):
+        slt_rename_map[col] = col.replace("dst_SLT_", "SLT_dst_", 1)
+
+if slt_rename_map:
+    df = df.rename(columns=slt_rename_map)
+    print(f"Renamed {len(slt_rename_map)} source/destination SLT columns to SLT_* prefix.")
 
 # ===================== LOW / MEDIUM / HIGH INJECTION OUTPUTS =====================
 
