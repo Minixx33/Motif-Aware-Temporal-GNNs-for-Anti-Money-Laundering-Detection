@@ -53,9 +53,9 @@ DATA_DIR = str(PROJECT_ROOT / "ibm_transcations_datasets")
 # DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_high.csv")
 
 # SLT
-# DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_low.csv")
+DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_low.csv")
 # DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_medium.csv")
-DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_high.csv")
+# DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_high.csv")
 
 # STRAIN
 # DATASET = os.path.join("STRAIN", "HI-Small_Trans_STRAIN_low.csv")
