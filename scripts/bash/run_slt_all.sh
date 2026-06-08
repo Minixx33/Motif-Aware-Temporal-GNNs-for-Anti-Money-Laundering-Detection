@@ -9,35 +9,18 @@ PROJECT_ROOT="$(pwd)"
 echo "Running from project root: $PROJECT_ROOT"
 
 # ---------------------------------------------------------------------------
-# Activate Conda
+# Python environment
 # ---------------------------------------------------------------------------
-CONDA_BASE=""
-if [ -n "${CONDA_EXE:-}" ] && [ -x "${CONDA_EXE}" ]; then
-    CONDA_BASE="$("${CONDA_EXE}" info --base)"
-elif command -v conda > /dev/null 2>&1; then
-    CONDA_BASE="$(conda info --base)"
-else
-    for candidate in \
-        "$HOME/anaconda3" "$HOME/miniconda3" "$HOME/miniforge3" \
-        "/opt/anaconda3" "/opt/miniconda3" "/opt/conda" \
-        "/c/ProgramData/Anaconda3" "/c/ProgramData/Miniconda3"; do
-        if [ -f "$candidate/etc/profile.d/conda.sh" ]; then
-            CONDA_BASE="$candidate"
-            break
-        fi
-    done
-fi
+PYTHON_EXE="/c/Users/g00084287/AppData/Local/miniconda3/envs/aml_project/python.exe"
 
-if [ -z "$CONDA_BASE" ] || [ ! -f "$CONDA_BASE/etc/profile.d/conda.sh" ]; then
-    echo "ERROR: could not locate a conda install."
+if [ ! -f "$PYTHON_EXE" ]; then
+    echo "ERROR: Python executable not found:"
+    echo "$PYTHON_EXE"
     exit 1
 fi
 
-source "$CONDA_BASE/etc/profile.d/conda.sh"
-conda activate "${CONDA_ENV:-aml_project}"
-
-echo "Using Python: $(which python)"
-python --version
+echo "Using Python: $PYTHON_EXE"
+"$PYTHON_EXE" --version
 
 # ---------------------------------------------------------------------------
 # Config paths
@@ -45,7 +28,16 @@ python --version
 BASE_CONFIG="configs/base.yaml"
 DATASET_CONFIG="configs/datasets/slt.yaml"
 
-# Backup original base config
+if [ ! -f "$BASE_CONFIG" ]; then
+    echo "ERROR: Missing base config: $BASE_CONFIG"
+    exit 1
+fi
+
+if [ ! -f "$DATASET_CONFIG" ]; then
+    echo "ERROR: Missing dataset config: $DATASET_CONFIG"
+    exit 1
+fi
+
 BASE_BACKUP="${BASE_CONFIG}.backup_before_slt_5seeds"
 cp "$BASE_CONFIG" "$BASE_BACKUP"
 
@@ -69,12 +61,26 @@ TRAIN_SAGE="scripts/training/train_graphsage.py"
 TRAIN_SAGET="scripts/training/train_graphsage_t.py"
 TRAIN_DYREP="scripts/training/train_dyrep.py"
 
+for script in "$TRAIN_SAGE" "$TRAIN_SAGET" "$TRAIN_DYREP"; do
+    if [ ! -f "$script" ]; then
+        echo "ERROR: Missing training script: $script"
+        exit 1
+    fi
+done
+
 # ---------------------------------------------------------------------------
 # Model configs
 # ---------------------------------------------------------------------------
 SAGE_CONFIG="configs/models/graphsage.yaml"
 SAGET_CONFIG="configs/models/graphsage_t.yaml"
 DYREP_CONFIG="configs/models/dyrep.yaml"
+
+for config in "$SAGE_CONFIG" "$SAGET_CONFIG" "$DYREP_CONFIG"; do
+    if [ ! -f "$config" ]; then
+        echo "ERROR: Missing model config: $config"
+        exit 1
+    fi
+done
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -86,9 +92,15 @@ LOG_FILE="$LOG_DIR/slt_all_5seeds_${ts}.log"
 
 echo "===============================================================" | tee -a "$LOG_FILE"
 echo " RUNNING ALL SLT EXPERIMENTS WITH 5 SEEDS" | tee -a "$LOG_FILE"
-echo " Seeds: ${SEEDS[*]}" | tee -a "$LOG_FILE"
+echo " Models: GraphSAGE, GraphSAGE-T, DyRep" | tee -a "$LOG_FILE"
 echo " Intensities: ${INTENSITIES[*]}" | tee -a "$LOG_FILE"
+echo " Seeds: ${SEEDS[*]}" | tee -a "$LOG_FILE"
+echo " Log file: $LOG_FILE" | tee -a "$LOG_FILE"
 echo "===============================================================" | tee -a "$LOG_FILE"
+
+echo "" | tee -a "$LOG_FILE"
+echo ">>> GPU INFO:" | tee -a "$LOG_FILE"
+nvidia-smi 2>&1 | tee -a "$LOG_FILE" || echo "GPU info unavailable" | tee -a "$LOG_FILE"
 
 # ---------------------------------------------------------------------------
 # Helper: update base.yaml
@@ -97,22 +109,26 @@ update_base_config() {
     local SEED="$1"
     local EXP_NAME="$2"
 
-    python - <<EOF
+    "$PYTHON_EXE" - <<EOF
 from pathlib import Path
 import re
 
 path = Path("$BASE_CONFIG")
 text = path.read_text()
 
-text = re.sub(r'^(seed:\s*).*$',
-              r'\g<1>$SEED',
-              text,
-              flags=re.MULTILINE)
+text = re.sub(
+    r'^(\\s*seed:\\s*).*$',
+    r'\\g<1>$SEED',
+    text,
+    flags=re.MULTILINE
+)
 
-text = re.sub(r'^(experiment_name:\s*).*$',
-              r'\g<1>"$EXP_NAME"',
-              text,
-              flags=re.MULTILINE)
+text = re.sub(
+    r'^(\\s*experiment_name:\\s*).*$',
+    r'\\g<1>"$EXP_NAME"',
+    text,
+    flags=re.MULTILINE
+)
 
 path.write_text(text)
 EOF
@@ -143,7 +159,7 @@ run_model() {
 
     model_start=$(date +%s)
 
-    python "$SCRIPT_PATH" \
+    "$PYTHON_EXE" "$SCRIPT_PATH" \
         --config "$MODEL_CONFIG" \
         --dataset "$DATASET_CONFIG" \
         --base_config "$BASE_CONFIG" \
