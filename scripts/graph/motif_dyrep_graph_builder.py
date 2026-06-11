@@ -212,17 +212,30 @@ baseline_df = pd.concat([baseline_df, pf, rc], axis=1)
 # THEORY + MOTIF FEATURES (z-score normalized)
 # ============================================================
 
-theory_cols = [
-    col for col in df.columns
-    if any(col.startswith(p) for p in theory_prefix)
-]
 
 METADATA_COLS = {
     "RAT_injected", "RAT_intensity_level",
     "SLT_injected", "SLT_intensity_level",
     "STRAIN_injected", "STRAIN_intensity_level",
+    "src_is_high_risk_peer", "dst_is_high_risk_peer"
 }
-theory_cols = [c for c in theory_cols if c not in METADATA_COLS]
+
+def is_theory_feature(col):
+    if col in METADATA_COLS:
+        return False
+    
+    if col.startswith(("RAT_", "motif_", "SLT_", "STRAIN_")):
+        return True
+    
+    if col.startswith("src_SLT_") or col.startswith("dst_SLT_"):
+        return True
+    
+    if col in ["src_peer_risk_score", "dst_peer_risk_score"]:
+        return True
+    
+    return False
+
+theory_cols = [c for c in all_cols if is_theory_feature(c)]
 
 print(f"Detected {len(theory_cols)} theory/motif features.")
 
