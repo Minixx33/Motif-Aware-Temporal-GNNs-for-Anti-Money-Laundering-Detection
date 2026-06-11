@@ -78,6 +78,12 @@ sys.path.insert(0, PROJECT_ROOT)
 
 from scripts.utils.config_utils import setup_experiment, save_experiment_config
 from scripts.utils.evaluation_utils import evaluate_binary_classifier, print_metrics
+from scripts.utils.checkpoint_utils import (
+    save_checkpoint,
+    load_checkpoint,
+    sync_experiment_to_drive,
+    should_sync_this_epoch,
+)
 
 
 # -----------------------------------------------------------
@@ -470,11 +476,24 @@ def main():
     epochs = int(train_cfg.get("epochs", 100))
 
     best_model_path = os.path.join(results_dir, "best_model.pt")
+    checkpoint_path = os.path.join(results_dir, "checkpoint.pt")
+    project_root = paths["root"]
 
-    print(f"\nStarting training for up to {epochs} epochs...\n")
+    # Resume from checkpoint if one exists (e.g. after a GPU outage)
+    start_epoch = 1
+    resume_state = load_checkpoint(checkpoint_path, model, optimizer, device)
+    if resume_state is not None:
+        start_epoch = resume_state["epoch"] + 1
+        best_val = resume_state["best_val"]
+        best_epoch = resume_state["best_epoch"]
+        patience = resume_state["patience"]
+        if start_epoch > epochs:
+            print(f"[RESUME] Checkpoint already completed {epochs} epochs; skipping training loop.")
+
+    print(f"\nStarting training for up to {epochs} epochs (starting at epoch {start_epoch})...\n")
     total_start = time.perf_counter()
 
-    for epoch in range(1, epochs + 1):
+    for epoch in range(start_epoch, epochs + 1):
         epoch_start = time.perf_counter()
 
         train_loss = run_epoch_minibatch(
@@ -542,6 +561,20 @@ def main():
             torch.save(model.state_dict(), best_model_path)
         else:
             patience += 1
+
+        # Save checkpoint + push to Drive every epoch so an outage loses
+        # at most one epoch of progress.
+        save_checkpoint(
+            checkpoint_path,
+            epoch=epoch,
+            model=model,
+            optimizer=optimizer,
+            best_val=best_val,
+            best_epoch=best_epoch,
+            patience=patience,
+        )
+        if should_sync_this_epoch(base_cfg, epoch):
+            sync_experiment_to_drive(base_cfg, project_root, results_dir, logs_dir, label=experiment_name)
 
         if patience >= max_patience:
             print(f"\nEarly stopping at epoch {epoch} (no val AUPR improvement for {max_patience} epochs)")
@@ -654,6 +687,9 @@ def main():
     print("  - Saved experiment config")
 
     writer.close()
+
+    # Final push of completed results/logs to Drive
+    sync_experiment_to_drive(base_cfg, project_root, results_dir, logs_dir, label=f"{experiment_name} (final)")
 
     print("\n" + "=" * 70)
     print("DyRep-style Training Complete!")
