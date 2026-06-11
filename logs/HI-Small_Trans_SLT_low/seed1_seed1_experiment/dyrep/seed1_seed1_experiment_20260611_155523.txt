@@ -1,0 +1,80 @@
+
+================================================================================
+Logging started at: 2026-06-11 15:55:23.418833
+Log file: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_low\seed1_seed1_experiment\dyrep\seed1_seed1_experiment_20260611_155523.txt
+================================================================================
+
+[INFO] Logging to: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_low\seed1_seed1_experiment\dyrep\seed1_seed1_experiment_20260611_155523.txt
+================================================================================
+EXPERIMENT CONFIG SUMMARY
+================================================================================
+
+[DATASET]
+  Name:       HI-Small_Trans_SLT_low
+  Theory:     SLT
+  Intensity:  low
+
+[MODEL]
+  DyRep
+  Hidden dim: 128
+
+[PATHS]
+  Graphs:     C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs\HI-Small_Trans_SLT_low
+  Splits:     C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits\HI-Small_Trans_SLT_low
+  Results:    C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_low\seed1_seed1_experiment\dyrep
+  Logs:       C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_low\seed1_seed1_experiment\dyrep
+================================================================================
+
+[DEVICE] cuda
+
+[INFO] Using default graph directory: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs_dyrep\HI-Small_Trans_SLT_low
+
+======= DYREP-STYLE EVENT MODEL TRAINING (FP32) =======
+Graph folder:    C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs_dyrep\HI-Small_Trans_SLT_low
+Splits folder:   C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits_dyrep\HI-Small_Trans_SLT_low
+Results folder:  C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_low\seed1_seed1_experiment\dyrep
+Batch size:      8192
+Eval batch size: 16384
+Device:          cuda
+=======================================================
+
+Num nodes:        515,080
+Num events/edges: 5,078,415
+Node feat dim:    12
+Edge feat dim:    72
+Event types:      7
+
+Split sizes:
+  Train: 3,047,049
+  Val:   1,015,683
+  Test:  1,015,683
+
+pos_weight (train) = 100.000
+
+Starting training for up to 350 epochs (starting at epoch 1)...
+
+Epoch 001 | train_loss=7.0565 val_loss=1.3619 P=0.051 R=0.304 F1=0.087 ROC-AUC=0.814 AUPR=0.029 time=16.35s
+Epoch 002 | train_loss=0.5832 val_loss=0.6481 P=0.056 R=0.302 F1=0.095 ROC-AUC=0.837 AUPR=0.031 time=16.43s
+Epoch 003 | train_loss=0.8015 val_loss=0.1968 P=0.066 R=0.324 F1=0.110 ROC-AUC=0.931 AUPR=0.036 time=16.43s
+Epoch 004 | train_loss=0.6664 val_loss=1.4703 P=0.081 R=0.216 F1=0.118 ROC-AUC=0.855 AUPR=0.047 time=16.35s
+Epoch 005 | train_loss=0.4986 val_loss=0.1601 P=0.099 R=0.278 F1=0.146 ROC-AUC=0.955 AUPR=0.061 time=16.44s
+Epoch 006 | train_loss=0.3592 val_loss=0.1536 P=0.115 R=0.270 F1=0.161 ROC-AUC=0.964 AUPR=0.095 time=16.17s
+Epoch 007 | train_loss=0.5022 val_loss=0.1515 P=0.127 R=0.271 F1=0.173 ROC-AUC=0.968 AUPR=0.096 time=16.27s
+Epoch 008 | train_loss=0.4110 val_loss=0.1421 P=0.122 R=0.252 F1=0.165 ROC-AUC=0.969 AUPR=0.094 time=16.66s
+Epoch 009 | train_loss=0.4145 val_loss=0.1401 P=0.126 R=0.272 F1=0.172 ROC-AUC=0.968 AUPR=0.100 time=16.25s
+Epoch 010 | train_loss=0.3506 val_loss=0.1497 P=0.143 R=0.217 F1=0.172 ROC-AUC=0.963 AUPR=0.094 time=16.05s
+Epoch 011 | train_loss=0.2999 val_loss=0.1465 P=0.150 R=0.203 F1=0.173 ROC-AUC=0.962 AUPR=0.083 time=16.49s
+Epoch 012 | train_loss=0.2943 val_loss=0.1422 P=0.166 R=0.209 F1=0.185 ROC-AUC=0.965 AUPR=0.104 time=17.09s
+Epoch 013 | train_loss=0.2915 val_loss=0.1395 P=0.123 R=0.284 F1=0.172 ROC-AUC=0.966 AUPR=0.087 time=16.13s
+Epoch 014 | train_loss=0.5481 val_loss=0.1316 P=0.183 R=0.222 F1=0.200 ROC-AUC=0.970 AUPR=0.119 time=16.63s
+Epoch 015 | train_loss=0.1719 val_loss=0.1264 P=0.210 R=0.231 F1=0.220 ROC-AUC=0.972 AUPR=0.132 time=16.61s
+Epoch 016 | train_loss=0.1898 val_loss=0.1308 P=0.188 R=0.201 F1=0.194 ROC-AUC=0.970 AUPR=0.106 time=16.35s
+Epoch 017 | train_loss=0.1713 val_loss=0.1309 P=0.189 R=0.203 F1=0.196 ROC-AUC=0.971 AUPR=0.113 time=16.35s
+Epoch 018 | train_loss=0.3063 val_loss=0.1195 P=0.205 R=0.257 F1=0.228 ROC-AUC=0.976 AUPR=0.138 time=16.58s
+Epoch 019 | train_loss=0.4069 val_loss=0.1223 P=0.185 R=0.290 F1=0.226 ROC-AUC=0.976 AUPR=0.140 time=16.18s
+Epoch 020 | train_loss=0.1622 val_loss=0.1237 P=0.180 R=0.296 F1=0.224 ROC-AUC=0.977 AUPR=0.139 time=16.10s
+Epoch 021 | train_loss=0.1826 val_loss=0.1348 P=0.204 R=0.209 F1=0.206 ROC-AUC=0.971 AUPR=0.113 time=16.48s
+Epoch 022 | train_loss=0.1661 val_loss=0.1253 P=0.189 R=0.266 F1=0.221 ROC-AUC=0.974 AUPR=0.125 time=16.10s
+Epoch 023 | train_loss=0.2029 val_loss=0.1258 P=0.207 R=0.274 F1=0.236 ROC-AUC=0.974 AUPR=0.157 time=16.28s
+Epoch 024 | train_loss=0.1552 val_loss=0.1181 P=0.219 R=0.252 F1=0.235 ROC-AUC=0.977 AUPR=0.137 time=16.43s
+Epoch 025 | train_loss=0.1429 val_loss=0.1140 P=0.231 R=0.283 F1=0.254 ROC-AUC=0.979 AUPR=0.177 time=16.30s

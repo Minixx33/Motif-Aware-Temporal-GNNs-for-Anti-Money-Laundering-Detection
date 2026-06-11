@@ -30,7 +30,7 @@ logging:
 # Requires `rclone config` to have been run once to set up the remote
 # (e.g. `rclone config create gdrive drive`).
 sync:
-  enabled: false              # set to true on the GPU machine to enable
+  enabled: true              # set to true on the GPU machine to enable
   rclone_remote: "gdrive"     # name of the rclone remote (see `rclone listremotes`)
   drive_root: "AML_project_results"  # destination folder inside the Drive remote
   sync_logs: true             # also sync the logs/ dir (tensorboard, train logs)
