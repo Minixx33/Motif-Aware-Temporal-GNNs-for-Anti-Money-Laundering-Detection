@@ -156,6 +156,10 @@ def get_sync_config(base_cfg: Dict[str, Any]) -> Dict[str, Any]:
         "sync_logs": bool(cfg.get("sync_logs", True)),
         "sync_every_n_epochs": int(cfg.get("sync_every_n_epochs", 1)),
         "extra_args": cfg.get("extra_args", []),
+        # Optional explicit path to the rclone executable, for cases where
+        # rclone (e.g. installed via `conda install -c conda-forge rclone`)
+        # isn't on the PATH of the shell that launches training.
+        "rclone_path": cfg.get("rclone_path", None),
     }
 
 
@@ -172,11 +176,46 @@ def should_sync_this_epoch(base_cfg: Dict[str, Any], epoch: int) -> bool:
     return epoch % n == 0
 
 
-def _rclone_available() -> bool:
-    return shutil.which("rclone") is not None
+def _find_rclone(explicit_path: Optional[str] = None) -> Optional[str]:
+    """
+    Locate the rclone executable. Tries, in order:
+      1. An explicit path from `sync.rclone_path` in base.yaml
+      2. `rclone` on PATH
+      3. Common locations next to the running Python interpreter
+         (covers `conda install -c conda-forge rclone`, where rclone
+         lands in the env's bin/Scripts/Library\\bin but that folder
+         may not be on the PATH of the shell that launched training).
+    """
+    import sys
+
+    if explicit_path:
+        if os.path.isfile(explicit_path):
+            return explicit_path
+        print(f"[DRIVE SYNC] WARNING: configured rclone_path not found: {explicit_path}")
+
+    on_path = shutil.which("rclone")
+    if on_path:
+        return on_path
+
+    py_dir = os.path.dirname(sys.executable)
+    candidates = [
+        os.path.join(py_dir, "rclone.exe"),
+        os.path.join(py_dir, "rclone"),
+        os.path.join(py_dir, "Scripts", "rclone.exe"),
+        os.path.join(py_dir, "Scripts", "rclone"),
+        os.path.join(py_dir, "Library", "bin", "rclone.exe"),
+        os.path.join(py_dir, "bin", "rclone"),
+        os.path.join(py_dir, "..", "Scripts", "rclone.exe"),
+        os.path.join(py_dir, "..", "Library", "bin", "rclone.exe"),
+    ]
+    for c in candidates:
+        if os.path.isfile(c):
+            return os.path.abspath(c)
+
+    return None
 
 
-def _rclone_sync_dir(local_dir: str, remote_target: str, extra_args=None, quiet: bool = True) -> bool:
+def _rclone_sync_dir(local_dir: str, remote_target: str, extra_args=None, quiet: bool = True, rclone_path: Optional[str] = None) -> bool:
     """
     Run `rclone sync <local_dir> <remote_target>`.
     Returns True on success, False otherwise (never raises - sync
@@ -185,11 +224,17 @@ def _rclone_sync_dir(local_dir: str, remote_target: str, extra_args=None, quiet:
     if not os.path.isdir(local_dir):
         return False
 
-    if not _rclone_available():
-        print("[DRIVE SYNC] WARNING: 'rclone' not found on PATH; skipping sync.")
+    rclone_exe = _find_rclone(rclone_path)
+    if rclone_exe is None:
+        print(
+            "[DRIVE SYNC] WARNING: 'rclone' not found on PATH or near the Python "
+            "interpreter; skipping sync. Set sync.rclone_path in base.yaml to the "
+            "full path of rclone.exe (e.g. find it with `where rclone` / `which rclone` "
+            "in the env where you ran `conda install -c conda-forge rclone`)."
+        )
         return False
 
-    cmd = ["rclone", "sync", local_dir, remote_target, "--create-empty-src-dirs"]
+    cmd = [rclone_exe, "sync", local_dir, remote_target, "--create-empty-src-dirs"]
     if quiet:
         cmd.append("-q")
     if extra_args:
@@ -231,6 +276,7 @@ def sync_experiment_to_drive(
     remote = sync_cfg["rclone_remote"]
     drive_root = sync_cfg["drive_root"]
     extra_args = sync_cfg["extra_args"]
+    rclone_path = sync_cfg["rclone_path"]
 
     targets = [results_dir]
     if logs_dir and sync_cfg["sync_logs"]:
@@ -240,7 +286,7 @@ def sync_experiment_to_drive(
         rel_path = os.path.relpath(local_dir, project_root).replace(os.sep, "/")
         remote_target = f"{remote}:{drive_root}/{rel_path}"
 
-        ok = _rclone_sync_dir(local_dir, remote_target, extra_args=extra_args)
+        ok = _rclone_sync_dir(local_dir, remote_target, extra_args=extra_args, rclone_path=rclone_path)
         if ok:
             tag = f" [{label}]" if label else ""
             print(f"[DRIVE SYNC]{tag} {local_dir} -> {remote_target}")

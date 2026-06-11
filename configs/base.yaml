@@ -37,3 +37,8 @@ sync:
   sync_every_n_epochs: 10     # push to Drive every N epochs (results dirs can be large);
                                # a final sync always runs at the end of training regardless
   extra_args: []              # any extra rclone flags, e.g. ["--drive-chunk-size=64M"]
+  # If `rclone` isn't on the PATH of the shell that launches training (common when
+  # rclone was installed via `conda install -c conda-forge rclone` into the project
+  # env but the bash script calls python.exe directly), set the full path here.
+  # Find it with `where rclone` (Windows) or `which rclone` (after conda activate).
+  rclone_path: null           # e.g. "C:/Users/<you>/miniconda3/envs/aml_project/Library/bin/rclone.exe"
