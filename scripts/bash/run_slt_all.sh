@@ -193,9 +193,9 @@ for SEED in "${SEEDS[@]}"; do
         echo ">>> STARTING SLT INTENSITY: $INTENSITY | SEED: $SEED" | tee -a "$LOG_FILE"
         echo "---------------------------------------------------------------" | tee -a "$LOG_FILE"
 
-        run_model "GraphSAGE"   "$TRAIN_SAGE"   "$SAGE_CONFIG"   "$INTENSITY" "$SEED"
-        run_model "GraphSAGE-T" "$TRAIN_SAGET"  "$SAGET_CONFIG"  "$INTENSITY" "$SEED"
         run_model "DyRep"       "$TRAIN_DYREP"  "$DYREP_CONFIG"  "$INTENSITY" "$SEED"
+        run_model "GraphSAGE-T" "$TRAIN_SAGET"  "$SAGET_CONFIG"  "$INTENSITY" "$SEED"
+        run_model "GraphSAGE"   "$TRAIN_SAGE"   "$SAGE_CONFIG"   "$INTENSITY" "$SEED"
     done
 done
 
