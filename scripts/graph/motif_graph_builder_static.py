@@ -100,12 +100,36 @@ NEEDED_COLS = [
 stamp(f"Reading header: {INPUT_PATH}")
 all_cols = pd.read_csv(INPUT_PATH, nrows=0).columns
 
-theory_cols = [c for c in all_cols if c.startswith(("RAT_", "motif_", "SLT_", "STRAIN_"))]
-theory_cols = [c for c in theory_cols if c not in {
-    "RAT_injected","RAT_intensity_level",
-    "SLT_injected","SLT_intensity_level",
-    "STRAIN_injected","STRAIN_intensity_level"
-}]
+# theory_cols = [c for c in all_cols if c.startswith(("RAT_", "motif_", "SLT_", "STRAIN_"))]
+# theory_cols = [c for c in theory_cols if c not in {
+#     "RAT_injected","RAT_intensity_level",
+#     "SLT_injected","SLT_intensity_level",
+#     "STRAIN_injected","STRAIN_intensity_level"
+# }]
+
+METADATA_COLS = {
+    "RAT_injected", "RAT_intensity_level",
+    "SLT_injected", "SLT_intensity_level",
+    "STRAIN_injected", "STRAIN_intensity_level",
+    "src_is_high_risk_peer", "dst_is_high_risk_peer"
+}
+
+def is_theory_feature(col):
+    if col in METADATA_COLS:
+        return False
+    
+    if col.startswith(("RAT_", "motif_", "SLT_", "STRAIN_")):
+        return True
+    
+    if col.startswith("src_SLT_") or col.startswith("dst_SLT_"):
+        return True
+    
+    if col in ["src_peer_risk_score", "dst_peer_risk_score"]:
+        return True
+    
+    return False
+
+theory_cols = [c for c in all_cols if is_theory_feature(c)]
 
 USECOLS = NEEDED_COLS + theory_cols
 
@@ -295,16 +319,8 @@ baseline_mat = np.column_stack([
 # ============================================================
 # THEORY + MOTIF FEATURES (no big DataFrame copies)
 # ============================================================
-METADATA_COLS = {
-    "RAT_injected", "RAT_intensity_level",
-    "SLT_injected", "SLT_intensity_level",
-    "STRAIN_injected", "STRAIN_intensity_level"
-}
-
 theory_cols = [
-    col for col in df.columns
-    if any(col.startswith(p) for p in theory_prefix)
-    and col not in METADATA_COLS
+    col for col in df.columns if is_theory_feature(col)
 ]
 
 print(f"Detected {len(theory_cols)} theory/motif features.")
