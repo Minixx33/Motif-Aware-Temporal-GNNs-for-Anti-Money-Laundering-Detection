@@ -1,4 +1,15 @@
 #!/bin/bash
+# SLURM directives — ignored when run with bash directly:
+# Array size must match the number of uncommented entries in ABLATIONS below.
+# Update --array upper bound whenever you add/remove active ablations.
+#SBATCH --job-name=rat_ablations
+#SBATCH --array=0-0
+#SBATCH --gres=gpu:1
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=32G
+#SBATCH --time=06:00:00
+#SBATCH --output=scripts/bash/logs/ablations_%A_%a.log
+#SBATCH --error=scripts/bash/logs/ablations_%A_%a.err
 set -e
 set -o pipefail
 
@@ -129,6 +140,9 @@ run_dyrep_ablation() {
 # (graphs_dyrep/HI-Small_Trans_RAT_medium__<name>)
 # =========================================================
 
+# Uncomment ablations to activate them.
+# If running on SLURM, update #SBATCH --array=0-N above to match
+# the number of uncommented entries minus 1.
 declare -a ABLATIONS=(
     "no_struct"
     # "no_temp"
@@ -141,9 +155,15 @@ declare -a ABLATIONS=(
     # "top20_features"
 )
 
-for ab in "${ABLATIONS[@]}"; do
-    run_dyrep_ablation "$ab" "__$ab"
-done
+# SLURM array → run only the ablation at this task ID
+# Local run   → run all active ablations sequentially
+if [ -n "${SLURM_ARRAY_TASK_ID:-}" ]; then
+    run_dyrep_ablation "${ABLATIONS[$SLURM_ARRAY_TASK_ID]}" "__${ABLATIONS[$SLURM_ARRAY_TASK_ID]}"
+else
+    for ab in "${ABLATIONS[@]}"; do
+        run_dyrep_ablation "$ab" "__$ab"
+    done
+fi
 
 # ---------------------------------------------------------
 # Summary

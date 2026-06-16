@@ -1,4 +1,15 @@
 #!/bin/bash
+# SLURM directives — ignored when run with bash directly:
+# Array layout: task_id // 3 = dataset (0=baseline,1=rat_low,2=rat_med,3=rat_high)
+#               task_id  % 3 = model   (0=graphsage,1=graphsage_t,2=dyrep)
+#SBATCH --job-name=all_experiments
+#SBATCH --array=0-11
+#SBATCH --gres=gpu:1
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=32G
+#SBATCH --time=06:00:00
+#SBATCH --output=scripts/bash/logs/all_exp_%A_%a.log
+#SBATCH --error=scripts/bash/logs/all_exp_%A_%a.err
 set -e
 set -o pipefail
 
@@ -135,43 +146,69 @@ run_model() {
 }
 
 # ============================================================
+# Flat task list for SLURM array indexing
+# dataset index: task_id // 3    model index: task_id % 3
+# ============================================================
+DATASET_LIST=("baseline" "rat_low" "rat_medium" "rat_high")
+DATASET_CFG_LIST=(
+    "configs/datasets/baseline.yaml"
+    "configs/datasets/rat.yaml"
+    "configs/datasets/rat.yaml"
+    "configs/datasets/rat.yaml"
+)
+DATASET_INT_LIST=("" "low" "medium" "high")
+MODEL_LIST=("graphsage" "graphsage_t" "dyrep")
+
+# ============================================================
 # MAIN LOOP: ALL MODELS × ALL DATASETS
 # ============================================================
 start_time=$(date +%s)
 
-for DATASET in "${DATASETS[@]}"; do
+run_pair() {
+    local DS_IDX="$1"
+    local MOD_IDX="$2"
 
-    DATASET_CONFIG="${DATASET_CONFIGS[$DATASET]}"
-    if [ ! -f "$DATASET_CONFIG" ]; then
-        echo "ERROR: Missing dataset config $DATASET_CONFIG"
-        exit 1
+    local DATASET="${DATASET_LIST[$DS_IDX]}"
+    local DATASET_CONFIG="${DATASET_CFG_LIST[$DS_IDX]}"
+    local INTENSITY="${DATASET_INT_LIST[$DS_IDX]}"
+    local MODEL="${MODEL_LIST[$MOD_IDX]}"
+    local MODEL_SCRIPT="${MODEL_SCRIPTS[$MODEL]}"
+    local MODEL_CONFIG="${MODEL_CONFIGS[$MODEL]}"
+
+    [ -f "$DATASET_CONFIG" ] || { echo "ERROR: Missing dataset config $DATASET_CONFIG"; exit 1; }
+    [ -f "$MODEL_SCRIPT" ]   || { echo "ERROR: Missing training script $MODEL_SCRIPT";  exit 1; }
+    [ -f "$MODEL_CONFIG" ]   || { echo "ERROR: Missing model config $MODEL_CONFIG";      exit 1; }
+
+    if [ -n "$INTENSITY" ]; then
+        python "$MODEL_SCRIPT" \
+            --config "$MODEL_CONFIG" \
+            --dataset "$DATASET_CONFIG" \
+            --base_config "$BASE_CONFIG" \
+            --intensity "$INTENSITY" \
+            2>&1 | tee -a "$LOG_FILE"
+    else
+        python "$MODEL_SCRIPT" \
+            --config "$MODEL_CONFIG" \
+            --dataset "$DATASET_CONFIG" \
+            --base_config "$BASE_CONFIG" \
+            2>&1 | tee -a "$LOG_FILE"
     fi
+}
 
-    echo "" | tee -a "$LOG_FILE"
-    echo "############################################################" | tee -a "$LOG_FILE"
-    echo ">>> STARTING DATASET: $DATASET" | tee -a "$LOG_FILE"
-    echo "############################################################" | tee -a "$LOG_FILE"
-
-    for MODEL in "${MODELS[@]}"; do
-
-        MODEL_SCRIPT="${MODEL_SCRIPTS[$MODEL]}"
-        MODEL_CONFIG="${MODEL_CONFIGS[$MODEL]}"
-
-        if [ ! -f "$MODEL_SCRIPT" ]; then
-            echo "ERROR: Missing training script $MODEL_SCRIPT"
-            exit 1
-        fi
-
-        if [ ! -f "$MODEL_CONFIG" ]; then
-            echo "ERROR: Missing model config $MODEL_CONFIG"
-            exit 1
-        fi
-
-        run_model "$MODEL" "$MODEL_SCRIPT" "$MODEL_CONFIG" "$DATASET" "$DATASET_CONFIG"
-
+if [ -n "${SLURM_ARRAY_TASK_ID:-}" ]; then
+    # SLURM: run the single (dataset, model) pair for this task
+    DS_IDX=$(( SLURM_ARRAY_TASK_ID / 3 ))
+    MOD_IDX=$(( SLURM_ARRAY_TASK_ID % 3 ))
+    echo "SLURM task $SLURM_ARRAY_TASK_ID → dataset=${DATASET_LIST[$DS_IDX]} model=${MODEL_LIST[$MOD_IDX]}" | tee -a "$LOG_FILE"
+    run_pair "$DS_IDX" "$MOD_IDX"
+else
+    # Local: run all combinations sequentially
+    for DS_IDX in 0 1 2 3; do
+        for MOD_IDX in 0 1 2; do
+            run_pair "$DS_IDX" "$MOD_IDX"
+        done
     done
-
-done
+fi
 
 # ============================================================
 # Total summary

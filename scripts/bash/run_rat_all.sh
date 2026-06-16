@@ -1,4 +1,14 @@
 #!/bin/bash
+# SLURM directives — ignored when run with bash directly:
+# Array layout: 0=low  1=medium  2=high  (GraphSAGE + GraphSAGE-T per task)
+#SBATCH --job-name=rat_all
+#SBATCH --array=0-2
+#SBATCH --gres=gpu:1
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=32G
+#SBATCH --time=08:00:00
+#SBATCH --output=scripts/bash/logs/rat_all_%A_%a.log
+#SBATCH --error=scripts/bash/logs/rat_all_%A_%a.err
 set -e
 set -o pipefail
 
@@ -144,6 +154,12 @@ run_model() {
 # MAIN LOOP: run all intensities
 # ---------------------------------------------------------------------------
 start_time=$(date +%s)
+
+# SLURM array → run only the intensity at this task ID
+# Local run   → run all intensities sequentially
+if [ -n "${SLURM_ARRAY_TASK_ID:-}" ]; then
+    INTENSITIES=("${INTENSITIES[$SLURM_ARRAY_TASK_ID]}")
+fi
 
 for INTENSITY in "${INTENSITIES[@]}"; do
     echo "" | tee -a "$LOG_FILE"

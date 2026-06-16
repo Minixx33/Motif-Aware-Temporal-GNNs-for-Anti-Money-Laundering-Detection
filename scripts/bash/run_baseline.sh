@@ -1,4 +1,12 @@
 #!/bin/bash
+# SLURM directives — ignored when run with bash directly:
+#SBATCH --job-name=baseline_train
+#SBATCH --gres=gpu:1
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=32G
+#SBATCH --time=04:00:00
+#SBATCH --output=scripts/bash/logs/baseline_%j.log
+#SBATCH --error=scripts/bash/logs/baseline_%j.err
 set -e
 set -o pipefail
 

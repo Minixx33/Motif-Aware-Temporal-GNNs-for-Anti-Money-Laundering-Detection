@@ -1,4 +1,14 @@
 #!/bin/bash
+# SLURM directives — ignored when run with bash directly:
+# Array layout: 0=baseline  1=RAT-low  2=RAT-medium  3=RAT-high
+#SBATCH --job-name=dyrep_all
+#SBATCH --array=0-3
+#SBATCH --gres=gpu:1
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=32G
+#SBATCH --time=06:00:00
+#SBATCH --output=scripts/bash/logs/dyrep_%A_%a.log
+#SBATCH --error=scripts/bash/logs/dyrep_%A_%a.err
 set -e
 set -o pipefail
 
@@ -115,16 +125,22 @@ run_dyrep() {
 }
 
 # ---------------------------------------------------------
-# RUN: BASELINE
+# Dataset table (index matches SLURM array task ID)
 # ---------------------------------------------------------
-run_dyrep "BASELINE" "$BASELINE_DS" ""
+TASK_NAMES=("BASELINE" "RAT_low" "RAT_medium" "RAT_high")
+TASK_DS=("$BASELINE_DS" "$RAT_DS" "$RAT_DS" "$RAT_DS")
+TASK_INT=("" "low" "medium" "high")
 
-# ---------------------------------------------------------
-# RUN: RAT
-# ---------------------------------------------------------
-run_dyrep "RAT_low"    "$RAT_DS"    "low"
-run_dyrep "RAT_medium" "$RAT_DS"    "medium"
-run_dyrep "RAT_high"   "$RAT_DS"    "high"
+# SLURM array → run only the task at this ID
+# Local run   → run all sequentially
+if [ -n "${SLURM_ARRAY_TASK_ID:-}" ]; then
+    IDX=$SLURM_ARRAY_TASK_ID
+    run_dyrep "${TASK_NAMES[$IDX]}" "${TASK_DS[$IDX]}" "${TASK_INT[$IDX]}"
+else
+    for IDX in 0 1 2 3; do
+        run_dyrep "${TASK_NAMES[$IDX]}" "${TASK_DS[$IDX]}" "${TASK_INT[$IDX]}"
+    done
+fi
 
 # ---------------------------------------------------------
 # Summary
