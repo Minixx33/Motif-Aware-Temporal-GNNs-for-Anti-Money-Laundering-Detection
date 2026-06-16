@@ -1,41 +1,71 @@
 #!/bin/bash
-set -e
-set -o pipefail
-
-# ---------------------------------------------------------------------------
+# ===========================================================================
 # run_slt_ablations.sh
 #
 # Runs GraphSAGE-T training with 5 seeds for every SLT ablation variant
 # across all 3 intensities (low / medium / high).
 #
-# Variants:
-#   current        (0.30, 0.25, 0.20, 0.15, 0.10)
-#   equal          (0.20, 0.20, 0.20, 0.20, 0.20)
-#   neighbor_heavy (0.40, 0.20, 0.15, 0.15, 0.10)
-#   amount_heavy   (0.20, 0.40, 0.15, 0.15, 0.10)
-#   temporal_heavy (0.20, 0.15, 0.15, 0.25, 0.25)
+# LOCAL:  bash run_slt_ablations.sh   (runs all 75 combos sequentially)
+# SLURM:  sbatch run_slt_ablations.sh (15 parallel GPU jobs, one per
+#                                       variant×intensity; 5 seeds per job)
 #
-# Prerequisites: run create_slt_ablation_variants.sh first to build graphs.
-# ---------------------------------------------------------------------------
+# SLURM array layout (task ID → variant, intensity):
+#   task = variant_idx * 3 + intensity_idx
+#   variants  (0-4): current, equal, neighbor_heavy, amount_heavy, temporal_heavy
+#   intensities (0-2): low, medium, high
+#
+# SLURM directives — ignored when run with bash directly:
+#SBATCH --job-name=slt_ablations_train
+#SBATCH --array=0-14
+#SBATCH --gres=gpu:1
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=32G
+#SBATCH --time=08:00:00
+#SBATCH --output=scripts/bash/logs/slt_ablations_%A_%a.log
+#SBATCH --error=scripts/bash/logs/slt_ablations_%A_%a.err
+# ===========================================================================
+set -e
+set -o pipefail
 
+# ---------------------------------------------------------------------------
+# Resolve project root
+# ---------------------------------------------------------------------------
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR/../.."
 PROJECT_ROOT="$(pwd)"
-
-echo "Running from project root: $PROJECT_ROOT"
+echo "Project root: $PROJECT_ROOT"
 
 # ---------------------------------------------------------------------------
-# Python executable
+# Portable conda activation
 # ---------------------------------------------------------------------------
-PYTHON_EXE="/c/Users/g00084287/AppData/Local/miniconda3/envs/aml_project/python.exe"
+CONDA_BASE=""
+if [ -n "${CONDA_EXE:-}" ] && [ -x "${CONDA_EXE}" ]; then
+    CONDA_BASE="$("${CONDA_EXE}" info --base)"
+elif command -v conda > /dev/null 2>&1; then
+    CONDA_BASE="$(conda info --base)"
+else
+    for candidate in \
+        "$HOME/anaconda3" "$HOME/miniconda3" "$HOME/miniforge3" \
+        "/opt/anaconda3" "/opt/miniconda3" "/opt/conda" \
+        "/c/ProgramData/Anaconda3" "/c/ProgramData/Miniconda3"; do
+        if [ -f "$candidate/etc/profile.d/conda.sh" ]; then
+            CONDA_BASE="$candidate"
+            break
+        fi
+    done
+fi
 
-if [ ! -f "$PYTHON_EXE" ]; then
-    echo "ERROR: Python executable not found: $PYTHON_EXE"
+if [ -z "$CONDA_BASE" ] || [ ! -f "$CONDA_BASE/etc/profile.d/conda.sh" ]; then
+    echo "ERROR: Could not locate conda. Set CONDA_EXE or put conda on PATH."
     exit 1
 fi
 
-echo "Using Python: $PYTHON_EXE"
-"$PYTHON_EXE" --version
+# shellcheck disable=SC1091
+source "$CONDA_BASE/etc/profile.d/conda.sh"
+conda activate "${CONDA_ENV:-aml_project}"
+
+echo "Using Python: $(which python)"
+python --version
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -45,81 +75,99 @@ MODEL_CONFIG="configs/models/graphsage_t.yaml"
 TRAIN_SCRIPT="scripts/training/train_graphsage_t.py"
 
 for f in "$BASE_CONFIG" "$MODEL_CONFIG" "$TRAIN_SCRIPT"; do
-    if [ ! -f "$f" ]; then
-        echo "ERROR: Missing file: $f"
-        exit 1
-    fi
+    [ -f "$f" ] || { echo "ERROR: Missing file: $f"; exit 1; }
 done
-
-# Back up base.yaml and restore on exit
-BASE_BACKUP="${BASE_CONFIG}.backup_slt_ablations"
-cp "$BASE_CONFIG" "$BASE_BACKUP"
-restore_base_config() {
-    echo "Restoring original base.yaml..."
-    cp "$BASE_BACKUP" "$BASE_CONFIG"
-    rm -f "$BASE_BACKUP"
-}
-trap restore_base_config EXIT
 
 # ---------------------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------------------
-ts=$(date +"%Y%m%d_%H%M%S")
-LOG_DIR="scripts/bash/logs"
-mkdir -p "$LOG_DIR"
-LOG_FILE="$LOG_DIR/slt_ablations_training_${ts}.log"
+mkdir -p "scripts/bash/logs"
 
-log() { echo "$@" | tee -a "$LOG_FILE"; }
+if [ -z "${SLURM_ARRAY_TASK_ID:-}" ]; then
+    ts=$(date +"%Y%m%d_%H%M%S")
+    LOG_FILE="scripts/bash/logs/slt_ablations_training_${ts}.log"
+    log() { echo "$@" | tee -a "$LOG_FILE"; }
+else
+    log() { echo "$@"; }
+fi
 
 log "==============================================================="
 log " SLT ABLATION TRAINING — GraphSAGE-T, 5 seeds"
-log " Timestamp: $ts"
-log " Log: $LOG_FILE"
+log " Host: $(hostname)  PID: $$"
+log " SLURM_JOB_ID: ${SLURM_JOB_ID:-none}"
+log " SLURM_ARRAY_TASK_ID: ${SLURM_ARRAY_TASK_ID:-none (local run)}"
 log "==============================================================="
 
 log ""
 log ">>> GPU INFO:"
-nvidia-smi 2>&1 | tee -a "$LOG_FILE" || log "GPU info unavailable"
+nvidia-smi 2>&1 || log "GPU info unavailable"
 
 # ---------------------------------------------------------------------------
-# Experiment settings
+# Variant / intensity tables
+# Index must match SLURM array task ID mapping:
+#   task_id = variant_idx * 3 + intensity_idx
 # ---------------------------------------------------------------------------
 VARIANTS=(
-    "current"
-    "equal"
-    "neighbor_heavy"
-    "amount_heavy"
-    "temporal_heavy"
+    "current"        # 0
+    "equal"          # 1
+    "neighbor_heavy" # 2
+    "amount_heavy"   # 3
+    "temporal_heavy" # 4
 )
-INTENSITIES=("low" "medium" "high")
+INTENSITIES=("low" "medium" "high")   # 0 1 2
+
 SEEDS=(1 2 3 4 5)
 
 # ---------------------------------------------------------------------------
-# Helper: patch base.yaml seed + experiment_name
+# Select which (variant, intensity) pairs to run:
+#   SLURM array job → single pair from SLURM_ARRAY_TASK_ID
+#   Local run       → all 15 pairs sequentially
 # ---------------------------------------------------------------------------
-update_base_config() {
+if [ -n "${SLURM_ARRAY_TASK_ID:-}" ]; then
+    TASK_ID=$SLURM_ARRAY_TASK_ID
+    VARIANT_IDX=$(( TASK_ID / 3 ))
+    INTENSITY_IDX=$(( TASK_ID % 3 ))
+    RUN_PAIRS=("${VARIANTS[$VARIANT_IDX]} ${INTENSITIES[$INTENSITY_IDX]}")
+else
+    RUN_PAIRS=()
+    for v_idx in "${!VARIANTS[@]}"; do
+        for i_idx in "${!INTENSITIES[@]}"; do
+            RUN_PAIRS+=("${VARIANTS[$v_idx]} ${INTENSITIES[$i_idx]}")
+        done
+    done
+fi
+
+# ---------------------------------------------------------------------------
+# Helper: patch a job-specific copy of base.yaml
+# Using a per-job temp file avoids race conditions when SLURM runs
+# multiple array tasks in parallel against the same repo.
+# ---------------------------------------------------------------------------
+JOB_ID="${SLURM_JOB_ID:-local}_${SLURM_ARRAY_TASK_ID:-0}"
+JOB_BASE_CONFIG="configs/base_slt_ablation_${JOB_ID}.yaml"
+cp "$BASE_CONFIG" "$JOB_BASE_CONFIG"
+cleanup() { rm -f "$JOB_BASE_CONFIG"; }
+trap cleanup EXIT
+
+patch_base_config() {
     local SEED="$1"
     local EXP_NAME="$2"
 
-    "$PYTHON_EXE" - <<EOF
+    python - <<EOF
 from pathlib import Path
 import re
 
-path = Path("$BASE_CONFIG")
+path = Path("$JOB_BASE_CONFIG")
 text = path.read_text()
 
 text = re.sub(
     r'^(\s*seed:\s*).*$',
     r'\g<1>$SEED',
-    text,
-    flags=re.MULTILINE
+    text, flags=re.MULTILINE
 )
-
 text = re.sub(
     r'^(\s*experiment_name:\s*).*$',
     r'\g<1>"$EXP_NAME"',
-    text,
-    flags=re.MULTILINE
+    text, flags=re.MULTILINE
 )
 
 path.write_text(text)
@@ -127,90 +175,67 @@ EOF
 }
 
 # ---------------------------------------------------------------------------
-# Helper: write a temp dataset config for this variant
+# Helper: write a temporary dataset config for this variant
 # ---------------------------------------------------------------------------
 make_dataset_config() {
     local VARIANT="$1"
-    local TMP_CFG="configs/datasets/slt_${VARIANT}_tmp.yaml"
-
-    cat > "$TMP_CFG" <<EOF
+    local CFG="configs/datasets/slt_${VARIANT}_${JOB_ID}_tmp.yaml"
+    cat > "$CFG" <<EOF
 dataset:
   theory: "SLT"
   prefix: "HI-Small_Trans_SLT_${VARIANT}"
   available_intensities: ["low", "medium", "high"]
   requires_intensity: true
 EOF
-
-    echo "$TMP_CFG"
+    echo "$CFG"
 }
 
 # ---------------------------------------------------------------------------
 # Helper: elapsed time
 # ---------------------------------------------------------------------------
-elapsed() {
-    local s=$1
-    printf "%dh %dm %ds" $((s/3600)) $(((s%3600)/60)) $((s%60))
-}
+elapsed() { printf "%dh %dm %ds" $(($1/3600)) $((($1%3600)/60)) $(($1%60)); }
 
 # ---------------------------------------------------------------------------
-# MAIN LOOP
+# MAIN
 # ---------------------------------------------------------------------------
 total_start=$(date +%s)
 
-for VARIANT in "${VARIANTS[@]}"; do
+for PAIR in "${RUN_PAIRS[@]}"; do
+    read -r VARIANT INTENSITY <<< "$PAIR"
+
+    DATASET_CONFIG=$(make_dataset_config "$VARIANT")
 
     log ""
     log "==============================================================="
-    log " VARIANT: $VARIANT"
+    log " variant=$VARIANT  intensity=$INTENSITY"
+    log " Dataset config: $DATASET_CONFIG"
     log "==============================================================="
 
-    DATASET_CONFIG=$(make_dataset_config "$VARIANT")
-    log "Dataset config: $DATASET_CONFIG"
+    for SEED in "${SEEDS[@]}"; do
+        EXP_NAME="slt_${VARIANT}_${INTENSITY}_graphsage_t_seed${SEED}"
 
-    for INTENSITY in "${INTENSITIES[@]}"; do
         log ""
-        log "---------------------------------------------------------------"
-        log " variant=$VARIANT  intensity=$INTENSITY"
-        log "---------------------------------------------------------------"
+        log ">>> [$(date +%H:%M:%S)] $EXP_NAME"
 
-        for SEED in "${SEEDS[@]}"; do
-            EXP_NAME="slt_${VARIANT}_${INTENSITY}_graphsage_t_seed${SEED}"
+        patch_base_config "$SEED" "$EXP_NAME"
 
-            log ""
-            log ">>> [$(date +%H:%M:%S)] $EXP_NAME"
+        t0=$(date +%s)
 
-            update_base_config "$SEED" "$EXP_NAME"
+        python "$TRAIN_SCRIPT" \
+            --config      "$MODEL_CONFIG" \
+            --dataset     "$DATASET_CONFIG" \
+            --base_config "$JOB_BASE_CONFIG" \
+            --intensity   "$INTENSITY"
 
-            run_start=$(date +%s)
+        log ">>> Finished $EXP_NAME in $(elapsed $(($(date +%s) - t0)))"
 
-            "$PYTHON_EXE" "$TRAIN_SCRIPT" \
-                --config      "$MODEL_CONFIG" \
-                --dataset     "$DATASET_CONFIG" \
-                --base_config "$BASE_CONFIG" \
-                --intensity   "$INTENSITY" \
-                2>&1 | tee -a "$LOG_FILE"
+    done  # seeds
 
-            run_end=$(date +%s)
-            log ">>> Finished $EXP_NAME in $(elapsed $((run_end - run_start)))"
-
-        done  # seeds
-
-    done  # intensities
-
-    # Clean up temp dataset config
     rm -f "$DATASET_CONFIG"
 
-done  # variants
-
-total_end=$(date +%s)
+done  # variant × intensity pairs
 
 log ""
 log "==============================================================="
-log " ALL SLT ABLATION TRAINING COMPLETED"
-log " Total time: $(elapsed $((total_end - total_start)))"
-log " Log: $LOG_FILE"
+log " ALL DONE — total time: $(elapsed $(($(date +%s) - total_start)))"
 log "==============================================================="
-
-touch "$LOG_DIR/SLT_ABLATIONS_TRAINING_DONE_${ts}.done"
-echo ""
-echo "SUCCESS — all variants, intensities, and seeds completed."

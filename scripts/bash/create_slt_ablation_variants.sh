@@ -1,42 +1,67 @@
 #!/bin/bash
+# ===========================================================================
+# create_slt_ablation_variants.sh
+#
+# Builds all SLT ablation graph variants:
+#   1. slt_injector.py                → ibm_transcations_datasets/SLT/<variant>/
+#   2. motif_graph_builder_static.py  → graphs/<dataset_name>/
+#   3. motif_dyrep_graph_builder.py   → graphs_dyrep/<dataset_name>/
+#   4. create_splits.py on both graph dirs
+#
+# LOCAL:  bash create_slt_ablation_variants.sh   (runs all 5 variants sequentially)
+# SLURM:  sbatch create_slt_ablation_variants.sh (5 parallel jobs, one per variant)
+#
+# SLURM directives — ignored when run with bash directly:
+#SBATCH --job-name=slt_create_variants
+#SBATCH --array=0-4
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=64G
+#SBATCH --time=06:00:00
+#SBATCH --output=scripts/bash/logs/slt_create_%A_%a.log
+#SBATCH --error=scripts/bash/logs/slt_create_%A_%a.err
+# ===========================================================================
 set -e
 set -o pipefail
 
 # ---------------------------------------------------------------------------
-# run_slt_ablations.sh
-#
-# For each SLT weight variant:
-#   1. Run slt_injector.py          → ibm_transcations_datasets/SLT/<variant>/
-#   2. Run motif_graph_builder_static.py  → graphs/<dataset_name>/
-#   3. Run motif_dyrep_graph_builder.py   → graphs_dyrep/<dataset_name>/
-#   4. Run create_splits.py on both graph dirs
-#
-# Variants from the ablation table:
-#   current        (0.30, 0.25, 0.20, 0.15, 0.10)
-#   equal          (0.20, 0.20, 0.20, 0.20, 0.20)
-#   neighbor_heavy (0.40, 0.20, 0.15, 0.15, 0.10)
-#   amount_heavy   (0.20, 0.40, 0.15, 0.15, 0.10)
-#   temporal_heavy (0.20, 0.15, 0.15, 0.25, 0.25)
+# Resolve project root
 # ---------------------------------------------------------------------------
-
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR/../.."
 PROJECT_ROOT="$(pwd)"
-
-echo "Running from project root: $PROJECT_ROOT"
+echo "Project root: $PROJECT_ROOT"
 
 # ---------------------------------------------------------------------------
-# Python executable
+# Portable conda activation
 # ---------------------------------------------------------------------------
-PYTHON_EXE="/c/Users/g00084287/AppData/Local/miniconda3/envs/aml_project/python.exe"
+CONDA_BASE=""
+if [ -n "${CONDA_EXE:-}" ] && [ -x "${CONDA_EXE}" ]; then
+    CONDA_BASE="$("${CONDA_EXE}" info --base)"
+elif command -v conda > /dev/null 2>&1; then
+    CONDA_BASE="$(conda info --base)"
+else
+    for candidate in \
+        "$HOME/anaconda3" "$HOME/miniconda3" "$HOME/miniforge3" \
+        "/opt/anaconda3" "/opt/miniconda3" "/opt/conda" \
+        "/c/ProgramData/Anaconda3" "/c/ProgramData/Miniconda3"; do
+        if [ -f "$candidate/etc/profile.d/conda.sh" ]; then
+            CONDA_BASE="$candidate"
+            break
+        fi
+    done
+fi
 
-if [ ! -f "$PYTHON_EXE" ]; then
-    echo "ERROR: Python executable not found: $PYTHON_EXE"
+if [ -z "$CONDA_BASE" ] || [ ! -f "$CONDA_BASE/etc/profile.d/conda.sh" ]; then
+    echo "ERROR: Could not locate conda. Set CONDA_EXE or put conda on PATH."
     exit 1
 fi
 
-echo "Using Python: $PYTHON_EXE"
-"$PYTHON_EXE" --version
+# shellcheck disable=SC1091
+source "$CONDA_BASE/etc/profile.d/conda.sh"
+conda activate "${CONDA_ENV:-aml_project}"
+
+echo "Using Python: $(which python)"
+python --version
 
 # ---------------------------------------------------------------------------
 # Script paths
@@ -47,55 +72,63 @@ DYREP_BUILDER="scripts/graph/motif_dyrep_graph_builder.py"
 SPLITS_SCRIPT="scripts/create_splits.py"
 
 for s in "$INJECTOR" "$STATIC_BUILDER" "$DYREP_BUILDER" "$SPLITS_SCRIPT"; do
-    if [ ! -f "$s" ]; then
-        echo "ERROR: Missing script: $s"
-        exit 1
-    fi
+    [ -f "$s" ] || { echo "ERROR: Missing script: $s"; exit 1; }
 done
 
 # ---------------------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------------------
-ts=$(date +"%Y%m%d_%H%M%S")
-LOG_DIR="scripts/bash/logs"
-mkdir -p "$LOG_DIR"
-LOG_FILE="$LOG_DIR/slt_ablations_${ts}.log"
+mkdir -p "scripts/bash/logs"
 
-log() { echo "$@" | tee -a "$LOG_FILE"; }
+# SLURM captures stdout/stderr via --output/--error above.
+# Local runs get a combined log file.
+if [ -z "${SLURM_ARRAY_TASK_ID:-}" ]; then
+    ts=$(date +"%Y%m%d_%H%M%S")
+    LOG_FILE="scripts/bash/logs/slt_create_variants_${ts}.log"
+    log() { echo "$@" | tee -a "$LOG_FILE"; }
+else
+    log() { echo "$@"; }
+fi
 
 log "==============================================================="
-log " SLT ABLATION PIPELINE"
-log " Timestamp: $ts"
-log " Log: $LOG_FILE"
+log " CREATE SLT ABLATION VARIANTS"
+log " Host: $(hostname)  PID: $$"
+log " SLURM_ARRAY_TASK_ID: ${SLURM_ARRAY_TASK_ID:-none (local run)}"
 log "==============================================================="
 
 # ---------------------------------------------------------------------------
-# Ablation variants: NAME W_NEIGHBOR W_AMOUNT W_STRONG_TIE W_DELTA W_CUM
+# Variant table: NAME  W_NEIGHBOR  W_AMOUNT  W_STRONG_TIE  W_DELTA  W_CUM
+# Index matches SLURM array task ID (0-4)
 # ---------------------------------------------------------------------------
-declare -a VARIANTS=(
-    "current        0.30 0.25 0.20 0.15 0.10"
-    "equal          0.20 0.20 0.20 0.20 0.20"
-    "neighbor_heavy 0.40 0.20 0.15 0.15 0.10"
-    "amount_heavy   0.20 0.40 0.15 0.15 0.10"
-    "temporal_heavy 0.20 0.15 0.15 0.25 0.25"
+ALL_VARIANTS=(
+    "current        0.30 0.25 0.20 0.15 0.10"   # 0
+    "equal          0.20 0.20 0.20 0.20 0.20"   # 1
+    "neighbor_heavy 0.40 0.20 0.15 0.15 0.10"   # 2
+    "amount_heavy   0.20 0.40 0.15 0.15 0.10"   # 3
+    "temporal_heavy 0.20 0.15 0.15 0.25 0.25"   # 4
 )
 
 INTENSITIES=("low" "medium" "high")
 
+# SLURM array → run only the variant at this task ID
+# Local run   → run all variants sequentially
+if [ -n "${SLURM_ARRAY_TASK_ID:-}" ]; then
+    VARIANTS_TO_RUN=("${ALL_VARIANTS[$SLURM_ARRAY_TASK_ID]}")
+else
+    VARIANTS_TO_RUN=("${ALL_VARIANTS[@]}")
+fi
+
 # ---------------------------------------------------------------------------
 # Helper: elapsed time
 # ---------------------------------------------------------------------------
-elapsed() {
-    local s=$1
-    printf "%dh %dm %ds" $((s/3600)) $(((s%3600)/60)) $((s%60))
-}
+elapsed() { printf "%dh %dm %ds" $(($1/3600)) $((($1%3600)/60)) $(($1%60)); }
 
 # ---------------------------------------------------------------------------
-# MAIN LOOP
+# MAIN
 # ---------------------------------------------------------------------------
 total_start=$(date +%s)
 
-for VARIANT_LINE in "${VARIANTS[@]}"; do
+for VARIANT_LINE in "${VARIANTS_TO_RUN[@]}"; do
     read -r VARIANT W_NBR W_AMT W_STR W_DEL W_CUM <<< "$VARIANT_LINE"
 
     log ""
@@ -105,121 +138,58 @@ for VARIANT_LINE in "${VARIANTS[@]}"; do
     log "   delta=$W_DEL  cumulative=$W_CUM"
     log "==============================================================="
 
-    # -----------------------------------------------------------------------
-    # STEP 1: Inject SLT features for this variant (all 3 intensities at once)
-    # -----------------------------------------------------------------------
+    # STEP 1: Inject (produces all 3 intensities at once)
     log ""
-    log ">>> [$(date +%H:%M:%S)] STEP 1: Injection — variant=$VARIANT"
-
-    inject_start=$(date +%s)
-
-    "$PYTHON_EXE" "$INJECTOR" \
+    log ">>> [$(date +%H:%M:%S)] STEP 1: Injection"
+    t0=$(date +%s)
+    python "$INJECTOR" \
         --variant      "$VARIANT" \
         --w_neighbor   "$W_NBR" \
         --w_amount     "$W_AMT" \
         --w_strong_tie "$W_STR" \
         --w_delta      "$W_DEL" \
-        --w_cum        "$W_CUM" \
-        2>&1 | tee -a "$LOG_FILE"
+        --w_cum        "$W_CUM"
+    log ">>> Injection done in $(elapsed $(($(date +%s) - t0)))"
 
-    inject_end=$(date +%s)
-    log ">>> Injection done in $(elapsed $((inject_end - inject_start)))"
-
-    # -----------------------------------------------------------------------
-    # STEPS 2-4: Per intensity — build graphs + splits
-    # -----------------------------------------------------------------------
     for INTENSITY in "${INTENSITIES[@]}"; do
 
-        # Relative path from ibm_transcations_datasets/ to the injected CSV
         DATASET_REL="SLT/${VARIANT}/HI-Small_Trans_SLT_${VARIANT}_${INTENSITY}.csv"
         DATASET_NAME="HI-Small_Trans_SLT_${VARIANT}_${INTENSITY}"
-
         STATIC_OUT="${PROJECT_ROOT}/graphs/${DATASET_NAME}"
         DYREP_OUT="${PROJECT_ROOT}/graphs_dyrep/${DATASET_NAME}"
 
         log ""
-        log "---------------------------------------------------------------"
-        log " variant=$VARIANT  intensity=$INTENSITY"
-        log " CSV:    ibm_transcations_datasets/$DATASET_REL"
-        log " Static: graphs/$DATASET_NAME"
-        log " DyRep:  graphs_dyrep/$DATASET_NAME"
-        log "---------------------------------------------------------------"
+        log "--- intensity=$INTENSITY ---"
 
-        # -------------------------------------------------------------------
-        # STEP 2: Static graph builder
-        # -------------------------------------------------------------------
-        log ""
-        log ">>> [$(date +%H:%M:%S)] STEP 2: Static graph — $DATASET_NAME"
+        # STEP 2: Static graph
+        log ">>> [$(date +%H:%M:%S)] STEP 2: Static graph"
+        t0=$(date +%s)
+        python "$STATIC_BUILDER" --dataset "$DATASET_REL"
+        log ">>> done in $(elapsed $(($(date +%s) - t0)))"
 
-        step_start=$(date +%s)
+        # STEP 3: DyRep graph
+        log ">>> [$(date +%H:%M:%S)] STEP 3: DyRep graph"
+        t0=$(date +%s)
+        python "$DYREP_BUILDER" --dataset "$DATASET_REL"
+        log ">>> done in $(elapsed $(($(date +%s) - t0)))"
 
-        "$PYTHON_EXE" "$STATIC_BUILDER" \
-            --dataset "$DATASET_REL" \
-            2>&1 | tee -a "$LOG_FILE"
+        # STEP 4a: Splits — static
+        log ">>> [$(date +%H:%M:%S)] STEP 4a: Splits (static)"
+        t0=$(date +%s)
+        python "$SPLITS_SCRIPT" --graph_folder "$STATIC_OUT" --out_dir "$STATIC_OUT"
+        log ">>> done in $(elapsed $(($(date +%s) - t0)))"
 
-        step_end=$(date +%s)
-        log ">>> Static graph done in $(elapsed $((step_end - step_start)))"
-
-        # -------------------------------------------------------------------
-        # STEP 3: DyRep graph builder
-        # -------------------------------------------------------------------
-        log ""
-        log ">>> [$(date +%H:%M:%S)] STEP 3: DyRep graph — $DATASET_NAME"
-
-        step_start=$(date +%s)
-
-        "$PYTHON_EXE" "$DYREP_BUILDER" \
-            --dataset "$DATASET_REL" \
-            2>&1 | tee -a "$LOG_FILE"
-
-        step_end=$(date +%s)
-        log ">>> DyRep graph done in $(elapsed $((step_end - step_start)))"
-
-        # -------------------------------------------------------------------
-        # STEP 4: create_splits — static graph
-        # -------------------------------------------------------------------
-        log ""
-        log ">>> [$(date +%H:%M:%S)] STEP 4a: Splits (static) — $DATASET_NAME"
-
-        step_start=$(date +%s)
-
-        "$PYTHON_EXE" "$SPLITS_SCRIPT" \
-            --graph_folder "$STATIC_OUT" \
-            --out_dir      "$STATIC_OUT" \
-            2>&1 | tee -a "$LOG_FILE"
-
-        step_end=$(date +%s)
-        log ">>> Static splits done in $(elapsed $((step_end - step_start)))"
-
-        # -------------------------------------------------------------------
-        # STEP 4b: create_splits — DyRep graph
-        # -------------------------------------------------------------------
-        log ""
-        log ">>> [$(date +%H:%M:%S)] STEP 4b: Splits (DyRep) — $DATASET_NAME"
-
-        step_start=$(date +%s)
-
-        "$PYTHON_EXE" "$SPLITS_SCRIPT" \
-            --graph_folder "$DYREP_OUT" \
-            --out_dir      "$DYREP_OUT" \
-            2>&1 | tee -a "$LOG_FILE"
-
-        step_end=$(date +%s)
-        log ">>> DyRep splits done in $(elapsed $((step_end - step_start)))"
+        # STEP 4b: Splits — DyRep
+        log ">>> [$(date +%H:%M:%S)] STEP 4b: Splits (DyRep)"
+        t0=$(date +%s)
+        python "$SPLITS_SCRIPT" --graph_folder "$DYREP_OUT" --out_dir "$DYREP_OUT"
+        log ">>> done in $(elapsed $(($(date +%s) - t0)))"
 
     done  # intensities
 
 done  # variants
 
-total_end=$(date +%s)
-
 log ""
 log "==============================================================="
-log " ALL SLT ABLATION VARIANTS COMPLETED"
-log " Total time: $(elapsed $((total_end - total_start)))"
-log " Log: $LOG_FILE"
+log " DONE — total time: $(elapsed $(($(date +%s) - total_start)))"
 log "==============================================================="
-
-touch "$LOG_DIR/SLT_ABLATIONS_DONE_${ts}.done"
-echo ""
-echo "SUCCESS — all variants and intensities processed."
