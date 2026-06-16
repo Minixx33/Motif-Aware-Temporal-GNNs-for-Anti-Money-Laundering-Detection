@@ -763,6 +763,31 @@ bash scripts/bash/run_rat_all.sh
 
 A `.done` marker file is created on successful completion (e.g. `logs/RAT_ALL_FINISHED_<timestamp>.done`).
 
+### Running bash drivers with Slurm
+
+On the AWS Slurm environment used for this project, run the bash driver scripts through an `sbatch` wrapper. The account and QoS values are cluster-specific and should be changed if running elsewhere.
+
+Example wrapper for RAT experiments:
+
+```bash
+#!/bin/bash
+#SBATCH --job-name=aml_rat_all
+#SBATCH --account=...
+#SBATCH --partition=gpu
+#SBATCH --qos=...
+#SBATCH --gres=gpu:1
+#SBATCH --cpus-per-task=4
+#SBATCH --time=12:00:00
+#SBATCH --output=aml_rat_all_%j.out
+#SBATCH --error=aml_rat_all_%j.err
+
+source /opt/miniconda/etc/profile.d/conda.sh
+conda activate aml_project
+
+cd /shared/<user>/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection
+
+bash scripts/bash/run_rat_all.sh
+
 ---
 
 ## 14. Troubleshooting
