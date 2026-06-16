@@ -172,6 +172,16 @@ A copy of the original **TGN** (Temporal Graph Networks) codebase is included un
 
 ## 4. Installation
 
+For AWS Slurm:
+- Load/source conda before activating:
+  source /opt/miniconda/etc/profile.d/conda.sh
+  conda activate aml_project
+
+- Verify that `which python` points to:
+  /home/<user>/.conda/envs/aml_project/bin/python
+
+- Use the appropriate Slurm GPU header to avoid Slurm-specific issues.  
+
 ### Option A — Conda minimal (recommended, working env)
 
 `aml_project.yml` is the environment used for this project.
@@ -204,11 +214,22 @@ pip install --upgrade pip wheel
 pip install -r requirements.txt
 ```
 
+
 > **PyTorch CUDA wheels.** `requirements.txt` pins `torch==2.5.1+cu121`. If the install fails on the torch lines, install them directly from the PyTorch index:
 >
 > ```bash
 > pip install torch==2.5.1+cu121 torchvision==0.20.1+cu121 torchaudio==2.5.1+cu121 \
 >     --index-url https://download.pytorch.org/whl/cu121
+> ```
+>
+> If `pip install -r requirements.txt` still retries the PyTorch packages from the default PyPI index, install the PyTorch packages first and then install the remaining requirements using a temporary filtered file:
+>
+> ```bash
+> pip install torch==2.5.1+cu121 torchvision==0.20.1+cu121 torchaudio==2.5.1+cu121 \
+>     --index-url https://download.pytorch.org/whl/cu121
+>
+> grep -v -E '^(torch|torchvision|torchaudio)==' requirements.txt > requirements_no_torch.txt
+> pip install -r requirements_no_torch.txt
 > ```
 >
 > For CPU-only or different CUDA versions, adjust the `+cu121` suffix and index URL (see https://pytorch.org/get-started/previous-versions/).
