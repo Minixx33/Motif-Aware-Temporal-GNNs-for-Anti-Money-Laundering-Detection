@@ -153,8 +153,14 @@ for VARIANT_LINE in "${VARIANTS_TO_RUN[@]}"; do
 
     for INTENSITY in "${INTENSITIES[@]}"; do
 
-        DATASET_REL="SLT/${VARIANT}/HI-Small_Trans_SLT_${VARIANT}_${INTENSITY}.csv"
-        DATASET_NAME="HI-Small_Trans_SLT_${VARIANT}_${INTENSITY}"
+        # "current" uses the default flat path; all others use variant subfolder
+        if [ "$VARIANT" = "current" ]; then
+            DATASET_REL="SLT/HI-Small_Trans_SLT_${INTENSITY}.csv"
+            DATASET_NAME="HI-Small_Trans_SLT_${INTENSITY}"
+        else
+            DATASET_REL="SLT/${VARIANT}/HI-Small_Trans_SLT_${VARIANT}_${INTENSITY}.csv"
+            DATASET_NAME="HI-Small_Trans_SLT_${VARIANT}_${INTENSITY}"
+        fi
         STATIC_OUT="${PROJECT_ROOT}/graphs/${DATASET_NAME}"
         DYREP_OUT="${PROJECT_ROOT}/graphs_dyrep/${DATASET_NAME}"
 

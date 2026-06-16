@@ -68,8 +68,12 @@ TX_CSV_PATH       = os.path.join(BASE_DIR, "HI-Small_Trans.csv")
 ACCOUNTS_CSV_PATH = os.path.join(BASE_DIR, "HI-Small_accounts.csv")
 PATTERNS_TXT_PATH = os.path.join(BASE_DIR, "HI-Small_Patterns.txt")   # optional
 
-# Variant-specific subfolder keeps ablation outputs separate from the baseline
-OUTPUT_DIR = os.path.join(BASE_DIR, "SLT", VARIANT)
+# "current" uses the flat SLT/ folder with the default naming convention.
+# All other variants get their own subfolder.
+if VARIANT == "current":
+    OUTPUT_DIR = os.path.join(BASE_DIR, "SLT")
+else:
+    OUTPUT_DIR = os.path.join(BASE_DIR, "SLT", VARIANT)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # Column names in the transaction file
@@ -724,7 +728,10 @@ for name, frac in INTENSITIES.items():
         df["SLT_injected"] * {"low": 1, "medium": 2, "high": 3}[name]
     ).astype(np.int8)
 
-    out_path = os.path.join(OUTPUT_DIR, f"HI-Small_Trans_SLT_{VARIANT}_{name}.csv")
+    if VARIANT == "current":
+        out_path = os.path.join(OUTPUT_DIR, f"HI-Small_Trans_SLT_{name}.csv")
+    else:
+        out_path = os.path.join(OUTPUT_DIR, f"HI-Small_Trans_SLT_{VARIANT}_{name}.csv")
     print(f"Saving: {out_path}")
     df.to_csv(out_path, index=False)
     print(f"Saved {out_path} [{int(df['SLT_injected'].sum())} injected rows]")
