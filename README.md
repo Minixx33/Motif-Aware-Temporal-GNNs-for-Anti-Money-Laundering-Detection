@@ -31,7 +31,7 @@ This project trains Graph Neural Network (GNN) models on the IBM AML synthetic t
 |---|---|---|---|
 | **GraphSAGE** | Static edge classifier | `scripts/training/train_graphsage.py` | Baseline GNN |
 | **GraphSAGE-T** | Temporal (sinusoidal time encoding) | `scripts/training/train_graphsage_t.py` | Time-aware variant |
-| **DyRep** | Temporal event stream | `scripts/training/train_dyrep.py` | Functional; DyRep splits not yet optimised for HI-Medium |
+| **DyRep** | Temporal event stream | `scripts/training/train_dyrep.py` | Functional; temporal split optimisation ongoing |
 
 A copy of the original **TGN** (Temporal Graph Networks) codebase is included under `tgn/` for reference and potential extension.
 
@@ -45,7 +45,7 @@ A copy of the original **TGN** (Temporal Graph Networks) codebase is included un
 │   ├── base.yaml                          # Seed, paths, eval settings, rclone sync
 │   ├── datasets/
 │   │   ├── baseline.yaml                  # No theory injection (HI-Small)
-│   │   ├── rat.yaml                       # RAT features (HI-Medium, low/medium/high)
+│   │   ├── rat.yaml                       # RAT features (HI-Small, low/medium/high)
 │   │   └── slt.yaml                       # SLT features (HI-Small, low/medium/high)
 │   └── models/
 │       ├── graphsage.yaml
@@ -55,8 +55,6 @@ A copy of the original **TGN** (Temporal Graph Networks) codebase is included un
 ├── ibm_transcations_datasets/             # Raw IBM CSVs (Git LFS tracked)
 │   ├── HI-Small_Trans.csv
 │   ├── HI-Small_accounts.csv
-│   ├── HI-Medium_Trans.csv
-│   ├── HI-Medium_accounts.csv
 │   ├── RAT/                               # Output of rat_injector.py
 │   └── SLT/                               # Output of slt_injector.py
 │
@@ -159,9 +157,9 @@ A copy of the original **TGN** (Temporal Graph Networks) codebase is included un
 
 ### Hardware
 
-- **GPU recommended.** Configs target CUDA and were tuned on an RTX 4080 (batch size 8192). Training scripts fall back to CPU if CUDA is unavailable, but a full RAT-medium run on CPU is impractical.
-- **RAM:** 16 GB minimum for HI-Small; 32 GB+ recommended for HI-Medium (the RAT injector holds the full DataFrame in memory).
-- **Disk:** ~10 GB free for datasets, graphs, splits, results, and logs.
+- **GPU recommended.** Configs target CUDA and were tuned on an RTX 4080 (batch size 8192). Training scripts fall back to CPU if CUDA is unavailable, but a full run on CPU is impractical.
+- **RAM:** 16 GB minimum (the RAT and SLT injectors hold the full transaction DataFrame in memory).
+- **Disk:** ~5 GB free for datasets, graphs, splits, results, and logs.
 
 ### Software
 
@@ -252,10 +250,7 @@ Download the IBM AML synthetic transaction dataset from Kaggle (*IBM Transaction
 ibm_transcations_datasets/
 ├── HI-Small_Trans.csv          # ~5M transactions, ~515K nodes, ~0.1% laundering
 ├── HI-Small_accounts.csv
-├── HI-Medium_Trans.csv
-├── HI-Medium_accounts.csv
-├── HI-Small_Patterns.txt       # optional
-└── HI-Medium_Patterns.txt      # optional
+└── HI-Small_Patterns.txt       # optional
 ```
 
 > The CSVs are tracked via Git LFS. After cloning, run `git lfs pull` to materialise them.
@@ -265,16 +260,8 @@ ibm_transcations_datasets/
 To skip the graph-building stage, download the pre-built tensors from Google Drive:
 
 - **All graphs:** https://drive.google.com/drive/folders/1ZQMZdWmBJ0xpb0u2s3kI0ZjMw6AYYI1u?usp=sharing
-- **HI-Medium RAT-low graph + splits (default config):** https://drive.google.com/file/d/1OCAxAsK-WrduOqznuZ4qmxd4_S6u_Y9_/view?usp=sharing
 
-Extract into the repo root so the folder layout matches:
-
-```
-graphs/HI-Medium_Trans_RAT_low/    ← default dataset (rat.yaml + --intensity low)
-splits/HI-Medium_Trans_RAT_low/
-```
-
-The repo also ships HI-Small static graphs (`graphs/HI-Small_Trans*`), DyRep event graphs (`graphs_dyrep/HI-Small_Trans*`), and 9 ablation variants (`graphs_dyrep/HI-Small_Trans_RAT_medium__*`).
+Extract into the repo root. The repo ships static graphs for all RAT and SLT intensities (`graphs/HI-Small_Trans*`), DyRep event graphs (`graphs_dyrep/HI-Small_Trans*`), and 9 RAT ablation variants (`graphs_dyrep/HI-Small_Trans_RAT_medium__*`).
 
 ---
 
@@ -372,7 +359,7 @@ The default SLT config targets `HI-Small_Trans_SLT`. Graphs and splits land in `
 
 ### 7.4 DyRep
 
-> **Note:** DyRep training is implemented but the temporal split pipeline is not yet optimised for HI-Medium. Use only with the HI-Small DyRep graphs and splits in `graphs_dyrep/` / `splits_dyrep/`.
+> **Note:** DyRep training is implemented but the temporal split pipeline is still being optimised. Use with the DyRep graphs and splits in `graphs_dyrep/` / `splits_dyrep/`.
 
 ```bash
 python scripts/training/train_dyrep.py \
@@ -454,12 +441,19 @@ loss:
   pos_weight: null            # null = auto-computed from train split (capped at 100)
 ```
 
-### `configs/datasets/rat.yaml`
+### `configs/datasets/rat.yaml` / `slt.yaml`
 
 ```yaml
+# rat.yaml
 dataset:
   theory: "RAT"
-  prefix: "HI-Medium_Trans_RAT"   # change to HI-Small_Trans_RAT for the small dataset
+  prefix: "HI-Small_Trans_RAT"
+  requires_intensity: true
+
+# slt.yaml
+dataset:
+  theory: "SLT"
+  prefix: "HI-Small_Trans_SLT"
   requires_intensity: true
 ```
 
@@ -516,35 +510,33 @@ Only needed if you are not using the pre-built graphs from Drive. All scripts re
 
 ### Step 1 — Theory feature injection
 
+Both injectors read `ibm_transcations_datasets/HI-Small_Trans.csv` and write three intensity variants (`low`, `medium`, `high`). Intensity is set by a percentile threshold on the theory score over laundering-positive rows.
+
 #### RAT injector
 
-Reads the HI-Medium CSVs, computes RAT sub-scores and motif features, and writes three intensity variants:
+Computes Routine Activity Theory sub-scores (offender, target, guardian) and graph motif features (fan-in, fan-out, chain, cycle):
 
 ```bash
 python scripts/rat/rat_injector.py
 ```
 
 Output:
-
 ```
 ibm_transcations_datasets/RAT/
-├── HI-Medium_Trans_RAT_low.csv
-├── HI-Medium_Trans_RAT_medium.csv
-└── HI-Medium_Trans_RAT_high.csv
+├── HI-Small_Trans_RAT_low.csv
+├── HI-Small_Trans_RAT_medium.csv
+└── HI-Small_Trans_RAT_high.csv
 ```
-
-Intensity thresholds are percentiles of the RAT score over laundering-positive rows (`low=0.15`, `medium=0.30`, `high=0.60`).
 
 #### SLT injector
 
-Computes peer-exposure features (suspicious neighbour ratio, amount share, strong-tie ratio, temporal lags) and writes three intensity variants:
+Computes Social Learning Theory peer-exposure features (suspicious neighbour ratio, amount share, strong-tie ratio, and temporal lags):
 
 ```bash
 python scripts/SLT/slt_injector.py
 ```
 
 Output:
-
 ```
 ibm_transcations_datasets/SLT/
 ├── HI-Small_Trans_SLT_low.csv
@@ -568,17 +560,27 @@ python scripts/SLT/slt_injector.py \
 # No theory features
 python scripts/graph/baseline_graph_builder.py
 
-# With RAT/SLT/motif features
+# RAT features
 python scripts/graph/motif_graph_builder_static.py \
-    --dataset RAT/HI-Medium_Trans_RAT_low.csv
+    --dataset RAT/HI-Small_Trans_RAT_low.csv
+
+# SLT features
+python scripts/graph/motif_graph_builder_static.py \
+    --dataset SLT/HI-Small_Trans_SLT_low.csv
 ```
 
 **DyRep event graphs:**
 
 ```bash
 python scripts/graph/baseline_dyrep_graph_builder.py
+
+# RAT
 python scripts/graph/motif_dyrep_graph_builder.py \
     --dataset RAT/HI-Small_Trans_RAT_medium.csv
+
+# SLT
+python scripts/graph/motif_dyrep_graph_builder.py \
+    --dataset SLT/HI-Small_Trans_SLT_medium.csv
 ```
 
 The `--dataset` path is relative to `ibm_transcations_datasets/`. Output lands in `graphs/<dataset_name>/` or `graphs_dyrep/<dataset_name>/` respectively.
@@ -592,8 +594,8 @@ The `--dataset` path is relative to `ibm_transcations_datasets/`. Output lands i
 
 ```bash
 python scripts/create_splits.py \
-    --graph_folder graphs/HI-Medium_Trans_RAT_low \
-    --out_dir splits/HI-Medium_Trans_RAT_low \
+    --graph_folder graphs/HI-Small_Trans_RAT_low \
+    --out_dir splits/HI-Small_Trans_RAT_low \
     --train_ratio 0.60 --val_ratio 0.20 --test_ratio 0.20 \
     --seed 42
 ```
@@ -603,6 +605,8 @@ If `--out_dir` is omitted, it defaults to `splits/<dataset_name>` (or `splits_dy
 ---
 
 ## 11. Ablation Studies
+
+### 11.1 RAT feature-group ablations
 
 Ablations strip feature groups from an existing graph's `edge_attr.pt` and write a sibling graph directory. This lets you train on partial feature sets without re-running injection or graph building.
 
@@ -695,7 +699,17 @@ Logs land in `scripts/bash/logs/slt_ablations_training_<timestamp>.log` and a `.
 
 ```bash
 python scripts/analysis/feature_importance.py \
-    --csv_path ibm_transcations_datasets/RAT/HI-Medium_Trans_RAT_medium.csv \
+    --csv_path ibm_transcations_datasets/RAT/HI-Small_Trans_RAT_medium.csv \
+    --label_col "Is Laundering" \
+    --top_k 20 \
+    --out_dir results/feature_importance
+```
+
+**Example — feature importance on SLT-medium:**
+
+```bash
+python scripts/analysis/feature_importance.py \
+    --csv_path ibm_transcations_datasets/SLT/HI-Small_Trans_SLT_medium.csv \
     --label_col "Is Laundering" \
     --top_k 20 \
     --out_dir results/feature_importance
@@ -735,17 +749,17 @@ A `.done` marker file is created on successful completion (e.g. `logs/RAT_ALL_FI
 **`torch.cuda.is_available()` returns `False`.**
 Check the wheel with `pip show torch` — the version should include `+cu121`. Verify your NVIDIA driver supports CUDA 12.1 (`nvidia-smi`). Reinstall via the PyTorch index URL in [§4](#4-installation).
 
-**`FileNotFoundError: graphs/HI-Medium_Trans_RAT_low/edge_index.pt`**
-Either extract the pre-built graphs from Drive, or run the graph builder. Also make sure `--intensity low` was passed — the resolved path is `graphs/{prefix}_{intensity}`. The default `rat.yaml` prefix is `HI-Medium_Trans_RAT`.
+**`FileNotFoundError: graphs/HI-Small_Trans_RAT_low/edge_index.pt`**
+Either extract the pre-built graphs from Drive, or run the graph builder. Also make sure `--intensity low` was passed — the resolved path is `graphs/{prefix}_{intensity}`.
 
 **`FileNotFoundError: splits/...`**
-The Drive download only includes splits for `HI-Medium_Trans_RAT_low`. For other intensities or dataset sizes, run `scripts/create_splits.py` against the matching graph folder.
+Run `scripts/create_splits.py` against the matching graph folder to generate splits for any intensity.
 
 **CUDA out of memory.**
 Lower `training.batch_size` and `training.eval_batch_size` in the model YAML. The defaults assume ~16 GB VRAM.
 
 **CPU out of memory during graph build.**
-The motif graph builder and RAT injector hold the full HI-Medium DataFrame in memory. Switch to the HI-Small variants, or run on a machine with 32+ GB RAM.
+The motif graph builder and injectors hold the full transaction DataFrame in memory. 16 GB RAM should be sufficient for HI-Small.
 
 **`run_*.sh` errors with "could not locate a conda install".**
 Set `CONDA_EXE` to the path of your `conda` binary:
@@ -756,8 +770,8 @@ CONDA_EXE=/path/to/conda bash scripts/bash/run_rat_all.sh
 
 If your env is not named `aml_project`, also set `CONDA_ENV=<your_env_name>`.
 
-**DyRep training errors or hangs on HI-Medium.**
-The temporal split script for DyRep is not yet optimised for HI-Medium. Use only with HI-Small DyRep graphs (`graphs_dyrep/HI-Small_Trans*`) and their pre-built splits in `splits_dyrep/`.
+**DyRep training errors or hangs.**
+The temporal split script is still being optimised. Use the pre-built DyRep graphs (`graphs_dyrep/HI-Small_Trans*`) and their splits in `splits_dyrep/`.
 
 **A graph builder or injector raises `FileNotFoundError`.**
 All scripts resolve paths from their own location using `Path(__file__).resolve().parents[N]`. If a script has been moved out of its expected subdirectory, either move it back or update the `parents[N]` index accordingly.
