@@ -27,6 +27,7 @@ Outputs (in graphs_dyrep/{dataset_name}/):
   - graph_stats.json
 """
 
+import argparse
 import os
 import json
 from pathlib import Path
@@ -45,6 +46,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 BASE_DIR = str(PROJECT_ROOT)
 DATA_DIR = str(PROJECT_ROOT / "ibm_transcations_datasets")
 
+# Default dataset (overridden by --dataset CLI arg)
 # --- SELECT DATASET HERE ---
 
 # RAT
@@ -61,6 +63,15 @@ DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_high.csv")
 # DATASET = os.path.join("STRAIN", "HI-Small_Trans_STRAIN_low.csv")
 # DATASET = os.path.join("STRAIN", "HI-Small_Trans_STRAIN_medium.csv")
 # DATASET = os.path.join("STRAIN", "HI-Small_Trans_STRAIN_high.csv")
+
+# CLI override: --dataset path/relative/to/ibm_transcations_datasets/
+_parser = argparse.ArgumentParser(description="DyRep motif graph builder")
+_parser.add_argument("--dataset", type=str, default=None,
+                     help="Dataset path relative to ibm_transcations_datasets/ "
+                          "(e.g. SLT/current/HI-Small_Trans_SLT_current_low.csv)")
+_args, _ = _parser.parse_known_args()
+if _args.dataset:
+    DATASET = _args.dataset
 
 INPUT_PATH = os.path.join(DATA_DIR, DATASET)
 dataset_name = os.path.splitext(os.path.basename(DATASET))[0]

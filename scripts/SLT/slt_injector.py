@@ -28,12 +28,34 @@ Compared with the earlier prototype:
 - Computes source-side and destination-side exposure summaries separately
 """
 
+import argparse
 import os
 import gc
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+# ===================== CLI ARGS =====================
+
+_parser = argparse.ArgumentParser(description="SLT feature injector with configurable score weights")
+_parser.add_argument("--variant",      type=str,   default="current",
+                     help="Ablation variant name (used in output filenames)")
+_parser.add_argument("--w_neighbor",   type=float, default=0.30, help="Weight: suspicious neighbour ratio")
+_parser.add_argument("--w_amount",     type=float, default=0.25, help="Weight: suspicious amount share")
+_parser.add_argument("--w_strong_tie", type=float, default=0.20, help="Weight: strong-tie suspicious ratio")
+_parser.add_argument("--w_delta",      type=float, default=0.15, help="Weight: exposure delta")
+_parser.add_argument("--w_cum",        type=float, default=0.10, help="Weight: cumulative 7-day exposure")
+_args = _parser.parse_args()
+
+VARIANT      = _args.variant
+W_NEIGHBOR   = _args.w_neighbor
+W_AMOUNT     = _args.w_amount
+W_STRONG_TIE = _args.w_strong_tie
+W_DELTA      = _args.w_delta
+W_CUM        = _args.w_cum
+
+print(f"[SLT] Variant: {VARIANT}  weights=({W_NEIGHBOR}, {W_AMOUNT}, {W_STRONG_TIE}, {W_DELTA}, {W_CUM})")
 
 # ===================== CONFIG =====================
 
@@ -46,7 +68,8 @@ TX_CSV_PATH       = os.path.join(BASE_DIR, "HI-Small_Trans.csv")
 ACCOUNTS_CSV_PATH = os.path.join(BASE_DIR, "HI-Small_accounts.csv")
 PATTERNS_TXT_PATH = os.path.join(BASE_DIR, "HI-Small_Patterns.txt")   # optional
 
-OUTPUT_DIR = os.path.join(BASE_DIR, "SLT")
+# Variant-specific subfolder keeps ablation outputs separate from the baseline
+OUTPUT_DIR = os.path.join(BASE_DIR, "SLT", VARIANT)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # Column names in the transaction file
@@ -619,21 +642,22 @@ else:
 print("Computing final transaction-level SLT score...")
 
 # Source score: how much the sender has recently been exposed to risky peers
+# Weights are set by CLI args (--w_neighbor, --w_amount, --w_strong_tie, --w_delta, --w_cum)
 df["SLT_src_score"] = (
-    0.30 * df["src_SLT_susp_nbr_ratio_lag1"] +
-    0.25 * df["src_SLT_susp_amt_share_lag1"] +
-    0.20 * df["src_SLT_strong_tie_susp_ratio_lag1"] +
-    0.15 * df["src_SLT_exposure_delta"].clip(lower=0) +
-    0.10 * df["src_SLT_cum_exposure_7d_norm"]
+    W_NEIGHBOR   * df["src_SLT_susp_nbr_ratio_lag1"] +
+    W_AMOUNT     * df["src_SLT_susp_amt_share_lag1"] +
+    W_STRONG_TIE * df["src_SLT_strong_tie_susp_ratio_lag1"] +
+    W_DELTA      * df["src_SLT_exposure_delta"].clip(lower=0) +
+    W_CUM        * df["src_SLT_cum_exposure_7d_norm"]
 ).clip(0, 1).astype(np.float32)
 
 # Destination score: same idea for the receiver
 df["SLT_dst_score"] = (
-    0.30 * df["dst_SLT_susp_nbr_ratio_lag1"] +
-    0.25 * df["dst_SLT_susp_amt_share_lag1"] +
-    0.20 * df["dst_SLT_strong_tie_susp_ratio_lag1"] +
-    0.15 * df["dst_SLT_exposure_delta"].clip(lower=0) +
-    0.10 * df["dst_SLT_cum_exposure_7d_norm"]
+    W_NEIGHBOR   * df["dst_SLT_susp_nbr_ratio_lag1"] +
+    W_AMOUNT     * df["dst_SLT_susp_amt_share_lag1"] +
+    W_STRONG_TIE * df["dst_SLT_strong_tie_susp_ratio_lag1"] +
+    W_DELTA      * df["dst_SLT_exposure_delta"].clip(lower=0) +
+    W_CUM        * df["dst_SLT_cum_exposure_7d_norm"]
 ).clip(0, 1).astype(np.float32)
 
 # Final transaction score WITHOUT CROSS-BANK!!!
@@ -700,7 +724,7 @@ for name, frac in INTENSITIES.items():
         df["SLT_injected"] * {"low": 1, "medium": 2, "high": 3}[name]
     ).astype(np.int8)
 
-    out_path = os.path.join(OUTPUT_DIR, f"HI-Small_Trans_SLT_{name}.csv")
+    out_path = os.path.join(OUTPUT_DIR, f"HI-Small_Trans_SLT_{VARIANT}_{name}.csv")
     print(f"Saving: {out_path}")
     df.to_csv(out_path, index=False)
     print(f"Saved {out_path} [{int(df['SLT_injected'].sum())} injected rows]")

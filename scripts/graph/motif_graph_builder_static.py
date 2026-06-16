@@ -19,6 +19,7 @@ Everything baseline → preserved.
 Only difference → added criminology theory + motif features.
 """
 
+import argparse
 import os
 import json
 import gc
@@ -47,6 +48,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 BASE_DIR = str(PROJECT_ROOT)
 DATA_DIR = str(PROJECT_ROOT / "ibm_transcations_datasets")
 
+# Default dataset (overridden by --dataset CLI arg)
 # RAT
 # DATASET = os.path.join("RAT", "HI-Medium_Trans_RAT_low.csv")
 # DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_medium.csv")
@@ -62,6 +64,14 @@ DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_high.csv")
 # DATASET = os.path.join("STRAIN", "HI-Small_Trans_STRAIN_medium.csv")
 # DATASET = os.path.join("STRAIN", "HI-Small_Trans_STRAIN_high.csv")
 
+# CLI override: --dataset path/relative/to/ibm_transcations_datasets/
+_parser = argparse.ArgumentParser(description="Static motif graph builder")
+_parser.add_argument("--dataset", type=str, default=None,
+                     help="Dataset path relative to ibm_transcations_datasets/ "
+                          "(e.g. SLT/current/HI-Small_Trans_SLT_current_low.csv)")
+_args, _ = _parser.parse_known_args()
+if _args.dataset:
+    DATASET = _args.dataset
 
 INPUT_PATH = os.path.join(DATA_DIR, DATASET)
 dataset_name = os.path.splitext(os.path.basename(DATASET))[0]
