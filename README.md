@@ -79,8 +79,6 @@ A copy of the original **TGN** (Temporal Graph Networks) codebase is included un
 │       ├── labels.pt, y_node.pt
 │       └── *.json
 │
-├── graphs_tgat/                           # TGAT-format graphs (if used)
-│
 ├── splits/                                # Train/val/test index splits for static graphs
 │   └── <dataset_name>/
 │       ├── train_edge_idx.pt
@@ -89,7 +87,6 @@ A copy of the original **TGN** (Temporal Graph Networks) codebase is included un
 │       └── split_metadata.json
 │
 ├── splits_dyrep/                          # Chronological splits for DyRep
-├── splits_tgat/                           # Splits for TGAT
 │
 ├── results/                               # Per-run metrics, predictions, configs
 │   └── <dataset>/<experiment>/<model>/
@@ -640,22 +637,7 @@ python scripts/graph/motif_dyrep_graph_builder.py \
     --dataset SLT/HI-Small_Trans_SLT_medium.csv
 ```
 
-**TGAT event graphs:**
-
-```bash
-# Baseline
-python scripts/graph/baseline_graph_builder_tgat_events.py
-# override: --trans_file HI-Small_Trans.csv --out_dir tgat_graphs/HI-Small_Trans
-
-# With theory/motif features (default: RAT low)
-python scripts/graph/motif_graph_builder_tgat_events.py \
-    --dataset RAT/HI-Small_Trans_RAT_medium.csv
-# other examples:
-#   --dataset SLT/HI-Small_Trans_SLT_high.csv
-#   --dataset STRAIN/HI-Small_Trans_STRAIN_medium.csv
-```
-
-The `--dataset` path is relative to `ibm_transcations_datasets/`. Output lands in `graphs/<dataset_name>/`, `graphs_dyrep/<dataset_name>/`, or `tgat_graphs/<dataset_name>/` respectively.
+The `--dataset` path is relative to `ibm_transcations_datasets/`. Output lands in `graphs/<dataset_name>/` or `graphs_dyrep/<dataset_name>/` respectively.
 
 ### Step 3 — Create splits
 
