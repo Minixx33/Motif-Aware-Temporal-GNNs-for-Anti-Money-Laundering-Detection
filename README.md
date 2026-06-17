@@ -142,7 +142,9 @@ A copy of the original **TGN** (Temporal Graph Networks) codebase is included un
 │       ├── run_slt_all.sh
 │       ├── run_dyrep.sh
 │       ├── run_ablations.sh
-│       └── run_all.sh
+│       ├── run_all.sh
+│       ├── create_slt_ablation_variants.sh  # Inject + build graphs for all SLT weight variants
+│       └── run_slt_ablations.sh             # Train GraphSAGE-T × 5 seeds × SLT variants
 │
 ├── tgn/                                   # TGN reference codebase (Rossi et al. 2020)
 ├── aml_project.yml                        # Minimal conda environment (working env)
@@ -541,6 +543,17 @@ Computes Routine Activity Theory sub-scores (offender, target, guardian) and gra
 python scripts/rat/rat_injector.py
 ```
 
+All paths are auto-resolved; override any of them via CLI:
+
+```bash
+python scripts/rat/rat_injector.py \
+    --data_dir ibm_transcations_datasets \
+    --trans_file HI-Small_Trans.csv \
+    --acct_file HI-Small_accounts.csv \
+    --patterns_file HI-Small_Patterns.txt \
+    --output_dir ibm_transcations_datasets/RAT
+```
+
 Output:
 ```
 ibm_transcations_datasets/RAT/
@@ -557,7 +570,18 @@ Computes Social Learning Theory peer-exposure features (suspicious neighbour rat
 python scripts/SLT/slt_injector.py
 ```
 
-Output:
+Optional arguments (defaults shown):
+
+```bash
+python scripts/SLT/slt_injector.py \
+    --variant current \
+    --w_neighbor 0.30 --w_amount 0.25 --w_strong_tie 0.20 \
+    --w_delta 0.15 --w_cum 0.10 \
+    --data_dir ibm_transcations_datasets \
+    --output_dir ibm_transcations_datasets/SLT
+```
+
+Output (default `current` variant uses flat filenames):
 ```
 ibm_transcations_datasets/SLT/
 ├── HI-Small_Trans_SLT_low.csv
@@ -565,21 +589,33 @@ ibm_transcations_datasets/SLT/
 └── HI-Small_Trans_SLT_high.csv
 ```
 
-Optional weight arguments (defaults shown):
+For named variants (e.g. `neighbor_heavy`), files are written to `ibm_transcations_datasets/SLT/<variant>/` with filenames like `HI-Small_Trans_SLT_neighbor_heavy_medium.csv`.
+
+#### STRAIN injector
 
 ```bash
-python scripts/SLT/slt_injector.py \
-    --w_neighbor 0.30 --w_amount 0.25 --w_strong_tie 0.20 \
-    --w_delta 0.15 --w_cum 0.10
+python scripts/strain/strain_injector_ibm_small.py
+```
+
+Optional arguments:
+
+```bash
+python scripts/strain/strain_injector_ibm_small.py \
+    --prefix HI-Small \
+    --data_dir ibm_transcations_datasets \
+    --output_dir ibm_transcations_datasets/STRAIN
 ```
 
 ### Step 2 — Build graph tensors
+
+All graph builders auto-resolve paths from the repo root. Pass `--data_dir`, `--out_dir`, `--trans_file`/`--dataset` to override.
 
 **Static graphs (GraphSAGE / GraphSAGE-T):**
 
 ```bash
 # No theory features
 python scripts/graph/baseline_graph_builder.py
+# override example: --trans_file HI-Small_Trans.csv --out_dir graphs/HI-Small_Trans
 
 # RAT features
 python scripts/graph/motif_graph_builder_static.py \
@@ -587,7 +623,7 @@ python scripts/graph/motif_graph_builder_static.py \
 
 # SLT features
 python scripts/graph/motif_graph_builder_static.py \
-    --dataset SLT/HI-Small_Trans_SLT_low.csv
+    --dataset SLT/HI-Small_Trans_SLT_medium.csv
 ```
 
 **DyRep event graphs:**
@@ -604,7 +640,22 @@ python scripts/graph/motif_dyrep_graph_builder.py \
     --dataset SLT/HI-Small_Trans_SLT_medium.csv
 ```
 
-The `--dataset` path is relative to `ibm_transcations_datasets/`. Output lands in `graphs/<dataset_name>/` or `graphs_dyrep/<dataset_name>/` respectively.
+**TGAT event graphs:**
+
+```bash
+# Baseline
+python scripts/graph/baseline_graph_builder_tgat_events.py
+# override: --trans_file HI-Small_Trans.csv --out_dir tgat_graphs/HI-Small_Trans
+
+# With theory/motif features (default: RAT low)
+python scripts/graph/motif_graph_builder_tgat_events.py \
+    --dataset RAT/HI-Small_Trans_RAT_medium.csv
+# other examples:
+#   --dataset SLT/HI-Small_Trans_SLT_high.csv
+#   --dataset STRAIN/HI-Small_Trans_STRAIN_medium.csv
+```
+
+The `--dataset` path is relative to `ibm_transcations_datasets/`. Output lands in `graphs/<dataset_name>/`, `graphs_dyrep/<dataset_name>/`, or `tgat_graphs/<dataset_name>/` respectively.
 
 ### Step 3 — Create splits
 
@@ -640,6 +691,9 @@ Ablations strip feature groups from an existing graph's `edge_attr.pt` and write
 ```bash
 cd scripts/ablations
 python run_all_ablation_graphs.py
+# or specify a different source graph:
+python run_all_ablation_graphs.py \
+    --input_graph graphs_dyrep/HI-Small_Trans_RAT_high
 ```
 
 By default, reads from `graphs_dyrep/HI-Small_Trans_RAT_medium` and writes sibling folders like `graphs_dyrep/HI-Small_Trans_RAT_medium__no_motif`.
@@ -688,15 +742,17 @@ Each variant produces graphs at `graphs/HI-Small_Trans_SLT_<variant>_{low,medium
 
 **Step 2 — Train across all variants, intensities, and seeds.**
 
-`run_slt_ablations.sh` runs GraphSAGE-T with 5 seeds × 3 intensities × 5 variants (75 runs total). It temporarily patches `configs/base.yaml` for each seed/experiment name and restores it on exit:
+`run_slt_ablations.sh` runs GraphSAGE-T with 5 seeds for each variant (medium intensity only). It generates per-job temp configs to avoid race conditions when submitted as a SLURM array:
 
 ```bash
+# Local (sequential across all 5 variants)
 bash scripts/bash/run_slt_ablations.sh
+
+# SLURM (one variant per array task, parallel)
+sbatch scripts/bash/run_slt_ablations.sh
 ```
 
-Logs land in `scripts/bash/logs/slt_ablations_training_<timestamp>.log` and a `.done` marker is created on completion.
-
-> **Note:** `run_slt_ablations.sh` has a hardcoded `PYTHON_EXE` path for the original development machine. Before running, either update that path or replace it with `python` if your conda env is already activated.
+Logs land in `scripts/bash/logs/slt_ablations_training_<timestamp>.log`.
 
 ---
 
@@ -740,7 +796,7 @@ python scripts/analysis/feature_importance.py \
 
 ## 13. Bash Driver Scripts
 
-The scripts under `scripts/bash/` chain multiple training runs with timestamped logs. They auto-detect conda across common install locations (Linux/macOS/Windows-GitBash). Override defaults with environment variables:
+The scripts under `scripts/bash/` chain multiple training runs with timestamped logs. They auto-detect conda across common install locations (Linux/macOS/Windows-GitBash) and all include native SLURM headers. Override defaults with environment variables:
 
 ```bash
 CONDA_EXE=/path/to/conda CONDA_ENV=my_env bash scripts/bash/run_rat_all.sh
@@ -754,6 +810,8 @@ CONDA_EXE=/path/to/conda CONDA_ENV=my_env bash scripts/bash/run_rat_all.sh
 | `run_dyrep.sh` | DyRep on baseline + RAT low / medium / high |
 | `run_ablations.sh` | DyRep on all 9 RAT-medium ablation graphs |
 | `run_all.sh` | All models × all datasets in one sweep |
+| `create_slt_ablation_variants.sh` | Inject + build static/DyRep graphs for all 5 SLT weight variants |
+| `run_slt_ablations.sh` | GraphSAGE-T × 5 seeds × 5 SLT variants (medium intensity) |
 
 Always run from the project root:
 
@@ -763,30 +821,20 @@ bash scripts/bash/run_rat_all.sh
 
 A `.done` marker file is created on successful completion (e.g. `logs/RAT_ALL_FINISHED_<timestamp>.done`).
 
-### Running bash drivers with Slurm
+### Running bash drivers with SLURM
 
-On the AWS Slurm environment used for this project, run the bash driver scripts through an `sbatch` wrapper. The account and QoS values are cluster-specific and should be changed if running elsewhere.
-
-Example wrapper for RAT experiments:
+All bash driver scripts contain embedded `#SBATCH` headers and can be submitted directly with `sbatch`. No wrapper script is needed:
 
 ```bash
-#!/bin/bash
-#SBATCH --job-name=aml_rat_all
-#SBATCH --account=...
-#SBATCH --partition=gpu
-#SBATCH --qos=...
-#SBATCH --gres=gpu:1
-#SBATCH --cpus-per-task=4
-#SBATCH --time=12:00:00
-#SBATCH --output=aml_rat_all_%j.out
-#SBATCH --error=aml_rat_all_%j.err
+sbatch scripts/bash/run_rat_all.sh
+sbatch scripts/bash/run_slt_all.sh
+sbatch scripts/bash/create_slt_ablation_variants.sh
+sbatch scripts/bash/run_slt_ablations.sh
+```
 
-source /opt/miniconda/etc/profile.d/conda.sh
-conda activate aml_project
+Scripts that use array jobs (e.g. `run_slt_all.sh`, `run_all.sh`, `run_slt_ablations.sh`) split work across parallel tasks via `#SBATCH --array`. Each task writes its own per-job temp config to avoid race conditions, and cleans up on exit.
 
-cd /shared/<user>/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection
-
-bash scripts/bash/run_rat_all.sh
+The `--account` and `--partition` values in the headers are set for the AWS cluster used in this project (`--account=acc-mialhajri`). Update them before submitting on a different cluster.
 
 ---
 

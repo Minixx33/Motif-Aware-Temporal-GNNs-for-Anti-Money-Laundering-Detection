@@ -25,23 +25,41 @@
 #   HI-Small_accounts.csv
 # ============================================================
 
+import argparse
 import os
 import json
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import torch
 
 # ============================================================
+# CLI ARGS
+# ============================================================
+
+_parser = argparse.ArgumentParser(description="Baseline TGAT event graph builder")
+_parser.add_argument("--data_dir",    type=str, default=None,
+                     help="Path to ibm_transcations_datasets/ (default: auto-resolved)")
+_parser.add_argument("--trans_file",  type=str, default="HI-Small_Trans.csv",
+                     help="Transaction CSV filename (default: HI-Small_Trans.csv)")
+_parser.add_argument("--acct_file",   type=str, default="HI-Small_accounts.csv",
+                     help="Accounts CSV filename (default: HI-Small_accounts.csv)")
+_parser.add_argument("--out_dir",     type=str, default=None,
+                     help="Output directory (default: <project_root>/tgat_graphs/<dataset_name>)")
+_args, _ = _parser.parse_known_args()
+
+# ============================================================
 # CONFIG
 # ============================================================
 
-BASE_DIR = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\ibm_transcations_datasets"
-OUT_DIR = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\tgat_graphs"
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+BASE_DIR = _args.data_dir if _args.data_dir else str(PROJECT_ROOT / "ibm_transcations_datasets")
 
-TRANS_FILE = "HI-Small_Trans.csv"
-ACCOUNTS_FILE = "HI-Small_accounts.csv"
+TRANS_FILE    = _args.trans_file
+ACCOUNTS_FILE = _args.acct_file
 
-OUT_DIR = os.path.join(OUT_DIR, "HI-Small_Trans")
+DATASET_NAME = os.path.splitext(TRANS_FILE)[0]
+OUT_DIR = _args.out_dir if _args.out_dir else str(PROJECT_ROOT / "tgat_graphs" / DATASET_NAME)
 os.makedirs(OUT_DIR, exist_ok=True)
 
 # Column names

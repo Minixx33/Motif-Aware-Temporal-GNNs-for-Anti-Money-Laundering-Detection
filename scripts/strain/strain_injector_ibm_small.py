@@ -39,24 +39,40 @@ NOTE:
   It does NOT change labels or add synthetic transactions.
 """
 
+import argparse
 from pathlib import Path
 import numpy as np
 import pandas as pd
 from collections import defaultdict
 
+# ---------------------------------------------------------------------
+# CLI ARGS
+# ---------------------------------------------------------------------
+
+_parser = argparse.ArgumentParser(description="STRAIN feature injector")
+_parser.add_argument("--prefix",     type=str, default="HI-Small",
+                     help="Dataset prefix (default: HI-Small)")
+_parser.add_argument("--data_dir",   type=str, default=None,
+                     help="Path to ibm_transcations_datasets/ (default: auto-resolved)")
+_parser.add_argument("--output_dir", type=str, default=None,
+                     help="Output directory for injected CSVs (default: <data_dir>/STRAIN)")
+_args = _parser.parse_args()
 
 # ---------------------------------------------------------------------
 # CONFIG
 # ---------------------------------------------------------------------
 
-PREFIX = "HI-Small"
+PREFIX = _args.prefix
 
-BASE_DIR = Path(__file__).resolve().parent
-TRANS_PATH = BASE_DIR / f"{PREFIX}_Trans.csv"
+# Resolve from script location: scripts/strain/ → parents[2] is repo root
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+BASE_DIR = Path(_args.data_dir) if _args.data_dir else PROJECT_ROOT / "ibm_transcations_datasets"
+
+TRANS_PATH    = BASE_DIR / f"{PREFIX}_Trans.csv"
 ACCOUNTS_PATH = BASE_DIR / f"{PREFIX}_accounts.csv"
 
-OUT_DIR = BASE_DIR / "strain"
-OUT_DIR.mkdir(exist_ok=True)
+OUT_DIR = Path(_args.output_dir) if _args.output_dir else BASE_DIR / "STRAIN"
+OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 # ---------------------------------------------------------------------

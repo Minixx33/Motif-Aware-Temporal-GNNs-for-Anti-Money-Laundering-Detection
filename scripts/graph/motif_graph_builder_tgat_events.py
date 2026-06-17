@@ -24,34 +24,53 @@ Theory + Motif features:
 This version is NaN-safe and Inf-safe for TGAT.
 """
 
+import argparse
 import os
 import json
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import torch
 
 # ============================================================
+# CLI ARGS
+# ============================================================
+
+_parser = argparse.ArgumentParser(description="Motif/theory TGAT event graph builder")
+_parser.add_argument("--dataset",  type=str, default=None,
+                     help="Dataset path relative to ibm_transcations_datasets/ "
+                          "(default: RAT/HI-Small_Trans_RAT_low.csv). "
+                          "Examples: 'SLT/HI-Small_Trans_SLT_medium.csv', "
+                          "'STRAIN/HI-Small_Trans_STRAIN_high.csv'")
+_parser.add_argument("--data_dir", type=str, default=None,
+                     help="Path to ibm_transcations_datasets/ (default: auto-resolved)")
+_parser.add_argument("--out_dir",  type=str, default=None,
+                     help="Output directory (default: <project_root>/tgat_graphs/<dataset_name>)")
+_args, _ = _parser.parse_known_args()
+
+# ============================================================
 # CONFIG
 # ============================================================
 
-BASE_DIR = r"C:\Users\yasmi\OneDrive\Desktop\Uni - Master's\Fall 2025\MLR 570\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection"
-DATA_DIR = os.path.join(BASE_DIR, "ibm_transcations_datasets")
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DATA_DIR = _args.data_dir if _args.data_dir else str(PROJECT_ROOT / "ibm_transcations_datasets")
 
-# SELECT ONE DATASET
-DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_low.csv")
-# DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_medium.csv")
-# DATASET = os.path.join("RAT", "HI-Small_Trans_RAT_high.csv")
-# DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_low.csv")
-# DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_medium.csv")
-# DATASET = os.path.join("SLT", "HI-Small_Trans_SLT_high.csv")
-# DATASET = os.path.join("STRAIN", "HI-Small_Trans_STRAIN_low.csv")
-# DATASET = os.path.join("STRAIN", "HI-Small_Trans_STRAIN_medium.csv")
-# DATASET = os.path.join("STRAIN", "HI-Small_Trans_STRAIN_high.csv")
+# SELECT DATASET via CLI or default
+DATASET = _args.dataset if _args.dataset else os.path.join("RAT", "HI-Small_Trans_RAT_low.csv")
+# Other options (pass via --dataset):
+#   RAT/HI-Small_Trans_RAT_medium.csv
+#   RAT/HI-Small_Trans_RAT_high.csv
+#   SLT/HI-Small_Trans_SLT_low.csv
+#   SLT/HI-Small_Trans_SLT_medium.csv
+#   SLT/HI-Small_Trans_SLT_high.csv
+#   STRAIN/HI-Small_Trans_STRAIN_low.csv
+#   STRAIN/HI-Small_Trans_STRAIN_medium.csv
+#   STRAIN/HI-Small_Trans_STRAIN_high.csv
 
 INPUT_PATH = os.path.join(DATA_DIR, DATASET)
 dataset_name = os.path.splitext(os.path.basename(DATASET))[0]
 
-OUT_DIR = os.path.join(BASE_DIR, "tgat_graphs", dataset_name)
+OUT_DIR = _args.out_dir if _args.out_dir else str(PROJECT_ROOT / "tgat_graphs" / dataset_name)
 os.makedirs(OUT_DIR, exist_ok=True)
 
 # ============================================================

@@ -46,6 +46,10 @@ _parser.add_argument("--w_amount",     type=float, default=0.25, help="Weight: s
 _parser.add_argument("--w_strong_tie", type=float, default=0.20, help="Weight: strong-tie suspicious ratio")
 _parser.add_argument("--w_delta",      type=float, default=0.15, help="Weight: exposure delta")
 _parser.add_argument("--w_cum",        type=float, default=0.10, help="Weight: cumulative 7-day exposure")
+_parser.add_argument("--data_dir",     type=str,   default=None,
+                     help="Path to ibm_transcations_datasets/ (default: auto-resolved from script location)")
+_parser.add_argument("--output_dir",   type=str,   default=None,
+                     help="Output directory for injected CSVs (default: <data_dir>/SLT[/<variant>])")
 _args = _parser.parse_args()
 
 VARIANT      = _args.variant
@@ -62,7 +66,7 @@ print(f"[SLT] Variant: {VARIANT}  weights=({W_NEIGHBOR}, {W_AMOUNT}, {W_STRONG_T
 # Resolve project root from this file's location so paths work on Windows / Linux / macOS.
 # scripts/SLT/slt_injector.py  →  parents[2] is the repo root.
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-BASE_DIR = str(PROJECT_ROOT / "ibm_transcations_datasets")
+BASE_DIR = _args.data_dir if _args.data_dir else str(PROJECT_ROOT / "ibm_transcations_datasets")
 
 TX_CSV_PATH       = os.path.join(BASE_DIR, "HI-Small_Trans.csv")
 ACCOUNTS_CSV_PATH = os.path.join(BASE_DIR, "HI-Small_accounts.csv")
@@ -70,7 +74,9 @@ PATTERNS_TXT_PATH = os.path.join(BASE_DIR, "HI-Small_Patterns.txt")   # optional
 
 # "current" uses the flat SLT/ folder with the default naming convention.
 # All other variants get their own subfolder.
-if VARIANT == "current":
+if _args.output_dir:
+    OUTPUT_DIR = _args.output_dir
+elif VARIANT == "current":
     OUTPUT_DIR = os.path.join(BASE_DIR, "SLT")
 else:
     OUTPUT_DIR = os.path.join(BASE_DIR, "SLT", VARIANT)

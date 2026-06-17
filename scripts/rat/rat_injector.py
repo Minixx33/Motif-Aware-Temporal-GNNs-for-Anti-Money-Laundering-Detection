@@ -3,24 +3,40 @@ RAT + Motif Feature Injection for IBM HI-Small (Multiplicative Version)
 Fixed Version – No NaN Threshold, Correct Injection
 """
 
+import argparse
 import os
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
+# ===================== CLI ARGS =====================
+
+_parser = argparse.ArgumentParser(description="RAT feature injector")
+_parser.add_argument("--data_dir",    type=str, default=None,
+                     help="Path to ibm_transcations_datasets/ (default: auto-resolved)")
+_parser.add_argument("--trans_file",  type=str, default="HI-Small_Trans.csv",
+                     help="Transaction CSV filename inside data_dir (default: HI-Small_Trans.csv)")
+_parser.add_argument("--acct_file",   type=str, default="HI-Small_accounts.csv",
+                     help="Accounts CSV filename inside data_dir (default: HI-Small_accounts.csv)")
+_parser.add_argument("--patterns_file", type=str, default="HI-Small_Patterns.txt",
+                     help="Patterns txt filename inside data_dir (default: HI-Small_Patterns.txt)")
+_parser.add_argument("--output_dir",  type=str, default=None,
+                     help="Output directory for injected CSVs (default: <data_dir>/RAT)")
+_args = _parser.parse_args()
+
 # ===================== CONFIG =====================
 
 # Resolve project root from this file's location so paths work on Windows / Linux / macOS.
 # scripts/rat/rat_injector.py  →  parents[2] is the repo root.
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-BASE_DIR = str(PROJECT_ROOT / "ibm_transcations_datasets")
+BASE_DIR = _args.data_dir if _args.data_dir else str(PROJECT_ROOT / "ibm_transcations_datasets")
 
-TX_CSV_PATH       = os.path.join(BASE_DIR, "HI-Medium_Trans.csv")
-ACCOUNTS_CSV_PATH = os.path.join(BASE_DIR, "HI-Medium_accounts.csv")
-PATTERNS_TXT_PATH = os.path.join(BASE_DIR, "HI-Medium_patterns.txt")  # optional
+TX_CSV_PATH       = os.path.join(BASE_DIR, _args.trans_file)
+ACCOUNTS_CSV_PATH = os.path.join(BASE_DIR, _args.acct_file)
+PATTERNS_TXT_PATH = os.path.join(BASE_DIR, _args.patterns_file)
 
-OUTPUT_DIR        = os.path.join(BASE_DIR, "RAT")
+OUTPUT_DIR = _args.output_dir if _args.output_dir else os.path.join(BASE_DIR, "RAT")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 TS_COL      = "Timestamp"
