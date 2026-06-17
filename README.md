@@ -121,8 +121,10 @@ A copy of the original **TGN** (Temporal Graph Networks) codebase is included un
 │   │   └── train_dyrep.py
 │   ├── ablations/                         # Ablation graph builders
 │   │   ├── rat_ablation_groups.py
-│   │   ├── run_ablation.py
-│   │   └── run_all_ablation_graphs.py
+│   │   ├── run_ablation.py                # DyRep ablation (strips edge_attr columns)
+│   │   ├── run_all_ablation_graphs.py     # Runs all DyRep ablations
+│   │   ├── run_ablation_static.py         # Static graph ablation (GraphSAGE-T)
+│   │   └── run_all_ablation_graphs_static.py  # Runs all static ablations
 │   ├── analysis/                          # Evaluation and visualisation
 │   │   ├── analyze_dataset.py
 │   │   ├── feature_importance.py
@@ -664,35 +666,54 @@ If `--out_dir` is omitted, it defaults to `splits/<dataset_name>` (or `splits_dy
 
 Ablations strip feature groups from an existing graph's `edge_attr.pt` and write a sibling graph directory. This lets you train on partial feature sets without re-running injection or graph building.
 
+Two variants exist — one for each graph format:
+
+| Script | Graph format | Model |
+|---|---|---|
+| `run_all_ablation_graphs.py` | DyRep (`graphs_dyrep/`) | DyRep |
+| `run_all_ablation_graphs_static.py` | Static (`graphs/`) | GraphSAGE-T |
+
 ### Defined feature groups (`scripts/ablations/rat_ablation_groups.py`)
 
 `no_struct`, `no_temp`, `no_amount`, `no_burst_pattern`, `no_entity`, `no_rat_scores`, `no_motif`, `no_crossbank`, `top20_features` (positive selection of top-20 RF-important features).
 
-### Build all ablation graphs at once
+### GraphSAGE-T ablations (recommended — best-performing model)
+
+The bash script handles both steps (graph building + splits) in one go:
+
+```bash
+# local
+bash scripts/bash/create_rat_ablation_graphs_static.sh
+
+# SLURM
+sbatch scripts/bash/create_rat_ablation_graphs_static.sh
+```
+
+This reads from `graphs/HI-Small_Trans_RAT_medium`, writes 9 sibling folders like `graphs/HI-Small_Trans_RAT_medium__no_motif`, and creates splits in `splits/HI-Small_Trans_RAT_medium__<name>/`.
+
+To run the steps manually:
+
+```bash
+cd scripts/ablations
+python run_all_ablation_graphs_static.py
+# or a different source:
+python run_all_ablation_graphs_static.py --input_graph graphs/HI-Small_Trans_RAT_high
+
+# then splits for each:
+python scripts/create_splits.py --graph_folder graphs/HI-Small_Trans_RAT_medium__no_motif
+# ... repeat for each ablation name
+```
+
+### DyRep ablations
 
 ```bash
 cd scripts/ablations
 python run_all_ablation_graphs.py
-# or specify a different source graph:
-python run_all_ablation_graphs.py \
-    --input_graph graphs_dyrep/HI-Small_Trans_RAT_high
+# or:
+python run_all_ablation_graphs.py --input_graph graphs_dyrep/HI-Small_Trans_RAT_high
 ```
 
-By default, reads from `graphs_dyrep/HI-Small_Trans_RAT_medium` and writes sibling folders like `graphs_dyrep/HI-Small_Trans_RAT_medium__no_motif`.
-
-### Build a single ablation
-
-```python
-from scripts.ablations.run_ablation import run_ablation
-from scripts.ablations.rat_ablation_groups import FULL_FEATURES, NO_MOTIF
-
-keep = [f for f in FULL_FEATURES if f not in NO_MOTIF]
-run_ablation(
-    full_graph_dir="graphs_dyrep/HI-Small_Trans_RAT_medium",
-    output_dir="graphs_dyrep/HI-Small_Trans_RAT_medium__no_motif",
-    keep_features=keep,
-)
-```
+By default reads from `graphs_dyrep/HI-Small_Trans_RAT_medium` and writes sibling folders like `graphs_dyrep/HI-Small_Trans_RAT_medium__no_motif`.
 
 ### Train on an ablation graph
 
@@ -784,6 +805,16 @@ The scripts under `scripts/bash/` chain multiple training runs with timestamped 
 CONDA_EXE=/path/to/conda CONDA_ENV=my_env bash scripts/bash/run_rat_all.sh
 ```
 
+**Local vs AWS conda path.** By default the scripts activate the env by name (`aml_project`), which works on any machine where the env is installed. On AWS, where the shared env lives at a full path, override with:
+
+```bash
+# AWS
+CONDA_ENV=/shared/conda_envs/aml_project sbatch scripts/bash/run_rat_all.sh
+
+# local (default — no override needed if env is named aml_project)
+bash scripts/bash/run_rat_all.sh
+```
+
 | Script | What it runs |
 |---|---|
 | `run_baseline.sh` | Baseline dataset (no theory), all models |
@@ -794,6 +825,7 @@ CONDA_EXE=/path/to/conda CONDA_ENV=my_env bash scripts/bash/run_rat_all.sh
 | `run_all.sh` | All models × all datasets in one sweep |
 | `create_slt_ablation_variants.sh` | Inject + build static/DyRep graphs for all 5 SLT weight variants |
 | `run_slt_ablations.sh` | GraphSAGE-T × 5 seeds × 5 SLT variants (medium intensity) |
+| `create_rat_ablation_graphs_static.sh` | Build all 9 RAT feature-ablation static graphs + splits (GraphSAGE-T) |
 
 Always run from the project root:
 
