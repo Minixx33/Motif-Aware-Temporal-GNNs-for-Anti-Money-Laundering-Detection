@@ -3,11 +3,11 @@
 # Array layout: task_id // 3 = dataset (0=baseline,1=rat_low,2=rat_med,3=rat_high)
 #               task_id  % 3 = model   (0=graphsage,1=graphsage_t,2=dyrep)
 #SBATCH --job-name=all_experiments
+#SBATCH --account=acc-mialhajri
 #SBATCH --array=0-11
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=32G
-#SBATCH --time=06:00:00
+#SBATCH --time=500:00:00
 #SBATCH --output=scripts/bash/logs/all_exp_%A_%a.log
 #SBATCH --error=scripts/bash/logs/all_exp_%A_%a.err
 set -e
@@ -51,7 +51,7 @@ fi
 
 # shellcheck disable=SC1091
 source "$CONDA_BASE/etc/profile.d/conda.sh"
-conda activate "${CONDA_ENV:-aml_project}"
+conda activate "/shared/conda_envs/aml_project"
 
 echo "Using Python: $(which python)"
 python --version

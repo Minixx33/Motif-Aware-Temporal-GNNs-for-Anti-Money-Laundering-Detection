@@ -13,10 +13,10 @@
 #
 # SLURM directives — ignored when run with bash directly:
 #SBATCH --job-name=slt_create_variants
+#SBATCH --account=acc-mialhajri
 #SBATCH --array=0-4
 #SBATCH --cpus-per-task=8
-#SBATCH --mem=64G
-#SBATCH --time=06:00:00
+#SBATCH --time=500:00:00
 #SBATCH --output=scripts/bash/logs/slt_create_%A_%a.log
 #SBATCH --error=scripts/bash/logs/slt_create_%A_%a.err
 # ===========================================================================
@@ -58,7 +58,7 @@ fi
 
 # shellcheck disable=SC1091
 source "$CONDA_BASE/etc/profile.d/conda.sh"
-conda activate "${CONDA_ENV:-aml_project}"
+conda activate "/shared/conda_envs/aml_project"
 
 echo "Using Python: $(which python)"
 python --version

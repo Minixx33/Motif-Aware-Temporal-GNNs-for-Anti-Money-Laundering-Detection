@@ -6,21 +6,22 @@
 # across all 3 intensities (low / medium / high).
 #
 # LOCAL:  bash run_slt_ablations.sh   (runs all 75 combos sequentially)
-# SLURM:  sbatch run_slt_ablations.sh (15 parallel GPU jobs, one per
-#                                       variant×intensity; 5 seeds per job)
+# SLURM:  sbatch run_slt_ablations.sh (5 parallel GPU jobs, one per
+#                                       SLT variant at medium intensity;
+#                                       5 seeds per job)
 #
 # SLURM array layout (task ID → variant, intensity):
 #   task = variant_idx * 3 + intensity_idx
 #   variants  (0-4): current, equal, neighbor_heavy, amount_heavy, temporal_heavy
-#   intensities (0-2): low, medium, high
+#   intensity: medium 
 #
 # SLURM directives — ignored when run with bash directly:
 #SBATCH --job-name=slt_ablations_train
-#SBATCH --array=0-14
+#SBATCH --account=acc-mialhajri
+#SBATCH --array=0-4
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=32G
-#SBATCH --time=08:00:00
+#SBATCH --time=500:00:00
 #SBATCH --output=scripts/bash/logs/slt_ablations_%A_%a.log
 #SBATCH --error=scripts/bash/logs/slt_ablations_%A_%a.err
 # ===========================================================================
@@ -62,7 +63,7 @@ fi
 
 # shellcheck disable=SC1091
 source "$CONDA_BASE/etc/profile.d/conda.sh"
-conda activate "${CONDA_ENV:-aml_project}"
+conda activate "/shared/conda_envs/aml_project"
 
 echo "Using Python: $(which python)"
 python --version
@@ -114,7 +115,7 @@ VARIANTS=(
     "amount_heavy"   # 3
     "temporal_heavy" # 4
 )
-INTENSITIES=("low" "medium" "high")   # 0 1 2
+INTENSITIES=("medium")   # 0 1 2
 
 SEEDS=(1 2 3 4 5)
 
@@ -125,15 +126,11 @@ SEEDS=(1 2 3 4 5)
 # ---------------------------------------------------------------------------
 if [ -n "${SLURM_ARRAY_TASK_ID:-}" ]; then
     TASK_ID=$SLURM_ARRAY_TASK_ID
-    VARIANT_IDX=$(( TASK_ID / 3 ))
-    INTENSITY_IDX=$(( TASK_ID % 3 ))
-    RUN_PAIRS=("${VARIANTS[$VARIANT_IDX]} ${INTENSITIES[$INTENSITY_IDX]}")
+    RUN_PAIRS=("${VARIANTS[$TASK_ID]} medium")
 else
     RUN_PAIRS=()
     for v_idx in "${!VARIANTS[@]}"; do
-        for i_idx in "${!INTENSITIES[@]}"; do
-            RUN_PAIRS+=("${VARIANTS[$v_idx]} ${INTENSITIES[$i_idx]}")
-        done
+        RUN_PAIRS+=("${VARIANTS[$v_idx]} medium")
     done
 fi
 
@@ -184,7 +181,7 @@ make_dataset_config() {
 dataset:
   theory: "SLT"
   prefix: "HI-Small_Trans_SLT_${VARIANT}"
-  available_intensities: ["low", "medium", "high"]
+  available_intensities: ["medium"]
   requires_intensity: true
 EOF
     echo "$CFG"

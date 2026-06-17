@@ -2,11 +2,11 @@
 # SLURM directives — ignored when run with bash directly:
 # Array layout: 0=baseline  1=RAT-low  2=RAT-medium  3=RAT-high
 #SBATCH --job-name=dyrep_all
+#SBATCH --account=acc-mialhajri
 #SBATCH --array=0-3
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=32G
-#SBATCH --time=06:00:00
+#SBATCH --time=500:00:00
 #SBATCH --output=scripts/bash/logs/dyrep_%A_%a.log
 #SBATCH --error=scripts/bash/logs/dyrep_%A_%a.err
 set -e
@@ -50,7 +50,7 @@ fi
 
 # shellcheck disable=SC1091
 source "$CONDA_BASE/etc/profile.d/conda.sh"
-conda activate "${CONDA_ENV:-aml_project}"
+conda activate "/shared/conda_envs/aml_project"
 
 echo "Using Python: $(which python)"
 python --version
