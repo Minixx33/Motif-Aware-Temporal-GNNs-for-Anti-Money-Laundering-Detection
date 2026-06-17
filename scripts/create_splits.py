@@ -207,7 +207,9 @@ def create_splits(graph_folder, out_dir=None,
     dataset_name = os.path.basename(graph_folder)
 
     if out_dir is None:
-        base = os.path.join(os.path.dirname(graph_folder), "..", "splits")
+        graph_type = detect_graph_type(graph_folder)
+        splits_dir = "splits_dyrep" if graph_type == "temporal" else "splits"
+        base = os.path.join(os.path.dirname(graph_folder), "..", splits_dir)
         out_dir = os.path.join(base, dataset_name)
 
     out_dir = os.path.abspath(out_dir)
