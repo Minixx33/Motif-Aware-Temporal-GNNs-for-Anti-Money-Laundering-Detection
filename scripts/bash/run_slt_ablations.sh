@@ -13,11 +13,13 @@
 # SLURM array layout (task ID → variant, intensity):
 #   task = variant_idx * 3 + intensity_idx
 #   variants  (0-4): current, equal, neighbor_heavy, amount_heavy, temporal_heavy
-#   intensity: medium 
+#   intensity: medium
 #
 # SLURM directives — ignored when run with bash directly:
 #SBATCH --job-name=slt_ablations_train
 #SBATCH --account=acc-mialhajri
+#SBATCH --partition=gpu
+#SBATCH --qos=gpu-long-mialhajri-001
 #SBATCH --array=0-4
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=4
@@ -31,8 +33,12 @@ set -o pipefail
 # ---------------------------------------------------------------------------
 # Resolve project root
 # ---------------------------------------------------------------------------
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "$SCRIPT_DIR/../.."
+if [ -n "${SLURM_SUBMIT_DIR:-}" ]; then
+    cd "$SLURM_SUBMIT_DIR"
+else
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+    cd "$SCRIPT_DIR/../.."
+fi
 PROJECT_ROOT="$(pwd)"
 echo "Project root: $PROJECT_ROOT"
 
@@ -63,7 +69,8 @@ fi
 
 # shellcheck disable=SC1091
 source "$CONDA_BASE/etc/profile.d/conda.sh"
-conda activate "/shared/conda_envs/aml_project"
+CONDA_ENV="${CONDA_ENV:-aml_project}"
+conda activate "$CONDA_ENV"
 
 echo "Using Python: $(which python)"
 python --version
