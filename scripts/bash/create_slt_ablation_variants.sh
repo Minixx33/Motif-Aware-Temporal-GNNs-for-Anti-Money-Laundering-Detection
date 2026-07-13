@@ -14,7 +14,10 @@
 # SLURM directives — ignored when run with bash directly:
 #SBATCH --job-name=slt_create_variants
 #SBATCH --account=acc-mialhajri
+#SBATCH --partition=gpu
+#SBATCH --qos=gpu-long-mialhajri-001
 #SBATCH --array=0-4
+#SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
 #SBATCH --time=500:00:00
 #SBATCH --output=scripts/bash/logs/slt_create_%A_%a.log
@@ -26,8 +29,12 @@ set -o pipefail
 # ---------------------------------------------------------------------------
 # Resolve project root
 # ---------------------------------------------------------------------------
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "$SCRIPT_DIR/../.."
+if [ -n "${SLURM_SUBMIT_DIR:-}" ]; then
+    cd "$SLURM_SUBMIT_DIR"
+else
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+    cd "$SCRIPT_DIR/../.."
+fi
 PROJECT_ROOT="$(pwd)"
 echo "Project root: $PROJECT_ROOT"
 
@@ -108,7 +115,7 @@ ALL_VARIANTS=(
     "temporal_heavy 0.20 0.15 0.15 0.25 0.25"   # 4
 )
 
-INTENSITIES=("low" "medium" "high")
+INTENSITIES=("medium")
 
 # SLURM array → run only the variant at this task ID
 # Local run   → run all variants sequentially
@@ -163,6 +170,8 @@ for VARIANT_LINE in "${VARIANTS_TO_RUN[@]}"; do
         fi
         STATIC_OUT="${PROJECT_ROOT}/graphs/${DATASET_NAME}"
         DYREP_OUT="${PROJECT_ROOT}/graphs_dyrep/${DATASET_NAME}"
+        STATIC_SPLIT_OUT="${PROJECT_ROOT}/splits/${DATASET_NAME}"
+        DYREP_SPLIT_OUT="${PROJECT_ROOT}/splits_dyrep/${DATASET_NAME}"
 
         log ""
         log "--- intensity=$INTENSITY ---"
@@ -182,13 +191,13 @@ for VARIANT_LINE in "${VARIANTS_TO_RUN[@]}"; do
         # STEP 4a: Splits — static
         log ">>> [$(date +%H:%M:%S)] STEP 4a: Splits (static)"
         t0=$(date +%s)
-        python "$SPLITS_SCRIPT" --graph_folder "$STATIC_OUT" --out_dir "$STATIC_OUT"
+        python "$SPLITS_SCRIPT" --graph_folder "$STATIC_OUT" --out_dir "$STATIC_SPLIT_OUT"
         log ">>> done in $(elapsed $(($(date +%s) - t0)))"
 
         # STEP 4b: Splits — DyRep
         log ">>> [$(date +%H:%M:%S)] STEP 4b: Splits (DyRep)"
         t0=$(date +%s)
-        python "$SPLITS_SCRIPT" --graph_folder "$DYREP_OUT" --out_dir "$DYREP_OUT"
+        python "$SPLITS_SCRIPT" --graph_folder "$DYREP_OUT" --out_dir "$DYREP_SPLIT_OUT"
         log ">>> done in $(elapsed $(($(date +%s) - t0)))"
 
     done  # intensities

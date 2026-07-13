@@ -4,7 +4,9 @@
 # Update --array upper bound whenever you add/remove active ablations.
 #SBATCH --job-name=rat_ablations
 #SBATCH --account=acc-mialhajri
-#SBATCH --array=0-0
+#SBATCH --partition=gpu
+#SBATCH --qos=gpu-long-mialhajri-001
+#SBATCH --array=0-8
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=4
 #SBATCH --time=500:00:00
@@ -16,8 +18,12 @@ set -o pipefail
 # ---------------------------------------------------------
 # Move to project root
 # ---------------------------------------------------------
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "$SCRIPT_DIR/../.."
+if [ -n "${SLURM_SUBMIT_DIR:-}" ]; then
+    cd "$SLURM_SUBMIT_DIR"
+else
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+    cd "$SCRIPT_DIR/../.."
+fi
 PROJECT_ROOT="$(pwd)"
 
 echo "Running from project root: $PROJECT_ROOT"
@@ -60,9 +66,9 @@ python --version
 # Paths
 # ---------------------------------------------------------
 BASE_CONFIG="configs/base.yaml"
-MODEL_CONFIG="configs/models/dyrep.yaml"
+MODEL_CONFIG="configs/models/graphsage_t.yaml"
 DATASET_CONFIG="configs/datasets/rat.yaml"
-TRAIN_SCRIPT="scripts/training/train_dyrep.py"
+TRAIN_SCRIPT="scripts/training/train_graphsage_t.py"
 
 # ---------------------------------------------------------
 # Verify files
@@ -80,10 +86,10 @@ done
 ts=$(date +"%Y%m%d_%H%M%S")
 LOG_DIR="logs"
 mkdir -p "$LOG_DIR"
-LOG_FILE="$LOG_DIR/dyrep_rat_medium_ablation_${ts}.log"
+LOG_FILE="$LOG_DIR/graphsage_t_rat_medium_ablation_${ts}.log"
 
 echo "=====================================================================" | tee -a "$LOG_FILE"
-echo "       Running DYREP RAT-MEDIUM Ablation Experiments (9 sets)         " | tee -a "$LOG_FILE"
+echo "       Running GraphSAGE-T RAT-MEDIUM Ablation Experiments (9 sets)         " | tee -a "$LOG_FILE"
 echo " Timestamp: $ts " | tee -a "$LOG_FILE"
 echo "=====================================================================" | tee -a "$LOG_FILE"
 
@@ -93,22 +99,22 @@ echo ">>> GPU INFO:" | tee -a "$LOG_FILE"
 nvidia-smi 2>&1 | tee -a "$LOG_FILE" || echo "GPU not available" | tee -a "$LOG_FILE"
 
 # =========================================================
-# Helper: run DyRep on one ablation graph
+# Helper: run GraphSAGE on one ablation graph
 # =========================================================
-# NOTE: This assumes train_dyrep.py supports an optional
+# NOTE: This assumes train_graphsage_t.py supports an optional
 #       --graph_suffix argument that appends to the base
-#       DyRep graph folder name, e.g.:
+#       GraphSAGE-T graph folder name, e.g.:
 #       HI-Small_Trans_RAT_medium__no_struct
 # =========================================================
-run_dyrep_ablation() {
+run_graphsage_ablation() {
     local NAME="$1"
     local GRAPH_SUFFIX="$2"
 
     echo "" | tee -a "$LOG_FILE"
-    echo ">>> Running DyRep on ablation: $NAME" | tee -a "$LOG_FILE"
+    echo ">>> Running GraphSAGE-T on ablation: $NAME" | tee -a "$LOG_FILE"
 
     # Create dynamic base config
-    TMP_BASE="configs/base_${NAME}.yaml"
+    TMP_BASE="configs/base_rat_ablation_${SLURM_JOB_ID:-local}_${SLURM_ARRAY_TASK_ID:-0}_${NAME}.yaml"
     cp "$BASE_CONFIG" "$TMP_BASE"
     sed -i "s/name:.*/name: \"ablation_${NAME}\"/" "$TMP_BASE"
 
@@ -126,7 +132,7 @@ run_dyrep_ablation() {
         echo ">>> COMPLETED: $NAME in $((end-start))s" | tee -a "$LOG_FILE"
 
     else
-        echo ">>> FAILURE: DyRep on ablation $NAME" | tee -a "$LOG_FILE"
+        echo ">>> FAILURE: GraphSAGE-T on ablation $NAME" | tee -a "$LOG_FILE"
         exit 1
     fi
 
@@ -136,7 +142,7 @@ run_dyrep_ablation() {
 
 
 # =========================================================
-# STEP 1 — Run DyRep on ALL 9 ablation folders
+# STEP 1 — Run GraphSAGE on ALL 9 ablation folders
 # (graphs_dyrep/HI-Small_Trans_RAT_medium__<name>)
 # =========================================================
 
@@ -145,23 +151,23 @@ run_dyrep_ablation() {
 # the number of uncommented entries minus 1.
 declare -a ABLATIONS=(
     "no_struct"
-    # "no_temp"
-    # "no_amount"
-    # "no_burst_pattern"
-    # "no_entity"
-    # "no_rat_scores"
-    # "no_motif"
-    # "no_crossbank"
-    # "top20_features"
+    "no_temp"
+    "no_amount"
+    "no_burst_pattern"
+    "no_entity"
+    "no_rat_scores"
+    "no_motif"
+    "no_crossbank"
+    "top20_features"
 )
 
 # SLURM array → run only the ablation at this task ID
 # Local run   → run all active ablations sequentially
 if [ -n "${SLURM_ARRAY_TASK_ID:-}" ]; then
-    run_dyrep_ablation "${ABLATIONS[$SLURM_ARRAY_TASK_ID]}" "__${ABLATIONS[$SLURM_ARRAY_TASK_ID]}"
+    run_graphsage_t_ablation "${ABLATIONS[$SLURM_ARRAY_TASK_ID]}" "__${ABLATIONS[$SLURM_ARRAY_TASK_ID]}"
 else
     for ab in "${ABLATIONS[@]}"; do
-        run_dyrep_ablation "$ab" "__$ab"
+        run_graphsage_t_ablation "$ab" "__$ab"
     done
 fi
 
@@ -170,11 +176,11 @@ fi
 # ---------------------------------------------------------
 echo "" | tee -a "$LOG_FILE"
 echo "=====================================================================" | tee -a "$LOG_FILE"
-echo "      ALL DYREP RAT-MEDIUM ABLATION EXPERIMENTS COMPLETED            " | tee -a "$LOG_FILE"
+echo "      ALL GRAPH-SAGE-T RAT-MEDIUM ABLATION EXPERIMENTS COMPLETED            " | tee -a "$LOG_FILE"
 echo " Log saved to: $LOG_FILE" | tee -a "$LOG_FILE"
 echo "=====================================================================" | tee -a "$LOG_FILE"
 
-touch "$LOG_DIR/DYREP_RAT_MEDIUM_ABLATIONS_DONE_${ts}.done"
+touch "$LOG_DIR/GRAPH_SAGE_T_RAT_MEDIUM_ABLATIONS_DONE_${ts}.done"
 
 echo ""
 echo "SUCCESS! All ablation experiments finished."
