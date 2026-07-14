@@ -6,6 +6,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
+
+
+BASELINE_COLOR = "#4C72B0"   # plain transaction-derived features
+INJECTED_COLOR = "#DD8452"   # motif / SLT-injector features
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score, average_precision_score
@@ -203,6 +208,13 @@ def is_slt_feature(column: str) -> bool:
     return lower.startswith(("src_", "dst_")) and any(
         token in lower for token in peer_or_tie_tokens
     )
+
+
+def _feature_category(feature_name: str) -> str:
+    """Classify a feature as 'Injected' (motif/SLT signals) or 'Baseline'."""
+    if feature_name in MOTIF_FEATURES or is_slt_feature(feature_name):
+        return "Injected"
+    return "Baseline"
 
 
 def select_features(df: pd.DataFrame) -> tuple[list[str], list[str]]:
@@ -419,6 +431,62 @@ def load_analysis_rows(
         "sampling_random_state": int(random_state),
     }
 
+def _plot_feature_importance(plot_df: pd.DataFrame, title: str, ylabel: str, out_path: Path) -> None:
+    """Render a styled horizontal bar chart of feature importances (plotting only)."""
+    plt.style.use("seaborn-v0_8-whitegrid")
+    fig, ax = plt.subplots(figsize=(12, 8))
+
+    n_bars = len(plot_df)
+    categories = plot_df["feature"].map(_feature_category)
+    colors = categories.map({"Baseline": BASELINE_COLOR, "Injected": INJECTED_COLOR})
+    bars = ax.barh(
+        plot_df["feature"],
+        plot_df["importance"],
+        color=colors,
+        edgecolor="white",
+        linewidth=0.6,
+        zorder=3,
+    )
+
+    max_importance = plot_df["importance"].max() if n_bars else 0
+    for bar, value in zip(bars, plot_df["importance"]):
+        ax.text(
+            bar.get_width() + max_importance * 0.01,
+            bar.get_y() + bar.get_height() / 2,
+            f"{value:.3f}",
+            va="center",
+            ha="left",
+            fontsize=9,
+            color="#333333",
+        )
+
+    ax.set_xlabel("Feature Importance", fontsize=12, labelpad=10)
+    ax.set_ylabel(ylabel, fontsize=12, labelpad=10)
+    ax.set_title(title, fontsize=15, fontweight="bold", pad=15)
+    if max_importance:
+        ax.set_xlim(0, max_importance * 1.15)
+    ax.grid(axis="x", linestyle="--", alpha=0.5, zorder=0)
+    ax.grid(axis="y", visible=False)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_visible(False)
+    ax.tick_params(axis="y", labelsize=10)
+    ax.tick_params(axis="x", labelsize=10)
+
+    present_categories = [c for c in ["Baseline", "Injected"] if (categories == c).any()]
+    if len(present_categories) > 1:
+        legend_colors = {"Baseline": BASELINE_COLOR, "Injected": INJECTED_COLOR}
+        handles = [
+            Patch(facecolor=legend_colors[c], edgecolor="white", label=c)
+            for c in present_categories
+        ]
+        ax.legend(handles=handles, loc="lower right", frameon=False, fontsize=10)
+
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=200)
+    plt.close(fig)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Random-Forest surrogate feature importance for the SLT AML dataset."
@@ -628,17 +696,12 @@ def main() -> None:
     core_top_k = min(args.top_k, len(core_slt_df))
     core_plot_df = core_slt_df.head(core_top_k).iloc[::-1]
 
-    plt.figure(figsize=(12, 8))
-    plt.barh(core_plot_df["feature"], core_plot_df["importance"])
-    plt.xlabel("Feature Importance")
-    plt.ylabel("SLT Feature")
-    plt.title(f"Top {core_top_k} Core SLT Features by RandomForest Importance")
-    plt.tight_layout()
-    plt.savefig(
-        out_dir / f"feature_importance_core_slt_top_{core_top_k}.png",
-        dpi=200
+    _plot_feature_importance(
+        core_plot_df,
+        title=f"Top {core_top_k} Core SLT Features by RandomForest Importance",
+        ylabel="SLT Feature",
+        out_path=out_dir / f"feature_importance_core_slt_top_{core_top_k}.png",
     )
-    plt.close()
     (out_dir / "metrics.json").write_text(
         json.dumps(metrics, indent=2), encoding="utf-8"
     )
@@ -652,14 +715,13 @@ def main() -> None:
 
     top_k = min(args.top_k, len(imp_df))
     plot_df = imp_df.head(top_k).iloc[::-1]
-    plt.figure(figsize=(12, 8))
-    plt.barh(plot_df["feature"], plot_df["importance"])
-    plt.xlabel("Feature Importance")
-    plt.ylabel("Feature")
-    plt.title(f"Top {top_k} Features by RandomForest Importance — SLT")
-    plt.tight_layout()
-    plt.savefig(out_dir / f"feature_importance_top_{top_k}.png", dpi=200)
-    plt.close()
+
+    _plot_feature_importance(
+        plot_df,
+        title=f"Top {top_k} Features by RandomForest Importance — SLT",
+        ylabel="Feature",
+        out_path=out_dir / f"feature_importance_top_{top_k}.png",
+    )
 
     print("\n[SUCCESS] SLT feature-importance analysis complete.")
     print(f"[INFO] Outputs saved to: {out_dir.resolve()}")
