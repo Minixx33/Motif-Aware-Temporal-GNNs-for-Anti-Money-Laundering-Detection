@@ -6,11 +6,30 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
+import matplotlib.patheffects as pe
 from matplotlib.patches import Patch
 
 
-BASELINE_COLOR = "#4C72B0"   # plain transaction-derived features (blue)
-INJECTED_COLOR = "#8172B3"   # motif / SLT-injector features (purple)
+BASELINE_COLOR = "#B39DDB"   # plain transaction-derived features (light purple)
+INJECTED_COLOR = "#4A148C"   # motif / SLT-injector features (dark purple)
+CUTOFF_LABEL_COLOR = "#1A052E"  # near-black purple used for the cut-off arrow + value
+Y_AXIS_CAP = 0.08  # hard y-axis ceiling; any bar taller than this gets cut off
+
+# Explicitly register Times New Roman with matplotlib's font manager. Relying
+# on rcParams alone can silently fall back to a different serif font if the
+# font manager's cache was built before Times New Roman was discoverable.
+for _font_path in (
+    r"C:\Windows\Fonts\times.ttf",
+    r"C:\Windows\Fonts\Times New Roman.ttf",
+    "/usr/share/fonts/truetype/msttcorefonts/Times_New_Roman.ttf",
+):
+    if os.path.exists(_font_path):
+        fm.fontManager.addfont(_font_path)
+        break
+
+plt.rcParams["font.family"] = "serif"
+plt.rcParams["font.serif"] = ["Times New Roman"] + plt.rcParams["font.serif"]
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score, average_precision_score
@@ -431,59 +450,105 @@ def load_analysis_rows(
         "sampling_random_state": int(random_state),
     }
 
-def _plot_feature_importance(plot_df: pd.DataFrame, title: str, ylabel: str, out_path: Path) -> None:
-    """Render a styled horizontal bar chart of feature importances (plotting only)."""
-    plt.style.use("seaborn-v0_8-whitegrid")
-    fig, ax = plt.subplots(figsize=(12, 8))
+def _draw_bars_with_smart_labels(ax, bars, values, colors, value_fontsize=11, axis_cap=Y_AXIS_CAP):
+    """
+    Label each vertical bar with its importance value. The y-axis is held
+    to a fixed ceiling (axis_cap); any bar taller than that is cut off right
+    at the ceiling, and instead of stretching the chart to fit it, a short
+    arrow is drawn straight up ON the bar itself (near its cut-off top),
+    with the bar's true value labeled directly on the bar in a dark,
+    white-outlined color so it stays legible against either bar shade.
 
-    n_bars = len(plot_df)
+    Returns axis_cap, to pass straight to ax.set_ylim(0, limit).
+    """
+    values = np.asarray(values, dtype=float)
+    n = len(values)
+    if n == 0:
+        return axis_cap
+
+    outline = [pe.withStroke(linewidth=2.5, foreground="white")]
+
+    for bar, value in zip(bars, values):
+        x = bar.get_x() + bar.get_width() / 2
+        if value > axis_cap:
+            bar.set_height(axis_cap)
+            # Short arrow drawn on the bar's own column, near its cut-off
+            # top, showing it keeps going past the visible ceiling.
+            ann = ax.annotate(
+                "",
+                xy=(x, axis_cap * 0.99),
+                xytext=(x, axis_cap * 0.82),
+                arrowprops=dict(
+                    arrowstyle="-|>", color=CUTOFF_LABEL_COLOR, lw=2.5, mutation_scale=18,
+                ),
+                zorder=5,
+            )
+            ann.arrow_patch.set_path_effects(outline)
+            ax.text(
+                x, axis_cap * 0.55, f"{value:.3f}",
+                ha="center", va="center",
+                fontsize=value_fontsize + 1, fontweight="bold", color=CUTOFF_LABEL_COLOR,
+                rotation=90, zorder=6, path_effects=outline,
+            )
+        else:
+            ax.text(
+                x, value + axis_cap * 0.02, f"{value:.3f}",
+                ha="center", va="bottom",
+                fontsize=value_fontsize, color="#222222",
+                rotation=90,
+            )
+
+    return axis_cap
+
+
+def _plot_feature_importance(plot_df: pd.DataFrame, title: str, ylabel: str, out_path: Path) -> None:
+    """Render a styled vertical bar chart of feature importances (plotting only)."""
+    plt.style.use("seaborn-v0_8-whitegrid")
+    fig, ax = plt.subplots(figsize=(10, 10))
+
     categories = plot_df["feature"].map(_feature_category)
     colors = categories.map({"Baseline": BASELINE_COLOR, "Injected": INJECTED_COLOR})
-    bars = ax.barh(
+    bars = ax.bar(
         plot_df["feature"],
         plot_df["importance"],
         color=colors,
-        edgecolor="white",
-        linewidth=0.6,
+        edgecolor="black",
+        linewidth=0.9,
         zorder=3,
     )
 
-    max_importance = plot_df["importance"].max() if n_bars else 0
-    for bar, value in zip(bars, plot_df["importance"]):
-        ax.text(
-            bar.get_width() + max_importance * 0.01,
-            bar.get_y() + bar.get_height() / 2,
-            f"{value:.3f}",
-            va="center",
-            ha="left",
-            fontsize=9,
-            color="#333333",
-        )
+    ylim_upper = _draw_bars_with_smart_labels(
+        ax, bars, plot_df["importance"].to_numpy(), colors.to_numpy()
+    )
 
-    ax.set_xlabel("Feature Importance", fontsize=12, labelpad=10)
-    ax.set_ylabel(ylabel, fontsize=12, labelpad=10)
-    ax.set_title(title, fontsize=15, fontweight="bold", pad=15)
-    if max_importance:
-        ax.set_xlim(0, max_importance * 1.15)
-    ax.grid(axis="x", linestyle="--", alpha=0.5, zorder=0)
-    ax.grid(axis="y", visible=False)
+    ax.set_xlabel("Feature", fontsize=15, labelpad=10)
+    ax.set_ylabel(ylabel, fontsize=15, labelpad=10)
+    ax.set_title(title, fontsize=17, fontweight="bold", pad=14)
+    ax.set_ylim(0, ylim_upper)
+    ax.grid(axis="y", linestyle="--", alpha=0.5, zorder=0)
+    ax.grid(axis="x", visible=False)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
-    ax.spines["left"].set_visible(False)
-    ax.tick_params(axis="y", labelsize=10)
-    ax.tick_params(axis="x", labelsize=10)
+    ax.tick_params(axis="x", labelsize=13)
+    ax.tick_params(axis="y", labelsize=13)
+    plt.setp(
+        ax.get_xticklabels(),
+        rotation=45,
+        ha="right",
+        rotation_mode="anchor",
+    )
 
     present_categories = [c for c in ["Baseline", "Injected"] if (categories == c).any()]
     if len(present_categories) > 1:
         legend_colors = {"Baseline": BASELINE_COLOR, "Injected": INJECTED_COLOR}
         handles = [
-            Patch(facecolor=legend_colors[c], edgecolor="white", label=c)
+            Patch(facecolor=legend_colors[c], edgecolor="black", label=c)
             for c in present_categories
         ]
-        ax.legend(handles=handles, loc="lower right", frameon=False, fontsize=10)
+        ax.legend(handles=handles, loc="upper right", frameon=True, framealpha=0.9, fontsize=12)
 
-    fig.tight_layout()
-    fig.savefig(out_path, dpi=200)
+    fig.tight_layout(pad=1.0)
+    fig.savefig(out_path, dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -694,7 +759,7 @@ def main() -> None:
     )
 
     core_top_k = min(args.top_k, len(core_slt_df))
-    core_plot_df = core_slt_df.head(core_top_k).iloc[::-1]
+    core_plot_df = core_slt_df.head(core_top_k)  # already sorted descending by importance
 
     _plot_feature_importance(
         core_plot_df,
@@ -714,7 +779,7 @@ def main() -> None:
             )
 
     top_k = min(args.top_k, len(imp_df))
-    plot_df = imp_df.head(top_k).iloc[::-1]
+    plot_df = imp_df.head(top_k)  # already sorted descending by importance
 
     _plot_feature_importance(
         plot_df,

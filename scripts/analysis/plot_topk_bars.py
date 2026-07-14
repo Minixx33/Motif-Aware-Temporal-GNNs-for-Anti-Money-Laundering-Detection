@@ -60,9 +60,9 @@ FACE_COLORS = {
 }
 
 EDGE_COLORS = {
-    "Baseline": "#8b0081",
-    "RAT":      "#011785",
-    "SLT":      "#4b2172",
+    "Baseline": "#000000",
+    "RAT":      "#000000",
+    "SLT":      "#000000",
 }
 
 OUTPUT_PNG = "../../paper/figures/topk_retrieval_bars.png"

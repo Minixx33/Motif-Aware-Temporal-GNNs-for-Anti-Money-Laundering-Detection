@@ -9,11 +9,12 @@ at every K in K_GRID (cumulative true positives / K), then curves are
 averaged across all available seeds for that condition.
 
 Default series (edit the SERIES list below to add/remove any model-setting
-combination):
+combination), grouped by dataset:
     Baseline  GraphSAGE-T
+    Baseline  DyRep-Lite
     RAT-Med   GraphSAGE-T
-    SLT-High  GraphSAGE-T
     RAT-Med   DyRep-Lite
+    SLT-High  GraphSAGE-T
     SLT-High  DyRep-Lite
 
 Data source: per-seed test-set predictions and ground-truth labels, loaded
@@ -89,11 +90,14 @@ MODEL_SPECS = {
 }
 
 # (setting, model) pairs to plot -- must exist in CONDITIONS / MODEL_SPECS.
+# Grouped by dataset (Baseline, then RAT-Med, then SLT-High) so the legend
+# reads top-to-bottom by dataset rather than by model.
 SERIES = [
     ("Baseline", "GraphSAGE-T"),
+    ("Baseline", "DyRep-Lite"),
     ("RAT-Med",  "GraphSAGE-T"),
-    ("SLT-High", "GraphSAGE-T"),
     ("RAT-Med",  "DyRep-Lite"),
+    ("SLT-High", "GraphSAGE-T"),
     ("SLT-High", "DyRep-Lite"),
 ]
 
@@ -102,16 +106,39 @@ SERIES = [
 K_GRID = sorted(set(np.unique(np.logspace(np.log10(10), np.log10(2000), 50)).astype(int)) | {100, 500, 1000})
 K_GRID = np.array([k for k in K_GRID if k >= 10])
 
-OUTPUT_PNG = "../../paper/figures/topk_retrieval_curve.png"
+OUTPUT_PNG = "../../paper/figures/topk_retrieval_curve_v2.png"
 OUTPUT_PDF = "../../paper/figures/topk_retrieval_curve.pdf"
 
 # ---------------------------------------------------------------------------
-# STYLE
+# STYLE -- color encodes dataset (a shade of purple per Baseline/RAT/SLT,
+# spread wide for clear distinction), linestyle encodes model (solid =
+# GraphSAGE-T, dashed = DyRep-Lite), marker shape also encodes model
+# (circle = GraphSAGE-T, star = DyRep-Lite). Times New Roman throughout,
+# bold titles.
 # ---------------------------------------------------------------------------
 
-COLORS = {"GraphSAGE-T": "#ff7f0e", "DyRep-Lite": "#2ca02c"}
-LINESTYLES = {"Baseline": ":", "RAT-Med": "-", "SLT-High": "--"}
-MARKERS = {"Baseline": "o", "RAT-Med": "s", "SLT-High": "^"}
+COLORS = {
+    "Baseline": "#e0aaff",   # light violet
+    "RAT-Med":  "#9d4edd",   # medium violet
+    "SLT-High": "#4c1d73",   # dark violet
+}
+LINESTYLES = {"GraphSAGE-T": "-", "DyRep-Lite": "--"}
+# Custom (longer, cleaner) dash pattern instead of matplotlib's default tight
+# dashes, which looked busy/cluttered on a log-x axis.
+DASHES = {"GraphSAGE-T": (1, 0), "DyRep-Lite": (5, 2)}
+MARKERS = {"GraphSAGE-T": "o", "DyRep-Lite": "*"}
+MARKERSIZES = {"GraphSAGE-T": 7, "DyRep-Lite": 11}
+
+plt.rcParams.update({
+    "font.family": "serif",
+    "font.serif": ["Times New Roman", "Nimbus Roman", "Liberation Serif", "DejaVu Serif"],
+    "font.size": 10,
+    "axes.titlesize": 12.5,
+    "axes.labelsize": 11,
+    "xtick.labelsize": 9.5,
+    "ytick.labelsize": 9.5,
+    "legend.fontsize": 8,
+})
 
 # ---------------------------------------------------------------------------
 # COMPUTATION
@@ -132,13 +159,25 @@ def compute_curve(setting, model):
     y_true = y_all[test_idx]
 
     curves = []
+    skipped = []
     for seed in cond["seeds"]:
         for variant in spec["result_dir_variants"]:
             probs_path = os.path.join(cond["results_base"], seed, variant, "test_pred_probs.pt")
             if os.path.exists(probs_path):
                 probs = torch.load(probs_path).numpy().reshape(-1)
+                if len(probs) != len(y_true):
+                    # Some runs' saved prediction arrays don't line up with the
+                    # current test split size (e.g. seed2025_experiment_3's
+                    # DyRep-Lite baseline run: 1,015,683 preds vs a 1,015,669-edge
+                    # split). Skip rather than silently misaligning predictions
+                    # with labels.
+                    skipped.append((seed, len(probs), len(y_true)))
+                    break
                 curves.append(precision_at_k(probs, y_true, K_GRID))
                 break
+    if skipped:
+        for seed, n_probs, n_labels in skipped:
+            print(f"  [skip] {setting} {model} {seed}: {n_probs} preds != {n_labels} labels")
     if not curves:
         raise FileNotFoundError(f"No predictions found for {setting} {model}")
     return np.mean(curves, axis=0), len(curves)
@@ -149,20 +188,25 @@ def compute_curve(setting, model):
 # ---------------------------------------------------------------------------
 
 def main():
-    fig, ax = plt.subplots(figsize=(7.5, 5.5))
+    fig, ax = plt.subplots(figsize=(5.2, 5.2))
 
+    all_curves = []
     for setting, model in SERIES:
         curve, n_seeds = compute_curve(setting, model)
-        ax.plot(
+        all_curves.append(curve)
+        line, = ax.plot(
             K_GRID, curve,
-            color=COLORS[model], linestyle=LINESTYLES[setting], linewidth=2,
-            label=f"{setting} {model}  (n={n_seeds} seeds)",
+            color=COLORS[setting], linestyle=LINESTYLES[model], linewidth=1.8,
+            label=f"{setting} {model}",
         )
+        line.set_dashes(DASHES[model])
         for k_mark in (100, 500, 1000):
             idx = np.where(K_GRID == k_mark)[0]
             if len(idx):
-                ax.plot(k_mark, curve[idx[0]], color=COLORS[model],
-                         marker=MARKERS[setting], markersize=7, linestyle="none")
+                ax.plot(k_mark, curve[idx[0]], color=COLORS[setting],
+                         marker=MARKERS[model], markersize=MARKERSIZES[model],
+                         markeredgecolor="white", markeredgewidth=0.9,
+                         linestyle="none")
 
     ax.set_xscale("log")
     ax.set_xticks([10, 100, 500, 1000, 2000])
@@ -171,14 +215,27 @@ def main():
 
     ax.set_xlabel("K (number of top-ranked alerts reviewed)")
     ax.set_ylabel("Precision@K")
-    ax.set_title("Top-K Alert Retrieval Precision (computed directly from test predictions)")
-    ax.grid(alpha=0.3)
-    ax.set_ylim(0, 1.02)
-    ax.legend(loc="lower left", frameon=True, fontsize=9)
+    ax.set_title("Top-K Alert Retrieval Precision", fontweight="bold")
+    ax.grid(alpha=0.25, linewidth=0.6)
 
-    fig.tight_layout()
-    fig.savefig(OUTPUT_PNG, dpi=300, bbox_inches="tight")
-    fig.savefig(OUTPUT_PDF, bbox_inches="tight")
+    # Trim the dead space below the lowest curve instead of always starting
+    # the y-axis at 0 -- keep a small pad above the true minimum.
+    y_min_data = min(c.min() for c in all_curves)
+    y_floor = max(0.0, np.floor(y_min_data * 50) / 50 - 0.005)
+    ax.set_ylim(y_floor, 1.01)
+    ax.set_xlim(10, 2000)
+
+    # Legend order follows SERIES (already grouped by dataset). Compact.
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(
+        handles, labels, loc="lower left", frameon=True, fontsize=8,
+        handlelength=2.2, handletextpad=0.5, borderpad=0.35,
+        labelspacing=0.25, framealpha=0.9, borderaxespad=0.15,
+    )
+
+    fig.tight_layout(pad=0.4)
+    fig.savefig(OUTPUT_PNG, dpi=300, bbox_inches="tight", pad_inches=0.03)
+    fig.savefig(OUTPUT_PDF, bbox_inches="tight", pad_inches=0.03)
     print(f"Saved {OUTPUT_PNG}")
     print(f"Saved {OUTPUT_PDF}")
 
