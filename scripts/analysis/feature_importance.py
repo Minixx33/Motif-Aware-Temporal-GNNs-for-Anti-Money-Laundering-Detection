@@ -17,7 +17,7 @@ from matplotlib.patches import Patch
 BASELINE_COLOR = "#B39DDB"   # plain transaction-derived features (light purple)
 INJECTED_COLOR = "#4A148C"   # RAT-injector / motif features (dark purple)
 CUTOFF_LABEL_COLOR = "#1A052E"  # near-black purple used for the cut-off arrow + value
-Y_AXIS_CAP = 0.08  # hard y-axis ceiling; any bar taller than this gets cut off
+Y_AXIS_CAP = 0.085  # hard y-axis ceiling; any bar taller than this gets cut off
 
 # Explicitly register Times New Roman with matplotlib's font manager. Relying
 # on rcParams alone can silently fall back to a different serif font if the
@@ -64,8 +64,10 @@ def _draw_bars_with_smart_labels(ax, bars, values, colors, value_fontsize=11, ax
         x = bar.get_x() + bar.get_width() / 2
         if value > axis_cap:
             bar.set_height(axis_cap)
-            # Short arrow drawn on the bar's own column, near its cut-off
-            # top, showing it keeps going past the visible ceiling.
+
+            # Remove the top edge of the clipped bar only
+            bar.set_edgecolor("none")
+
             ann = ax.annotate(
                 "",
                 xy=(x, axis_cap * 0.99),
@@ -76,11 +78,17 @@ def _draw_bars_with_smart_labels(ax, bars, values, colors, value_fontsize=11, ax
                 zorder=5,
             )
             ann.arrow_patch.set_path_effects(outline)
+
+            # Place value next to the arrow instead of centered on the bar
             ax.text(
-                x, axis_cap * 0.55, f"{value:.3f}",
-                ha="center", va="center",
-                fontsize=value_fontsize + 1, fontweight="bold", color=CUTOFF_LABEL_COLOR,
-                rotation=90, zorder=6, path_effects=outline,
+                x + 0.12, axis_cap * 0.88, f"{value:.3f}",
+                ha="left", va="center",
+                fontsize=value_fontsize + 1,
+                fontweight="bold",
+                color=CUTOFF_LABEL_COLOR,
+                rotation=90,
+                zorder=6,
+                path_effects=outline,
             )
         else:
             ax.text(
@@ -340,12 +348,12 @@ def main():
     )
 
     ax.set_xlabel("Feature", fontsize=15, labelpad=10)
-    ax.set_ylabel("Feature Importance", fontsize=15, labelpad=10)
+    ax.set_ylabel("Feature Importance", fontsize=15, labelpad=18)
     ax.set_title(
         f"Top {top_k} RAT Features by RandomForest Importance",
         fontsize=17,
         fontweight="bold",
-        pad=14,
+        pad=22,
     )
     ax.set_ylim(0, ylim_upper)
     ax.grid(axis="y", linestyle="--", alpha=0.5, zorder=0)
@@ -368,9 +376,16 @@ def main():
             Patch(facecolor=legend_colors[c], edgecolor="black", label=c)
             for c in present_categories
         ]
-        ax.legend(handles=handles, loc="upper right", frameon=True, framealpha=0.9, fontsize=12)
+        ax.legend(
+            handles=handles,
+            loc="upper right",
+            bbox_to_anchor=(0.93, 0.90),
+            frameon=True,
+            framealpha=0.9,
+            fontsize=14,
+        )
 
-    fig.tight_layout(pad=1.0)
+    fig.tight_layout(pad=2.0)
 
     fig_path = os.path.join(args.out_dir, f"feature_importance_top_{top_k}.png")
     fig.savefig(fig_path, dpi=200, bbox_inches="tight")
