@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 
 
-BASELINE_COLOR = "#4C72B0"   # plain transaction-derived features
-INJECTED_COLOR = "#DD8452"   # motif / SLT-injector features
+BASELINE_COLOR = "#4C72B0"   # plain transaction-derived features (blue)
+INJECTED_COLOR = "#8172B3"   # motif / SLT-injector features (purple)
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score, average_precision_score
@@ -718,7 +718,7 @@ def main() -> None:
 
     _plot_feature_importance(
         plot_df,
-        title=f"Top {top_k} Features by RandomForest Importance — SLT",
+        title=f"Top {top_k} SLT Features by RandomForest Importance",
         ylabel="Feature",
         out_path=out_dir / f"feature_importance_top_{top_k}.png",
     )

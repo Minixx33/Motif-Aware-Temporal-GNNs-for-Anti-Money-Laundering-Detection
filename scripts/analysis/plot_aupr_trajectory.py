@@ -20,6 +20,8 @@ Edit the AUPR dict below to update numbers, colors, or labels; everything else
 (axis limits, legend, annotations) will adjust automatically.
 """
 
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 
 # ---------------------------------------------------------------------------
@@ -64,8 +66,14 @@ SLT_AUPR = {
 RAT_LABELS = ["Baseline", "RAT-Low", "RAT-Medium", "RAT-High"]
 SLT_LABELS = ["Baseline", "SLT-Low", "SLT-Medium", "SLT-High"]
 
-OUTPUT_PNG = "../../paper/figures/aupr_trajectory.png"
-OUTPUT_PDF = "../../paper/figures/aupr_trajectory.pdf"
+# Resolve relative to this script's location (not the current working
+# directory) so the output path is correct no matter where the script is run
+# from. This script lives at scripts/analysis/, so the repo root is two
+# levels up.
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+FIGURES_DIR = REPO_ROOT / "paper" / "figures"
+OUTPUT_PNG = FIGURES_DIR / "aupr_trajectory.png"
+OUTPUT_PDF = FIGURES_DIR / "aupr_trajectory.pdf"
 
 # ---------------------------------------------------------------------------
 # PLOT
@@ -112,6 +120,7 @@ def main():
 
     fig.tight_layout(rect=[0, 0, 1, 0.95])
 
+    FIGURES_DIR.mkdir(parents=True, exist_ok=True)
     fig.savefig(OUTPUT_PNG, dpi=300, bbox_inches="tight")
     fig.savefig(OUTPUT_PDF, bbox_inches="tight")
     print(f"Saved {OUTPUT_PNG}")

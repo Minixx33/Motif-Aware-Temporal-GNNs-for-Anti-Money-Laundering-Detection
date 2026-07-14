@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 
 
-BASELINE_COLOR = "#ecafe8"   # plain transaction-derived features
-INJECTED_COLOR = "#aab8ff"   # RAT-injector / motif features
+BASELINE_COLOR = "#4C72B0"   # plain transaction-derived features (blue)
+INJECTED_COLOR = "#8172B3"   # RAT-injector / motif features (purple)
 
 
 def _feature_category(feature_name):
