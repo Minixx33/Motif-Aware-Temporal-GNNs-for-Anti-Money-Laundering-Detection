@@ -4,18 +4,20 @@
 #
 # Runs GraphSAGE-T training with 5 seeds for every RAT static ablation graph.
 # Ablation graphs must already exist under graphs/HI-Small_Trans_RAT_medium__<name>/
-# (build them first with: sbatch create_rat_ablation_graphs_static.sh)
+# (build them first with: bash scripts/bash/create_rat_ablation_graphs_static.sh)
 #
-# LOCAL:  bash run_rat_ablations.sh   (runs all 9 ablations × 5 seeds sequentially)
-# SLURM:  sbatch run_rat_ablations.sh (9 parallel GPU jobs, one per ablation;
-#                                      5 seeds per job)
+# WINDOWS (Git Bash): open Git Bash, cd to project root, then:
+#   bash scripts/bash/run_rat_ablations.sh
 #
-# SLURM array layout (task ID → ablation):
-#   0: no_struct       3: no_entity       6: no_motif
-#   1: no_temp         4: no_rat_scores   7: no_crossbank
-#   2: no_amount       5: no_burst_pattern 8: top20_features
+# LINUX/MAC:  bash scripts/bash/run_rat_ablations.sh
+# SLURM/AWS:  sbatch scripts/bash/run_rat_ablations.sh
 #
-# SLURM directives — ignored when run with bash directly:
+# SLURM array layout (task ID -> ablation):
+#   0: no_struct        3: no_entity        6: no_motif
+#   1: no_temp          4: no_rat_scores    7: no_crossbank
+#   2: no_amount        5: no_burst_pattern 8: top20_features
+#
+# SLURM directives -- ignored when run with bash directly:
 #SBATCH --job-name=rat_ablations_train
 #SBATCH --account=acc-mialhajri
 #SBATCH --partition=gpu
@@ -44,6 +46,8 @@ echo "Project root: $PROJECT_ROOT"
 
 # ---------------------------------------------------------------------------
 # Portable conda activation
+# Works on: Windows (Git Bash), Linux, macOS, SLURM/AWS
+# Override env name with: CONDA_ENV=my_env bash run_rat_ablations.sh
 # ---------------------------------------------------------------------------
 CONDA_BASE=""
 if [ -n "${CONDA_EXE:-}" ] && [ -x "${CONDA_EXE}" ]; then
@@ -53,6 +57,13 @@ elif command -v conda > /dev/null 2>&1; then
 else
     for candidate in \
         "$HOME/anaconda3" "$HOME/miniconda3" "$HOME/miniforge3" \
+        "$HOME/AppData/Local/anaconda3" \
+        "$HOME/AppData/Local/miniconda3" \
+        "$HOME/AppData/Local/miniforge3" \
+        "/c/Users/$USERNAME/AppData/Local/anaconda3" \
+        "/c/Users/$USERNAME/AppData/Local/miniconda3" \
+        "/c/Users/$USERNAME/anaconda3" \
+        "/c/Users/$USERNAME/miniconda3" \
         "/opt/anaconda3" "/opt/miniconda3" "/opt/conda" \
         "/c/ProgramData/Anaconda3" "/c/ProgramData/Miniconda3"; do
         if [ -f "$candidate/etc/profile.d/conda.sh" ]; then
@@ -100,7 +111,7 @@ else
 fi
 
 log "==============================================================="
-log " RAT ABLATION TRAINING — GraphSAGE-T, 5 seeds"
+log " RAT ABLATION TRAINING -- GraphSAGE-T, 5 seeds"
 log " Host: $(hostname)  PID: $$"
 log " SLURM_JOB_ID: ${SLURM_JOB_ID:-none}"
 log " SLURM_ARRAY_TASK_ID: ${SLURM_ARRAY_TASK_ID:-none (local run)}"
@@ -130,8 +141,8 @@ SEEDS=(1 2 3 4 5)
 
 # ---------------------------------------------------------------------------
 # Select which ablations to run:
-#   SLURM array job → single ablation from SLURM_ARRAY_TASK_ID
-#   Local run       → all 9 ablations sequentially
+#   SLURM array job -> single ablation from SLURM_ARRAY_TASK_ID
+#   Local run       -> all 9 ablations sequentially
 # ---------------------------------------------------------------------------
 if [ -n "${SLURM_ARRAY_TASK_ID:-}" ]; then
     RUN_ABLATIONS=("${ABLATIONS[$SLURM_ARRAY_TASK_ID]}")
@@ -153,50 +164,44 @@ patch_base_config() {
     local SEED="$1"
     local EXP_NAME="$2"
 
-    python - <<EOF
+    python - "$JOB_BASE_CONFIG" "$SEED" "$EXP_NAME" <<'PYEOF'
+import sys, re
 from pathlib import Path
-import re
 
-path = Path("$JOB_BASE_CONFIG")
-text = path.read_text()
-
-text = re.sub(
-    r'^(\s*seed:\s*).*$',
-    r'\g<1>$SEED',
-    text, flags=re.MULTILINE
-)
-text = re.sub(
-    r'^(\s*experiment_name:\s*).*$',
-    r'\g<1>"$EXP_NAME"',
-    text, flags=re.MULTILINE
-)
-
-path.write_text(text)
-EOF
+cfg_path, seed, exp_name = sys.argv[1], sys.argv[2], sys.argv[3]
+text = Path(cfg_path).read_text()
+text = re.sub(r'^(\s*seed:\s*).*$',            rf'\g<1>{seed}',       text, flags=re.MULTILINE)
+text = re.sub(r'^(\s*experiment_name:\s*).*$', rf'\g<1>"{exp_name}"', text, flags=re.MULTILINE)
+Path(cfg_path).write_text(text)
+PYEOF
 }
 
 # ---------------------------------------------------------------------------
 # Helper: write a temporary dataset config for this ablation.
 # prefix = full graph folder name (intensity already embedded),
-# requires_intensity: false so build_paths() uses the prefix as-is.
+# requires_intensity: false so build_paths() uses the prefix as-is
+# -> resolves to graphs/HI-Small_Trans_RAT_medium__<name>
 # ---------------------------------------------------------------------------
 make_dataset_config() {
     local NAME="$1"
     local CFG="configs/datasets/rat_ablation_${NAME}_${JOB_ID}_tmp.yaml"
-    cat > "$CFG" <<EOF
+    cat > "$CFG" <<YAMLEOF
 dataset:
   theory: "RAT"
   prefix: "HI-Small_Trans_RAT_medium__${NAME}"
   available_intensities: ["medium"]
   requires_intensity: false
-EOF
+YAMLEOF
     echo "$CFG"
 }
 
 # ---------------------------------------------------------------------------
 # Helper: elapsed time
 # ---------------------------------------------------------------------------
-elapsed() { printf "%dh %dm %ds" $(($1/3600)) $((($1%3600)/60)) $(($1%60)); }
+elapsed() {
+    local t=$1
+    printf "%dh %dm %ds" $((t/3600)) $(((t%3600)/60)) $((t%60))
+}
 
 # ---------------------------------------------------------------------------
 # MAIN
@@ -246,5 +251,5 @@ done  # ablations
 
 log ""
 log "==============================================================="
-log " ALL DONE — total time: $(elapsed $(($(date +%s) - total_start)))"
+log " ALL DONE -- total time: $(elapsed $(($(date +%s) - total_start)))"
 log "==============================================================="
