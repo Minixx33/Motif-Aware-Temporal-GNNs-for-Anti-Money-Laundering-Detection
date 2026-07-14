@@ -192,7 +192,8 @@ def build_experiment_name(
     theory = dataset_cfg["dataset"]["theory"]
     prefix = dataset_cfg["dataset"]["prefix"]
 
-    if theory.lower() == "baseline":
+    requires_intensity = dataset_cfg["dataset"].get("requires_intensity", True)
+    if theory.lower() == "baseline" or not requires_intensity:
         ds_name = prefix
     else:
         ds_name = f"{prefix}_{intensity}"
@@ -215,7 +216,8 @@ def build_paths(base_cfg, dataset_cfg, intensity, model_name):
     theory = dataset_cfg["dataset"]["theory"]
     prefix = dataset_cfg["dataset"]["prefix"]
 
-    if theory.lower() == "baseline":
+    requires_intensity = dataset_cfg["dataset"].get("requires_intensity", True)
+    if theory.lower() == "baseline" or not requires_intensity:
         dataset_name = prefix
     else:
         dataset_name = f"{prefix}_{intensity}"
