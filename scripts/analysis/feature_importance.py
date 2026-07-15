@@ -31,9 +31,6 @@ for _font_path in (
         fm.fontManager.addfont(_font_path)
         break
 
-plt.rcParams["font.family"] = "serif"
-plt.rcParams["font.serif"] = ["Times New Roman"] + plt.rcParams["font.serif"]
-
 
 def _feature_category(feature_name):
     """Classify a feature as 'Injected' (RAT/motif signals) or 'Baseline'."""
@@ -65,8 +62,19 @@ def _draw_bars_with_smart_labels(ax, bars, values, colors, value_fontsize=11, ax
         if value > axis_cap:
             bar.set_height(axis_cap)
 
-            # Remove the top edge of the clipped bar only
-            bar.set_edgecolor("none")
+            # Remove only the top edge while keeping left/right/bottom outlines
+            bar.set_linewidth(0.9)
+            bar.set_edgecolor("black")
+            bar.set_path_effects([])
+
+            # Draw a white line over only the top edge
+            ax.plot(
+                [bar.get_x(), bar.get_x() + bar.get_width()],
+                [axis_cap, axis_cap],
+                color="white",
+                linewidth=2.5,
+                zorder=6,
+            )
 
             ann = ax.annotate(
                 "",
@@ -81,7 +89,8 @@ def _draw_bars_with_smart_labels(ax, bars, values, colors, value_fontsize=11, ax
 
             # Place value next to the arrow instead of centered on the bar
             ax.text(
-                x + 0.12, axis_cap * 0.88, f"{value:.3f}",
+                x, axis_cap * 0.72, 
+                f"{value:.3f}",
                 ha="left", va="center",
                 fontsize=value_fontsize + 1,
                 fontweight="bold",
@@ -330,6 +339,11 @@ def main():
     plot_df = imp_df.head(top_k)  # already sorted descending by importance
 
     plt.style.use("seaborn-v0_8-whitegrid")
+
+    plt.rcParams["font.family"] = "Times New Roman"
+    plt.rcParams["font.serif"] = ["Times New Roman"]
+    plt.rcParams["mathtext.fontset"] = "custom"
+    plt.rcParams["mathtext.rm"] = "Times New Roman"
     fig, ax = plt.subplots(figsize=(10, 10))
 
     categories = plot_df["feature"].map(_feature_category)
