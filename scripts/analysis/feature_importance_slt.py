@@ -549,7 +549,7 @@ def _plot_feature_importance(plot_df: pd.DataFrame, title: str, ylabel: str, out
     )
 
     ax.set_xlabel("Feature", fontsize=15, labelpad=14)
-    ax.set_ylabel(plt.ylabel, fontsize=15, labelpad=18)
+    ax.set_ylabel(ylabel, fontsize=15, labelpad=18)
     ax.set_title(title, fontsize=17, fontweight="bold", pad=22)
     ax.set_ylim(0, ylim_upper)
     ax.grid(axis="y", linestyle="--", alpha=0.5, zorder=0)
