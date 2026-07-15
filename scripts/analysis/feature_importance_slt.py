@@ -14,7 +14,7 @@ from matplotlib.patches import Patch
 BASELINE_COLOR = "#B39DDB"   # plain transaction-derived features (light purple)
 INJECTED_COLOR = "#4A148C"   # motif / SLT-injector features (dark purple)
 CUTOFF_LABEL_COLOR = "#1A052E"  # near-black purple used for the cut-off arrow + value
-Y_AXIS_CAP = 0.08  # hard y-axis ceiling; any bar taller than this gets cut off
+Y_AXIS_CAP = 0.085  # hard y-axis ceiling; any bar taller than this gets cut off
 
 # Explicitly register Times New Roman with matplotlib's font manager. Relying
 # on rcParams alone can silently fall back to a different serif font if the
@@ -472,23 +472,46 @@ def _draw_bars_with_smart_labels(ax, bars, values, colors, value_fontsize=11, ax
         x = bar.get_x() + bar.get_width() / 2
         if value > axis_cap:
             bar.set_height(axis_cap)
-            # Short arrow drawn on the bar's own column, near its cut-off
-            # top, showing it keeps going past the visible ceiling.
+
+            # Remove only the top outline while preserving left/right/bottom edges
+            bar.set_edgecolor("black")
+            bar.set_linewidth(0.9)
+
+            ax.plot(
+                [bar.get_x(), bar.get_x() + bar.get_width()],
+                [axis_cap, axis_cap],
+                color="white",
+                linewidth=2.5,
+                zorder=6,
+            )
+
             ann = ax.annotate(
                 "",
                 xy=(x, axis_cap * 0.99),
                 xytext=(x, axis_cap * 0.82),
                 arrowprops=dict(
-                    arrowstyle="-|>", color=CUTOFF_LABEL_COLOR, lw=2.5, mutation_scale=18,
+                    arrowstyle="-|>",
+                    color=CUTOFF_LABEL_COLOR,
+                    lw=2.5,
+                    mutation_scale=18,
                 ),
                 zorder=5,
             )
             ann.arrow_patch.set_path_effects(outline)
+
+            # Value directly under the arrow
             ax.text(
-                x, axis_cap * 0.55, f"{value:.3f}",
-                ha="center", va="center",
-                fontsize=value_fontsize + 1, fontweight="bold", color=CUTOFF_LABEL_COLOR,
-                rotation=90, zorder=6, path_effects=outline,
+                x,
+                axis_cap * 0.72,
+                f"{value:.3f}",
+                ha="center",
+                va="center",
+                fontsize=value_fontsize + 1,
+                fontweight="bold",
+                color=CUTOFF_LABEL_COLOR,
+                rotation=90,
+                zorder=6,
+                path_effects=outline,
             )
         else:
             ax.text(
@@ -504,6 +527,10 @@ def _draw_bars_with_smart_labels(ax, bars, values, colors, value_fontsize=11, ax
 def _plot_feature_importance(plot_df: pd.DataFrame, title: str, ylabel: str, out_path: Path) -> None:
     """Render a styled vertical bar chart of feature importances (plotting only)."""
     plt.style.use("seaborn-v0_8-whitegrid")
+    plt.rcParams["font.family"] = "Times New Roman"
+    plt.rcParams["font.serif"] = ["Times New Roman"]
+    plt.rcParams["mathtext.fontset"] = "custom"
+    plt.rcParams["mathtext.rm"] = "Times New Roman"
     fig, ax = plt.subplots(figsize=(10, 10))
 
     categories = plot_df["feature"].map(_feature_category)
@@ -521,9 +548,9 @@ def _plot_feature_importance(plot_df: pd.DataFrame, title: str, ylabel: str, out
         ax, bars, plot_df["importance"].to_numpy(), colors.to_numpy()
     )
 
-    ax.set_xlabel("Feature", fontsize=15, labelpad=10)
-    ax.set_ylabel(ylabel, fontsize=15, labelpad=10)
-    ax.set_title(title, fontsize=17, fontweight="bold", pad=14)
+    ax.set_xlabel("Feature", fontsize=15, labelpad=14)
+    ax.set_ylabel(plt.ylabel, fontsize=15, labelpad=18)
+    ax.set_title(title, fontsize=17, fontweight="bold", pad=22)
     ax.set_ylim(0, ylim_upper)
     ax.grid(axis="y", linestyle="--", alpha=0.5, zorder=0)
     ax.grid(axis="x", visible=False)
@@ -545,9 +572,16 @@ def _plot_feature_importance(plot_df: pd.DataFrame, title: str, ylabel: str, out
             Patch(facecolor=legend_colors[c], edgecolor="black", label=c)
             for c in present_categories
         ]
-        ax.legend(handles=handles, loc="upper right", frameon=True, framealpha=0.9, fontsize=12)
+        ax.legend(
+            handles=handles,
+            loc="upper right",
+            bbox_to_anchor=(0.93, 0.90),
+            frameon=True,
+            framealpha=0.9,
+            fontsize=14,
+        )
 
-    fig.tight_layout(pad=1.0)
+    fig.tight_layout(pad=2.0)
     fig.savefig(out_path, dpi=200, bbox_inches="tight")
     plt.close(fig)
 
