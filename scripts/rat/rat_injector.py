@@ -274,18 +274,86 @@ if len(launder_scores) < 10:
 float_cols = [c for c in df.columns if c.startswith(("RAT_", "motif_")) or c.endswith("_norm")]
 df[float_cols] = df[float_cols].astype(np.float32)
 
+# ===================== INJECTION RULES (FIX) =====================
+# Previously the intensity loop only set the RAT_injected metadata flag, so the
+# low/medium/high CSVs had IDENTICAL feature values (the flag is excluded from
+# model inputs downstream). This fix makes injection real: for the selected
+# laundering rows, continuous RAT/motif feature values are boosted toward their
+# global 95th percentile, and the composite scores are recomputed, so each
+# intensity level differs in feature space.
+
+BOOST_ALPHA = 0.7  # blend strength toward the 95th-percentile value
+BOOST_COLS = [
+    "RAT_src_amount_z_pos", "RAT_dst_amount_z_pos",
+    "RAT_src_out_deg_norm", "RAT_dst_in_deg_norm",
+    "RAT_src_burst_norm", "RAT_dst_burst_norm", "RAT_combined_burst",
+    "RAT_src_entity_acct_norm", "RAT_dst_entity_acct_norm",
+    "motif_fanin", "motif_fanout", "motif_chain", "motif_cycle",
+]
+SCORE_COLS = ["RAT_offender_score", "RAT_target_score",
+              "RAT_guardian_weakness_score", "RAT_score"]
+
+# pristine copies so boosts never accumulate across intensity iterations
+_originals = {c: df[c].copy() for c in BOOST_COLS + SCORE_COLS}
+_q95 = {c: float(np.nanquantile(df[c].values.astype(float), 0.95)) for c in BOOST_COLS}
+_dst_age_norm = norm_by_quantile(df["dst_age_days"].fillna(0))
+
 for name, frac in INTENSITIES.items():
+    # restore pristine feature values before applying this intensity's boost
+    for c in BOOST_COLS + SCORE_COLS:
+        df[c] = _originals[c].copy()
+
     threshold = float(np.quantile(launder_scores, 1 - frac))
     print(f"{name}: threshold = {threshold:.4f}")
 
+    # selection uses the pristine RAT_score (as before)
     df["RAT_injected"] = (
         (df[LABEL_COL] == 1) &
         (df["RAT_score"] >= threshold)
     ).astype(np.int8)
+    inj = df["RAT_injected"] == 1
+
+    # boost continuous RAT features for injected rows (upward only)
+    for c in BOOST_COLS:
+        cur = df.loc[inj, c].astype(float)
+        df.loc[inj, c] = np.maximum(cur, cur + BOOST_ALPHA * (_q95[c] - cur)).astype(np.float32)
+
+    # recompute composite scores from the boosted features (same formulas as above)
+    df["RAT_offender_score"] = (
+        0.30*df["RAT_src_amount_z_pos"] +
+        0.20*df["RAT_src_out_deg_norm"] +
+        0.20*df["RAT_src_burst_norm"] +
+        0.10*df["RAT_is_off_hours"] +
+        0.10*df["RAT_src_pattern_flag"] +
+        0.10*df["RAT_src_entity_acct_norm"]
+    ).astype(np.float32)
+
+    df["RAT_target_score"] = (
+        0.35*df["RAT_dst_amount_z_pos"] +
+        0.25*df["RAT_dst_in_deg_norm"] +
+        0.15*(1 - _dst_age_norm) +
+        0.15*df["RAT_dst_entity_acct_norm"] +
+        0.10*df["RAT_dst_pattern_flag"]
+    ).astype(np.float32)
+
+    df["RAT_guardian_weakness_score"] = (
+        0.30*df["RAT_is_off_hours"] +
+        0.20*df["RAT_is_weekend"] +
+        0.20*df["RAT_is_cross_bank"] +
+        0.20*df["RAT_combined_burst"] +
+        0.10*df["RAT_same_entity"]
+    ).astype(np.float32)
+
+    df["RAT_score"] = ((
+        (df["RAT_offender_score"] + EPS) *
+        (df["RAT_target_score"] + EPS) *
+        (df["RAT_guardian_weakness_score"] + EPS)
+    ) ** (1/3)).replace([np.inf, -np.inf], np.nan).fillna(0).clip(0, 1).astype(np.float32)
 
     df["RAT_intensity_level"] = (df["RAT_injected"] * {"low": 1, "medium": 2, "high": 3}[name]).astype(np.int8)
 
-    out_path = os.path.join(OUTPUT_DIR, f"HI-Medium_Trans_RAT_{name}.csv")
+    out_base = os.path.splitext(os.path.basename(_args.trans_file))[0]
+    out_path = os.path.join(OUTPUT_DIR, f"{out_base}_RAT_{name}.csv")
     df.to_csv(out_path, index=False)
     print(f"Saved {out_path} [{int(df['RAT_injected'].sum())} injected rows]")
 
