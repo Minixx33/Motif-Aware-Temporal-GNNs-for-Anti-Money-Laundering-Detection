@@ -143,16 +143,21 @@ run_one() {
 start_time=$(date +%s)
 FILTER="${DATASETS_ONLY:-}"
 
-for DS_ENTRY in "${DATASETS[@]}"; do
-    DS_NAME="${DS_ENTRY%%|*}"
-    if [ -n "$FILTER" ]; then
-        keep=0
-        for f in $FILTER; do
-            case "$DS_NAME" in "$f"*) keep=1 ;; esac
-        done
-        [ "$keep" -eq 1 ] || continue
-    fi
-    for SEED in $SEEDS; do
+# Seed-outer ordering: complete one full sweep (all datasets x all models)
+# for seed 1 before starting seed 2, etc. This way a full single-seed set of
+# results is available as early as possible.
+for SEED in $SEEDS; do
+    echo "" | tee -a "$LOG_FILE"
+    echo "################ SEED $SEED: full sweep ################" | tee -a "$LOG_FILE"
+    for DS_ENTRY in "${DATASETS[@]}"; do
+        DS_NAME="${DS_ENTRY%%|*}"
+        if [ -n "$FILTER" ]; then
+            keep=0
+            for f in $FILTER; do
+                case "$DS_NAME" in "$f"*) keep=1 ;; esac
+            done
+            [ "$keep" -eq 1 ] || continue
+        fi
         for MOD_ENTRY in "${MODELS[@]}"; do
             run_one "$SEED" "$DS_ENTRY" "$MOD_ENTRY"
         done
