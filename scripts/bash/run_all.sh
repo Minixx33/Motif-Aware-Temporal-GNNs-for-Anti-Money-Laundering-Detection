@@ -74,7 +74,7 @@ SEEDS="${SEEDS:-1 2 3}"
 # One line per dataset: "name|dataset_config|intensity".
 # Comment a line out (put # in front) to skip that dataset.
 DATASETS=(
-    "baseline|configs/datasets/baseline.yaml|"
+    # "baseline|configs/datasets/baseline.yaml|"
     "rat_low|configs/datasets/rat.yaml|low"
     "rat_medium|configs/datasets/rat.yaml|medium"
     "rat_high|configs/datasets/rat.yaml|high"
