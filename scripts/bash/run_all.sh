@@ -53,9 +53,14 @@ else
         echo "       Activate your environment first, then re-run this script."
         exit 1
     fi
+    # conda's activate.d hook scripts often reference unset variables
+    # (e.g. OCL_ICD_FILENAMES), which "set -u" would turn into fatal errors.
+    # Relax strict mode just for activation.
+    set +u
     # shellcheck disable=SC1091
     source "$CONDA_BASE/etc/profile.d/conda.sh"
     conda activate "$CONDA_ENV" || { echo "ERROR: conda activate $CONDA_ENV failed."; exit 1; }
+    set -u
     echo "Activated conda env: $CONDA_ENV -> $(command -v python)"
 fi
 python --version
