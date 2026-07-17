@@ -12,7 +12,7 @@
 #   2. From the repo root:  bash scripts/bash/run_all.sh
 #
 # Options via environment variables:
-#   SEEDS="1 2 3"      bash scripts/bash/run_all.sh   # custom seeds
+#   SEEDS="1 2"        bash scripts/bash/run_all.sh   # custom seeds (default: 1 2 3)
 #   CONDA_ENV=aml_project                             # env to activate if
 #                                                     # python/torch not found
 #   DATASETS_ONLY="rat slt"                           # skip baseline
@@ -64,30 +64,26 @@ python --version
 BASE_CONFIG="configs/base.yaml"
 [ -f "$BASE_CONFIG" ] || { echo "ERROR: missing $BASE_CONFIG"; exit 1; }
 
-SEEDS="${SEEDS:-1 2 3 4 5}"
+SEEDS="${SEEDS:-1 2 3}"
 
-DATASET_LIST=(baseline rat_low rat_medium rat_high slt_low slt_medium slt_high)
-DATASET_CFG_LIST=(
-    "configs/datasets/baseline.yaml"
-    "configs/datasets/rat.yaml"
-    "configs/datasets/rat.yaml"
-    "configs/datasets/rat.yaml"
-    "configs/datasets/slt.yaml"
-    "configs/datasets/slt.yaml"
-    "configs/datasets/slt.yaml"
+# One line per dataset: "name|dataset_config|intensity".
+# Comment a line out (put # in front) to skip that dataset.
+DATASETS=(
+    "baseline|configs/datasets/baseline.yaml|"
+    "rat_low|configs/datasets/rat.yaml|low"
+    "rat_medium|configs/datasets/rat.yaml|medium"
+    "rat_high|configs/datasets/rat.yaml|high"
+    "slt_low|configs/datasets/slt.yaml|low"
+    "slt_medium|configs/datasets/slt.yaml|medium"
+    "slt_high|configs/datasets/slt.yaml|high"
 )
-DATASET_INT_LIST=("" low medium high low medium high)
 
-MODEL_LIST=(graphsage graphsage_t dyrep)
-MODEL_SCRIPT_LIST=(
-    "scripts/training/train_graphsage.py"
-    "scripts/training/train_graphsage_t.py"
-    "scripts/training/train_dyrep.py"
-)
-MODEL_CFG_LIST=(
-    "configs/models/graphsage.yaml"
-    "configs/models/graphsage_t.yaml"
-    "configs/models/dyrep.yaml"
+# One line per model: "name|training_script|model_config".
+# Comment a line out (put # in front) to skip that model.
+MODELS=(
+    "graphsage|scripts/training/train_graphsage.py|configs/models/graphsage.yaml"
+    "graphsage_t|scripts/training/train_graphsage_t.py|configs/models/graphsage_t.yaml"
+    "dyrep|scripts/training/train_dyrep.py|configs/models/dyrep.yaml"
 )
 
 # ---------- logging ----------
@@ -97,7 +93,7 @@ LOG_FILE="logs/ALL_RUNS_${ts}.log"
 FAILED_RUNS=()
 
 echo "=================================================================" | tee -a "$LOG_FILE"
-echo " ALL EXPERIMENTS: 7 datasets x 3 models x seeds [$SEEDS]"          | tee -a "$LOG_FILE"
+echo " ALL EXPERIMENTS: ${#DATASETS[@]} datasets x ${#MODELS[@]} models x seeds [$SEEDS]" | tee -a "$LOG_FILE"
 echo " Timestamp: $ts"                                                   | tee -a "$LOG_FILE"
 echo "=================================================================" | tee -a "$LOG_FILE"
 nvidia-smi 2>&1 | head -12 | tee -a "$LOG_FILE" || echo "No GPU detected" | tee -a "$LOG_FILE"
@@ -115,13 +111,10 @@ make_seed_config() {
 
 # ---------- runner ----------
 run_one() {
-    local SEED="$1" DS_IDX="$2" MOD_IDX="$3"
-    local DATASET="${DATASET_LIST[$DS_IDX]}"
-    local DATASET_CONFIG="${DATASET_CFG_LIST[$DS_IDX]}"
-    local INTENSITY="${DATASET_INT_LIST[$DS_IDX]}"
-    local MODEL="${MODEL_LIST[$MOD_IDX]}"
-    local MODEL_SCRIPT="${MODEL_SCRIPT_LIST[$MOD_IDX]}"
-    local MODEL_CONFIG="${MODEL_CFG_LIST[$MOD_IDX]}"
+    local SEED="$1" DS_ENTRY="$2" MOD_ENTRY="$3"
+    local DATASET DATASET_CONFIG INTENSITY MODEL MODEL_SCRIPT MODEL_CONFIG
+    IFS="|" read -r DATASET DATASET_CONFIG INTENSITY <<< "$DS_ENTRY"
+    IFS="|" read -r MODEL MODEL_SCRIPT MODEL_CONFIG <<< "$MOD_ENTRY"
     local SEED_CONFIG
     SEED_CONFIG="$(make_seed_config "$SEED")"
 
@@ -145,8 +138,8 @@ run_one() {
 start_time=$(date +%s)
 FILTER="${DATASETS_ONLY:-}"
 
-for DS_IDX in 0 1 2 3 4 5 6; do
-    DS_NAME="${DATASET_LIST[$DS_IDX]}"
+for DS_ENTRY in "${DATASETS[@]}"; do
+    DS_NAME="${DS_ENTRY%%|*}"
     if [ -n "$FILTER" ]; then
         keep=0
         for f in $FILTER; do
@@ -155,8 +148,8 @@ for DS_IDX in 0 1 2 3 4 5 6; do
         [ "$keep" -eq 1 ] || continue
     fi
     for SEED in $SEEDS; do
-        for MOD_IDX in 0 1 2; do
-            run_one "$SEED" "$DS_IDX" "$MOD_IDX"
+        for MOD_ENTRY in "${MODELS[@]}"; do
+            run_one "$SEED" "$DS_ENTRY" "$MOD_ENTRY"
         done
     done
 done
