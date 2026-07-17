@@ -99,9 +99,9 @@ ACCT_ENTITY_NAME = "Entity Name"
 
 # How much of the laundering rows we mark as injected
 INTENSITIES = {
-    "low": 0.15,
-    "medium": 0.30,
-    "high": 0.60,
+    "low": 0.05,
+    "medium": 0.10,
+    "high": 0.20,
 }
 
 # Top 5% by unsupervised peer-risk score are considered "high-risk peers"
@@ -721,14 +721,75 @@ for col in df.columns:
         elif pd.api.types.is_integer_dtype(df[col]):
             df[col] = df[col].astype(np.int8)
 
+# ===================== INJECTION RULES (FIX) =====================
+# Previously this loop only set the SLT_injected metadata flag, so the
+# low/medium/high CSVs had IDENTICAL feature values (the flag is excluded from
+# model inputs downstream). This fix makes injection real: for the selected
+# laundering rows, the SLT exposure features are boosted toward a high-exposure
+# profile, and the SLT scores are recomputed, so each intensity level actually
+# differs in feature space. Intensity = prevalence (how many laundering rows
+# carry the boosted pattern); the boost strength is constant.
+
+BOOST_ALPHA = 0.7  # blend strength toward the high-exposure target value
+
+_base = ["susp_nbr_ratio", "susp_amt_share", "susp_txn_share", "strong_tie_susp_ratio"]
+BOOST_COLS = []
+for _s in ["src", "dst"]:
+    for _b in _base:
+        BOOST_COLS += [f"SLT_{_s}_{_b}", f"SLT_{_s}_{_b}_lag1", f"SLT_{_s}_{_b}_lag2"]
+    BOOST_COLS += [f"SLT_{_s}_cum_exposure_7d_norm", f"SLT_{_s}_cum_amt_exposure_7d_norm",
+                   f"SLT_{_s}_exposure_delta"]
+BOOST_COLS = [c for c in BOOST_COLS if c in df.columns]
+SCORE_COLS = ["SLT_src_score", "SLT_dst_score", "SLT_score"]
+
+# High-exposure target per feature: 95th percentile of its POSITIVE values
+# (these exposure features are sparse, so the overall q95 is often 0).
+_hi = {}
+for _c in BOOST_COLS:
+    _v = df[_c].values
+    _pos = _v[_v > 0]
+    _hi[_c] = float(np.quantile(_pos, 0.95)) if len(_pos) else 1.0
+
 for name, frac in INTENSITIES.items():
     threshold = float(np.quantile(launder_scores, 1 - frac))
     print(f"{name}: threshold = {threshold:.4f}")
 
+    # selection uses the pristine SLT_score (as before)
     df["SLT_injected"] = (
         (df[LABEL_COL] == 1) &
         (df["SLT_score"] > threshold)
     ).astype(np.int8)
+    inj = df["SLT_injected"] == 1
+
+    # snapshot pristine values of the rows we are about to boost
+    _saved = {c: df.loc[inj, c].copy() for c in BOOST_COLS + SCORE_COLS}
+
+    # boost exposure features for injected rows (upward only)
+    for c in BOOST_COLS:
+        cur = df.loc[inj, c].astype(float)
+        df.loc[inj, c] = np.maximum(cur, cur + BOOST_ALPHA * (_hi[c] - cur)).astype(np.float32)
+
+    # recompute SLT scores from the boosted features (same formulas as above)
+    df["SLT_src_score"] = (
+        W_NEIGHBOR   * df["SLT_src_susp_nbr_ratio_lag1"] +
+        W_AMOUNT     * df["SLT_src_susp_amt_share_lag1"] +
+        W_STRONG_TIE * df["SLT_src_strong_tie_susp_ratio_lag1"] +
+        W_DELTA      * df["SLT_src_exposure_delta"].clip(lower=0) +
+        W_CUM        * df["SLT_src_cum_exposure_7d_norm"]
+    ).clip(0, 1).astype(np.float32)
+
+    df["SLT_dst_score"] = (
+        W_NEIGHBOR   * df["SLT_dst_susp_nbr_ratio_lag1"] +
+        W_AMOUNT     * df["SLT_dst_susp_amt_share_lag1"] +
+        W_STRONG_TIE * df["SLT_dst_strong_tie_susp_ratio_lag1"] +
+        W_DELTA      * df["SLT_dst_exposure_delta"].clip(lower=0) +
+        W_CUM        * df["SLT_dst_cum_exposure_7d_norm"]
+    ).clip(0, 1).astype(np.float32)
+
+    df["SLT_score"] = (
+        0.55 * df["SLT_src_score"] +
+        0.45 * df["SLT_dst_score"]
+    ).clip(0, 1).astype(np.float32)
 
     df["SLT_intensity_level"] = (
         df["SLT_injected"] * {"low": 1, "medium": 2, "high": 3}[name]
@@ -741,5 +802,9 @@ for name, frac in INTENSITIES.items():
     print(f"Saving: {out_path}")
     df.to_csv(out_path, index=False)
     print(f"Saved {out_path} [{int(df['SLT_injected'].sum())} injected rows]")
+
+    # restore pristine values so boosts never accumulate across intensities
+    for c in BOOST_COLS + SCORE_COLS:
+        df.loc[inj, c] = _saved[c]
 
 print("DONE.")

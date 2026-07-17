@@ -52,7 +52,7 @@ ACCT_ID_COL      = "Account Number"
 ACCT_ENTITY_ID   = "Entity ID"
 ACCT_ENTITY_NAME = "Entity Name"
 
-INTENSITIES = {"low": 0.15, "medium": 0.30, "high": 0.60}
+INTENSITIES = {"low": 0.05, "medium": 0.10, "high": 0.20}
 EPS = 1e-8
 
 # ===================== HELPERS =====================
