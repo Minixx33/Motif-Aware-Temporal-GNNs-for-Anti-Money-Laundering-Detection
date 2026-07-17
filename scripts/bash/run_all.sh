@@ -86,8 +86,8 @@ DATASETS=(
 # One line per model: "name|training_script|model_config".
 # Comment a line out (put # in front) to skip that model.
 MODELS=(
-    "graphsage|scripts/training/train_graphsage.py|configs/models/graphsage.yaml"
     "graphsage_t|scripts/training/train_graphsage_t.py|configs/models/graphsage_t.yaml"
+    "graphsage|scripts/training/train_graphsage.py|configs/models/graphsage.yaml"
     "dyrep|scripts/training/train_dyrep.py|configs/models/dyrep.yaml"
 )
 
