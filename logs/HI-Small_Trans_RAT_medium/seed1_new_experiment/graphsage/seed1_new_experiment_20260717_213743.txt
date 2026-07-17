@@ -1,0 +1,108 @@
+
+================================================================================
+Logging started at: 2026-07-17 21:37:43.493681
+Log file: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_medium\seed1_new_experiment\graphsage\seed1_new_experiment_20260717_213743.txt
+================================================================================
+
+[INFO] Logging to: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_medium\seed1_new_experiment\graphsage\seed1_new_experiment_20260717_213743.txt
+================================================================================
+EXPERIMENT CONFIG SUMMARY
+================================================================================
+
+[DATASET]
+  Name:       HI-Small_Trans_RAT_medium
+  Theory:     RAT
+  Intensity:  medium
+
+[MODEL]
+  GraphSAGE
+  Hidden dim: 128
+
+[PATHS]
+  Graphs:     C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs\HI-Small_Trans_RAT_medium
+  Splits:     C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits\HI-Small_Trans_RAT_medium
+  Results:    C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_medium\seed1_new_experiment\graphsage
+  Logs:       C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_medium\seed1_new_experiment\graphsage
+================================================================================
+
+[DEVICE] cuda
+
+
+======================================================================
+GPU Mini-Batch Training (GraphSAGE Stable)
+======================================================================
+Train batch size: 8192
+Eval batch size:  16384
+Mixed Precision:  False (disabled)
+Device:           cuda
+======================================================================
+
+Loading graph tensors...
+Nodes: 515,080, Edges: 5,078,415
+Node features: 6, Edge features: 38
+Train: 3,047,049, Val: 1,015,683, Test: 1,015,683
+pos_weight: 100.00
+
+Starting training for 350 epochs (starting at epoch 1)...
+
+Epoch 001 | loss=39.5846 | val_F1=0.0157 | val_AUPR=0.0027 | time=42.30s
+Epoch 002 | loss=12.7774 | val_F1=0.0228 | val_AUPR=0.0020 | time=42.15s
+Epoch 003 | loss=5.3648 | val_F1=0.0112 | val_AUPR=0.0019 | time=42.34s
+Epoch 004 | loss=1.8736 | val_F1=0.0047 | val_AUPR=0.0015 | time=43.15s
+Epoch 005 | loss=0.7584 | val_F1=0.0041 | val_AUPR=0.0016 | time=42.25s
+Epoch 006 | loss=0.5531 | val_F1=0.0177 | val_AUPR=0.0085 | time=42.17s
+Epoch 007 | loss=0.4725 | val_F1=0.0414 | val_AUPR=0.0165 | time=42.06s
+Epoch 008 | loss=0.4312 | val_F1=0.0522 | val_AUPR=0.0247 | time=43.48s
+Epoch 009 | loss=0.4116 | val_F1=0.0563 | val_AUPR=0.0267 | time=42.39s
+Epoch 010 | loss=0.4035 | val_F1=0.0686 | val_AUPR=0.0326 | time=42.11s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed1_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_medium\seed1_new_experiment\graphsage -> gdrive:AML_project_results/results/HI-Small_Trans_RAT_medium/seed1_new_experiment/graphsage
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed1_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_medium\seed1_new_experiment\graphsage -> gdrive:AML_project_results/logs/HI-Small_Trans_RAT_medium/seed1_new_experiment/graphsage
+Epoch 011 | loss=0.3925 | val_F1=0.0755 | val_AUPR=0.0351 | time=42.18s
+Epoch 012 | loss=0.3710 | val_F1=0.0803 | val_AUPR=0.0383 | time=42.19s
+Epoch 013 | loss=0.3781 | val_F1=0.0800 | val_AUPR=0.0403 | time=42.29s
+Epoch 014 | loss=0.3556 | val_F1=0.0800 | val_AUPR=0.0419 | time=42.27s
+Epoch 015 | loss=0.3419 | val_F1=0.0899 | val_AUPR=0.0454 | time=42.20s
+Epoch 016 | loss=0.3492 | val_F1=0.0910 | val_AUPR=0.0480 | time=42.47s
+Epoch 017 | loss=0.3322 | val_F1=0.0917 | val_AUPR=0.0500 | time=42.89s
+Epoch 018 | loss=0.3322 | val_F1=0.1003 | val_AUPR=0.0493 | time=42.19s
+Epoch 019 | loss=0.3221 | val_F1=0.0967 | val_AUPR=0.0531 | time=42.58s
+Epoch 020 | loss=0.3156 | val_F1=0.1068 | val_AUPR=0.0559 | time=42.82s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed1_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_medium\seed1_new_experiment\graphsage -> gdrive:AML_project_results/results/HI-Small_Trans_RAT_medium/seed1_new_experiment/graphsage
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed1_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_medium\seed1_new_experiment\graphsage -> gdrive:AML_project_results/logs/HI-Small_Trans_RAT_medium/seed1_new_experiment/graphsage
+Epoch 021 | loss=0.3288 | val_F1=0.1101 | val_AUPR=0.0580 | time=42.48s
+Epoch 022 | loss=0.3054 | val_F1=0.1094 | val_AUPR=0.0603 | time=42.33s
+Epoch 023 | loss=0.3048 | val_F1=0.0903 | val_AUPR=0.0296 | time=42.35s
+Epoch 024 | loss=0.2993 | val_F1=0.1174 | val_AUPR=0.0613 | time=43.79s
+Epoch 025 | loss=0.2976 | val_F1=0.1198 | val_AUPR=0.0634 | time=42.13s
+Epoch 026 | loss=0.2942 | val_F1=0.1247 | val_AUPR=0.0667 | time=42.65s
+Epoch 027 | loss=0.2923 | val_F1=0.1265 | val_AUPR=0.0695 | time=42.79s
+Epoch 028 | loss=0.2950 | val_F1=0.1262 | val_AUPR=0.0692 | time=42.66s
+Epoch 029 | loss=0.2903 | val_F1=0.1283 | val_AUPR=0.0697 | time=42.27s
+Epoch 030 | loss=0.2919 | val_F1=0.1241 | val_AUPR=0.0643 | time=42.27s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed1_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_medium\seed1_new_experiment\graphsage -> gdrive:AML_project_results/results/HI-Small_Trans_RAT_medium/seed1_new_experiment/graphsage
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed1_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_medium\seed1_new_experiment\graphsage -> gdrive:AML_project_results/logs/HI-Small_Trans_RAT_medium/seed1_new_experiment/graphsage
+Epoch 031 | loss=0.2797 | val_F1=0.1326 | val_AUPR=0.0718 | time=42.26s
+Epoch 032 | loss=0.2861 | val_F1=0.1352 | val_AUPR=0.0769 | time=42.33s
+Epoch 033 | loss=0.2868 | val_F1=0.1401 | val_AUPR=0.0766 | time=42.26s
+Epoch 034 | loss=0.2718 | val_F1=0.1400 | val_AUPR=0.0815 | time=42.21s
+Epoch 035 | loss=0.2716 | val_F1=0.1451 | val_AUPR=0.0828 | time=43.57s
+Epoch 036 | loss=0.2759 | val_F1=0.1382 | val_AUPR=0.0850 | time=42.28s
+Epoch 037 | loss=0.2673 | val_F1=0.1406 | val_AUPR=0.0834 | time=42.89s
+Epoch 038 | loss=0.2574 | val_F1=0.1430 | val_AUPR=0.0875 | time=42.57s
+Epoch 039 | loss=0.2554 | val_F1=0.1403 | val_AUPR=0.0824 | time=42.39s
+Epoch 040 | loss=0.2538 | val_F1=0.1537 | val_AUPR=0.0968 | time=42.21s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed1_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_medium\seed1_new_experiment\graphsage -> gdrive:AML_project_results/results/HI-Small_Trans_RAT_medium/seed1_new_experiment/graphsage
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed1_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_medium\seed1_new_experiment\graphsage -> gdrive:AML_project_results/logs/HI-Small_Trans_RAT_medium/seed1_new_experiment/graphsage
+Epoch 041 | loss=0.2488 | val_F1=0.1564 | val_AUPR=0.0943 | time=43.28s
+Epoch 042 | loss=0.2396 | val_F1=0.1632 | val_AUPR=0.1021 | time=42.40s
+Epoch 043 | loss=0.2431 | val_F1=0.1661 | val_AUPR=0.1015 | time=42.18s
+Epoch 044 | loss=0.2407 | val_F1=0.1874 | val_AUPR=0.1216 | time=43.57s
+Epoch 045 | loss=0.2373 | val_F1=0.1885 | val_AUPR=0.1152 | time=42.51s

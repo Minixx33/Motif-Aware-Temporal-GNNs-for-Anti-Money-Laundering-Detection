@@ -1,0 +1,30 @@
+Traceback (most recent call last):
+  File "C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\scripts\training\train_graphsage_t.py", line 479, in <module>
+    main()
+  File "C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\scripts\training\train_graphsage_t.py", line 338, in main
+    val_metrics, _, val_loss = evaluate_minibatch(
+  File "C:\Users\g00084287\.conda\envs\aml_project\lib\site-packages\torch\utils\_contextlib.py", line 116, in decorate_context
+    return func(*args, **kwargs)
+  File "C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\scripts\training\train_graphsage_t.py", line 196, in evaluate_minibatch
+    metrics = evaluate_binary_classifier(
+  File "C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\scripts\utils\evaluation_utils.py", line 90, in evaluate_binary_classifier
+    f1 = f1_score(y_true, preds, zero_division=0)
+  File "C:\Users\g00084287\.conda\envs\aml_project\lib\site-packages\sklearn\utils\_param_validation.py", line 218, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\g00084287\.conda\envs\aml_project\lib\site-packages\sklearn\metrics\_classification.py", line 1465, in f1_score
+    return fbeta_score(
+  File "C:\Users\g00084287\.conda\envs\aml_project\lib\site-packages\sklearn\utils\_param_validation.py", line 191, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\g00084287\.conda\envs\aml_project\lib\site-packages\sklearn\metrics\_classification.py", line 1683, in fbeta_score
+    _, _, f, _ = precision_recall_fscore_support(
+  File "C:\Users\g00084287\.conda\envs\aml_project\lib\site-packages\sklearn\utils\_param_validation.py", line 191, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\g00084287\.conda\envs\aml_project\lib\site-packages\sklearn\metrics\_classification.py", line 2000, in precision_recall_fscore_support
+    MCM = multilabel_confusion_matrix(
+  File "C:\Users\g00084287\.conda\envs\aml_project\lib\site-packages\sklearn\utils\_param_validation.py", line 191, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\g00084287\.conda\envs\aml_project\lib\site-packages\sklearn\metrics\_classification.py", line 700, in multilabel_confusion_matrix
+    tp_sum = _bincount(
+  File "C:\Users\g00084287\.conda\envs\aml_project\lib\site-packages\sklearn\utils\_array_api.py", line 990, in _bincount
+    return xp.bincount(array, weights=weights, minlength=minlength)
+KeyboardInterrupt
