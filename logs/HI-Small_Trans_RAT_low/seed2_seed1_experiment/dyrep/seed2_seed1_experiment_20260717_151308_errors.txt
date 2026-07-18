@@ -1,0 +1,49 @@
+Exception in thread Thread-1:
+Traceback (most recent call last):
+  File "C:\Users\ASUS\anaconda3\envs\aml_project\lib\threading.py", line 1016, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ASUS\anaconda3\envs\aml_project\lib\site-packages\tensorboard\summary\writer\event_file_writer.py", line 244, in run
+    self._run()
+  File "C:\Users\ASUS\anaconda3\envs\aml_project\lib\site-packages\tensorboard\summary\writer\event_file_writer.py", line 275, in _run
+    self._record_writer.write(data)
+  File "C:\Users\ASUS\anaconda3\envs\aml_project\lib\site-packages\tensorboard\summary\writer\record_writer.py", line 40, in write
+    self._writer.write(header + header_crc + data + footer_crc)
+  File "C:\Users\ASUS\anaconda3\envs\aml_project\lib\site-packages\tensorboard\compat\tensorflow_stub\io\gfile.py", line 775, in write
+    self.fs.append(self.filename, file_content, self.binary_mode)
+  File "C:\Users\ASUS\anaconda3\envs\aml_project\lib\site-packages\tensorboard\compat\tensorflow_stub\io\gfile.py", line 167, in append
+    self._write(filename, file_content, "ab" if binary_mode else "a")
+  File "C:\Users\ASUS\anaconda3\envs\aml_project\lib\site-packages\tensorboard\compat\tensorflow_stub\io\gfile.py", line 171, in _write
+    with io.open(filename, mode, encoding=encoding) as f:
+FileNotFoundError: [Errno 2] No such file or directory: b'C:\\Users\\ASUS\\Documents\\GitHub\\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\\logs\\HI-Small_Trans_RAT_low\\seed2_seed1_experiment\\dyrep\\tb\\events.out.tfevents.1784286788.WIN-VOOMUTII3CP.41900.0'
+Traceback (most recent call last):
+  File "C:\Users\ASUS\Documents\GitHub\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\scripts\training\train_dyrep.py", line 704, in <module>
+    main()
+  File "C:\Users\ASUS\Documents\GitHub\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\scripts\training\train_dyrep.py", line 547, in main
+    writer.add_scalar("Loss/train", train_loss, epoch)
+  File "C:\Users\ASUS\anaconda3\envs\aml_project\lib\site-packages\torch\utils\tensorboard\writer.py", line 381, in add_scalar
+    self._get_file_writer().add_summary(summary, global_step, walltime)
+  File "C:\Users\ASUS\anaconda3\envs\aml_project\lib\site-packages\torch\utils\tensorboard\writer.py", line 115, in add_summary
+    self.add_event(event, global_step, walltime)
+  File "C:\Users\ASUS\anaconda3\envs\aml_project\lib\site-packages\torch\utils\tensorboard\writer.py", line 99, in add_event
+    self.event_writer.add_event(event)
+  File "C:\Users\ASUS\anaconda3\envs\aml_project\lib\site-packages\tensorboard\summary\writer\event_file_writer.py", line 117, in add_event
+    self._async_writer.write(event.SerializeToString())
+  File "C:\Users\ASUS\anaconda3\envs\aml_project\lib\site-packages\tensorboard\summary\writer\event_file_writer.py", line 171, in write
+    self._check_worker_status()
+  File "C:\Users\ASUS\anaconda3\envs\aml_project\lib\site-packages\tensorboard\summary\writer\event_file_writer.py", line 212, in _check_worker_status
+    raise exception
+  File "C:\Users\ASUS\anaconda3\envs\aml_project\lib\threading.py", line 1016, in _bootstrap_inner
+    self.run()
+  File "C:\Users\ASUS\anaconda3\envs\aml_project\lib\site-packages\tensorboard\summary\writer\event_file_writer.py", line 244, in run
+    self._run()
+  File "C:\Users\ASUS\anaconda3\envs\aml_project\lib\site-packages\tensorboard\summary\writer\event_file_writer.py", line 275, in _run
+    self._record_writer.write(data)
+  File "C:\Users\ASUS\anaconda3\envs\aml_project\lib\site-packages\tensorboard\summary\writer\record_writer.py", line 40, in write
+    self._writer.write(header + header_crc + data + footer_crc)
+  File "C:\Users\ASUS\anaconda3\envs\aml_project\lib\site-packages\tensorboard\compat\tensorflow_stub\io\gfile.py", line 775, in write
+    self.fs.append(self.filename, file_content, self.binary_mode)
+  File "C:\Users\ASUS\anaconda3\envs\aml_project\lib\site-packages\tensorboard\compat\tensorflow_stub\io\gfile.py", line 167, in append
+    self._write(filename, file_content, "ab" if binary_mode else "a")
+  File "C:\Users\ASUS\anaconda3\envs\aml_project\lib\site-packages\tensorboard\compat\tensorflow_stub\io\gfile.py", line 171, in _write
+    with io.open(filename, mode, encoding=encoding) as f:
+FileNotFoundError: [Errno 2] No such file or directory: b'C:\\Users\\ASUS\\Documents\\GitHub\\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\\logs\\HI-Small_Trans_RAT_low\\seed2_seed1_experiment\\dyrep\\tb\\events.out.tfevents.1784286788.WIN-VOOMUTII3CP.41900.0'
