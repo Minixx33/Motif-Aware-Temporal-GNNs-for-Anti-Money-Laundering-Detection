@@ -1,0 +1,297 @@
+
+================================================================================
+Logging started at: 2026-07-19 12:17:37.164055
+Log file: C:\Users\ASUS\Documents\GitHub\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_low\seed4_new_experiment\dyrep\seed4_new_experiment_20260719_121737.txt
+================================================================================
+
+[INFO] Logging to: C:\Users\ASUS\Documents\GitHub\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_low\seed4_new_experiment\dyrep\seed4_new_experiment_20260719_121737.txt
+================================================================================
+EXPERIMENT CONFIG SUMMARY
+================================================================================
+
+[DATASET]
+  Name:       HI-Small_Trans_SLT_low
+  Theory:     SLT
+  Intensity:  low
+
+[MODEL]
+  DyRep
+  Hidden dim: 128
+
+[PATHS]
+  Graphs:     C:\Users\ASUS\Documents\GitHub\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs\HI-Small_Trans_SLT_low
+  Splits:     C:\Users\ASUS\Documents\GitHub\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits\HI-Small_Trans_SLT_low
+  Results:    C:\Users\ASUS\Documents\GitHub\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_low\seed4_new_experiment\dyrep
+  Logs:       C:\Users\ASUS\Documents\GitHub\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_low\seed4_new_experiment\dyrep
+================================================================================
+
+[DEVICE] cuda
+
+[INFO] Using default graph directory: C:\Users\ASUS\Documents\GitHub\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs_dyrep\HI-Small_Trans_SLT_low
+
+======= DYREP-STYLE EVENT MODEL TRAINING (FP32) =======
+Graph folder:    C:\Users\ASUS\Documents\GitHub\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs_dyrep\HI-Small_Trans_SLT_low
+Splits folder:   C:\Users\ASUS\Documents\GitHub\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits_dyrep\HI-Small_Trans_SLT_low
+Results folder:  C:\Users\ASUS\Documents\GitHub\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_low\seed4_new_experiment\dyrep
+Batch size:      8192
+Eval batch size: 16384
+Device:          cuda
+=======================================================
+
+Num nodes:        515,080
+Num events/edges: 5,078,415
+Node feat dim:    12
+Edge feat dim:    72
+Event types:      7
+
+Split sizes:
+  Train: 3,047,049
+  Val:   1,015,683
+  Test:  1,015,683
+
+pos_weight (train) = 100.000
+
+Starting training for up to 350 epochs (starting at epoch 1)...
+
+Epoch 001 | train_loss=12.5335 val_loss=0.2746 P=0.045 R=0.158 F1=0.070 ROC-AUC=0.841 AUPR=0.024 time=25.00s
+Epoch 002 | train_loss=0.8942 val_loss=0.2181 P=0.061 R=0.273 F1=0.100 ROC-AUC=0.914 AUPR=0.038 time=25.50s
+Epoch 003 | train_loss=0.6091 val_loss=0.2095 P=0.089 R=0.196 F1=0.122 ROC-AUC=0.956 AUPR=0.064 time=25.70s
+Epoch 004 | train_loss=0.5131 val_loss=0.1879 P=0.068 R=0.303 F1=0.111 ROC-AUC=0.939 AUPR=0.043 time=25.33s
+Epoch 005 | train_loss=0.4427 val_loss=0.2364 P=0.103 R=0.126 F1=0.113 ROC-AUC=0.897 AUPR=0.055 time=25.13s
+Epoch 006 | train_loss=0.6169 val_loss=1.7105 P=0.112 R=0.221 F1=0.149 ROC-AUC=0.859 AUPR=0.077 time=24.96s
+Epoch 007 | train_loss=0.6492 val_loss=0.6957 P=0.117 R=0.252 F1=0.160 ROC-AUC=0.875 AUPR=0.078 time=25.34s
+Epoch 008 | train_loss=0.5497 val_loss=0.1633 P=0.122 R=0.180 F1=0.146 ROC-AUC=0.951 AUPR=0.067 time=25.15s
+Epoch 009 | train_loss=0.4720 val_loss=0.1588 P=0.114 R=0.177 F1=0.139 ROC-AUC=0.962 AUPR=0.077 time=25.57s
+Epoch 010 | train_loss=0.2960 val_loss=0.1383 P=0.136 R=0.286 F1=0.184 ROC-AUC=0.969 AUPR=0.100 time=25.59s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: 'rclone' not found on PATH or near the Python interpreter; skipping sync. Set sync.rclone_path in base.yaml to the full path of rclone.exe (e.g. find it with `where rclone` / `which rclone` in the env where you ran `conda install -c conda-forge rclone`).
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: 'rclone' not found on PATH or near the Python interpreter; skipping sync. Set sync.rclone_path in base.yaml to the full path of rclone.exe (e.g. find it with `where rclone` / `which rclone` in the env where you ran `conda install -c conda-forge rclone`).
+Epoch 011 | train_loss=0.3173 val_loss=0.1395 P=0.149 R=0.251 F1=0.187 ROC-AUC=0.967 AUPR=0.114 time=24.94s
+Epoch 012 | train_loss=0.3656 val_loss=1.5899 P=0.136 R=0.311 F1=0.189 ROC-AUC=0.864 AUPR=0.114 time=24.83s
+Epoch 013 | train_loss=0.3335 val_loss=1.5601 P=0.166 R=0.226 F1=0.191 ROC-AUC=0.864 AUPR=0.110 time=24.97s
+Epoch 014 | train_loss=0.1844 val_loss=0.1299 P=0.176 R=0.213 F1=0.192 ROC-AUC=0.971 AUPR=0.115 time=25.17s
+Epoch 015 | train_loss=0.2792 val_loss=0.1280 P=0.210 R=0.197 F1=0.203 ROC-AUC=0.971 AUPR=0.116 time=25.49s
+Epoch 016 | train_loss=0.1962 val_loss=0.2050 P=0.185 R=0.247 F1=0.211 ROC-AUC=0.915 AUPR=0.136 time=25.34s
+Epoch 017 | train_loss=0.1586 val_loss=0.1264 P=0.190 R=0.240 F1=0.212 ROC-AUC=0.974 AUPR=0.131 time=25.46s
+Epoch 018 | train_loss=0.4038 val_loss=0.1279 P=0.185 R=0.222 F1=0.202 ROC-AUC=0.973 AUPR=0.124 time=25.14s
+Epoch 019 | train_loss=0.2195 val_loss=0.1194 P=0.222 R=0.209 F1=0.215 ROC-AUC=0.976 AUPR=0.146 time=25.63s
+Epoch 020 | train_loss=0.1567 val_loss=0.1295 P=0.228 R=0.176 F1=0.198 ROC-AUC=0.973 AUPR=0.128 time=25.50s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: 'rclone' not found on PATH or near the Python interpreter; skipping sync. Set sync.rclone_path in base.yaml to the full path of rclone.exe (e.g. find it with `where rclone` / `which rclone` in the env where you ran `conda install -c conda-forge rclone`).
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: 'rclone' not found on PATH or near the Python interpreter; skipping sync. Set sync.rclone_path in base.yaml to the full path of rclone.exe (e.g. find it with `where rclone` / `which rclone` in the env where you ran `conda install -c conda-forge rclone`).
+Epoch 021 | train_loss=0.2236 val_loss=0.8193 P=0.199 R=0.256 F1=0.224 ROC-AUC=0.872 AUPR=0.144 time=25.00s
+Epoch 022 | train_loss=0.1756 val_loss=0.1202 P=0.222 R=0.220 F1=0.221 ROC-AUC=0.977 AUPR=0.143 time=25.22s
+Epoch 023 | train_loss=0.2311 val_loss=0.1164 P=0.274 R=0.228 F1=0.249 ROC-AUC=0.977 AUPR=0.171 time=25.34s
+Epoch 024 | train_loss=0.3560 val_loss=0.1201 P=0.226 R=0.267 F1=0.245 ROC-AUC=0.977 AUPR=0.165 time=25.18s
+Epoch 025 | train_loss=0.1257 val_loss=0.1205 P=0.254 R=0.223 F1=0.238 ROC-AUC=0.975 AUPR=0.158 time=25.21s
+Epoch 026 | train_loss=0.4132 val_loss=0.1190 P=0.202 R=0.230 F1=0.215 ROC-AUC=0.978 AUPR=0.142 time=25.40s
+Epoch 027 | train_loss=0.1251 val_loss=0.1141 P=0.229 R=0.287 F1=0.255 ROC-AUC=0.979 AUPR=0.191 time=25.17s
+Epoch 028 | train_loss=0.1802 val_loss=0.1156 P=0.228 R=0.284 F1=0.253 ROC-AUC=0.978 AUPR=0.171 time=25.31s
+Epoch 029 | train_loss=0.1665 val_loss=3.1109 P=0.257 R=0.244 F1=0.250 ROC-AUC=0.866 AUPR=0.172 time=25.03s
+Epoch 030 | train_loss=0.2097 val_loss=0.1094 P=0.253 R=0.289 F1=0.270 ROC-AUC=0.980 AUPR=0.202 time=25.23s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: 'rclone' not found on PATH or near the Python interpreter; skipping sync. Set sync.rclone_path in base.yaml to the full path of rclone.exe (e.g. find it with `where rclone` / `which rclone` in the env where you ran `conda install -c conda-forge rclone`).
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: 'rclone' not found on PATH or near the Python interpreter; skipping sync. Set sync.rclone_path in base.yaml to the full path of rclone.exe (e.g. find it with `where rclone` / `which rclone` in the env where you ran `conda install -c conda-forge rclone`).
+Epoch 031 | train_loss=0.1473 val_loss=0.1130 P=0.302 R=0.261 F1=0.280 ROC-AUC=0.978 AUPR=0.222 time=25.58s
+Epoch 032 | train_loss=0.1037 val_loss=0.1107 P=0.233 R=0.322 F1=0.270 ROC-AUC=0.979 AUPR=0.200 time=25.31s
+Epoch 033 | train_loss=0.1595 val_loss=0.1144 P=0.337 R=0.236 F1=0.277 ROC-AUC=0.978 AUPR=0.210 time=25.79s
+Epoch 034 | train_loss=0.1233 val_loss=0.1113 P=0.277 R=0.279 F1=0.278 ROC-AUC=0.979 AUPR=0.226 time=25.31s
+Epoch 035 | train_loss=0.1600 val_loss=0.1099 P=0.273 R=0.258 F1=0.265 ROC-AUC=0.979 AUPR=0.203 time=25.32s
+Epoch 036 | train_loss=0.1025 val_loss=0.1236 P=0.329 R=0.250 F1=0.284 ROC-AUC=0.976 AUPR=0.229 time=25.40s
+Epoch 037 | train_loss=0.0945 val_loss=0.1087 P=0.277 R=0.309 F1=0.292 ROC-AUC=0.980 AUPR=0.231 time=25.30s
+Epoch 038 | train_loss=0.1146 val_loss=0.1086 P=0.300 R=0.296 F1=0.298 ROC-AUC=0.981 AUPR=0.236 time=25.50s
+Epoch 039 | train_loss=0.1249 val_loss=0.1117 P=0.291 R=0.280 F1=0.286 ROC-AUC=0.980 AUPR=0.231 time=25.36s
+Epoch 040 | train_loss=0.1367 val_loss=3.7485 P=0.270 R=0.255 F1=0.262 ROC-AUC=0.867 AUPR=0.184 time=25.42s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: 'rclone' not found on PATH or near the Python interpreter; skipping sync. Set sync.rclone_path in base.yaml to the full path of rclone.exe (e.g. find it with `where rclone` / `which rclone` in the env where you ran `conda install -c conda-forge rclone`).
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: 'rclone' not found on PATH or near the Python interpreter; skipping sync. Set sync.rclone_path in base.yaml to the full path of rclone.exe (e.g. find it with `where rclone` / `which rclone` in the env where you ran `conda install -c conda-forge rclone`).
+Epoch 041 | train_loss=0.1289 val_loss=0.1076 P=0.269 R=0.311 F1=0.288 ROC-AUC=0.981 AUPR=0.234 time=25.34s
+Epoch 042 | train_loss=0.1203 val_loss=0.1118 P=0.228 R=0.304 F1=0.260 ROC-AUC=0.979 AUPR=0.188 time=25.34s
+Epoch 043 | train_loss=0.0991 val_loss=0.1115 P=0.228 R=0.325 F1=0.268 ROC-AUC=0.979 AUPR=0.208 time=25.33s
+Epoch 044 | train_loss=0.0888 val_loss=0.1071 P=0.347 R=0.250 F1=0.291 ROC-AUC=0.980 AUPR=0.241 time=25.35s
+Epoch 045 | train_loss=0.1258 val_loss=0.1098 P=0.280 R=0.304 F1=0.292 ROC-AUC=0.979 AUPR=0.224 time=25.32s
+Epoch 046 | train_loss=0.1372 val_loss=0.1107 P=0.305 R=0.288 F1=0.297 ROC-AUC=0.981 AUPR=0.231 time=25.30s
+Epoch 047 | train_loss=0.1658 val_loss=0.1075 P=0.306 R=0.271 F1=0.287 ROC-AUC=0.981 AUPR=0.222 time=25.06s
+Epoch 048 | train_loss=0.1831 val_loss=0.1129 P=0.297 R=0.243 F1=0.267 ROC-AUC=0.978 AUPR=0.195 time=25.06s
+Epoch 049 | train_loss=0.1343 val_loss=0.1039 P=0.331 R=0.265 F1=0.294 ROC-AUC=0.982 AUPR=0.240 time=25.61s
+Epoch 050 | train_loss=0.1876 val_loss=0.1110 P=0.273 R=0.293 F1=0.283 ROC-AUC=0.980 AUPR=0.214 time=25.28s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: 'rclone' not found on PATH or near the Python interpreter; skipping sync. Set sync.rclone_path in base.yaml to the full path of rclone.exe (e.g. find it with `where rclone` / `which rclone` in the env where you ran `conda install -c conda-forge rclone`).
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: 'rclone' not found on PATH or near the Python interpreter; skipping sync. Set sync.rclone_path in base.yaml to the full path of rclone.exe (e.g. find it with `where rclone` / `which rclone` in the env where you ran `conda install -c conda-forge rclone`).
+Epoch 051 | train_loss=0.0927 val_loss=0.1098 P=0.314 R=0.298 F1=0.306 ROC-AUC=0.981 AUPR=0.244 time=25.29s
+Epoch 052 | train_loss=0.1448 val_loss=0.1170 P=0.288 R=0.278 F1=0.283 ROC-AUC=0.978 AUPR=0.217 time=25.05s
+Epoch 053 | train_loss=0.0815 val_loss=0.1094 P=0.345 R=0.278 F1=0.308 ROC-AUC=0.980 AUPR=0.263 time=25.44s
+Epoch 054 | train_loss=0.0773 val_loss=0.1139 P=0.300 R=0.264 F1=0.281 ROC-AUC=0.979 AUPR=0.225 time=25.40s
+Epoch 055 | train_loss=0.0878 val_loss=0.1290 P=0.271 R=0.267 F1=0.269 ROC-AUC=0.975 AUPR=0.220 time=25.26s
+Epoch 056 | train_loss=0.0805 val_loss=0.1147 P=0.239 R=0.321 F1=0.274 ROC-AUC=0.979 AUPR=0.219 time=24.91s
+Epoch 057 | train_loss=0.0737 val_loss=0.1043 P=0.312 R=0.296 F1=0.304 ROC-AUC=0.982 AUPR=0.254 time=25.15s
+Epoch 058 | train_loss=0.0714 val_loss=0.1098 P=0.264 R=0.300 F1=0.281 ROC-AUC=0.980 AUPR=0.232 time=25.36s
+Epoch 059 | train_loss=0.0741 val_loss=0.1216 P=0.258 R=0.274 F1=0.266 ROC-AUC=0.976 AUPR=0.212 time=25.32s
+Epoch 060 | train_loss=0.0894 val_loss=0.1175 P=0.316 R=0.313 F1=0.315 ROC-AUC=0.978 AUPR=0.263 time=25.19s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: 'rclone' not found on PATH or near the Python interpreter; skipping sync. Set sync.rclone_path in base.yaml to the full path of rclone.exe (e.g. find it with `where rclone` / `which rclone` in the env where you ran `conda install -c conda-forge rclone`).
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: 'rclone' not found on PATH or near the Python interpreter; skipping sync. Set sync.rclone_path in base.yaml to the full path of rclone.exe (e.g. find it with `where rclone` / `which rclone` in the env where you ran `conda install -c conda-forge rclone`).
+Epoch 061 | train_loss=0.0884 val_loss=0.1380 P=0.247 R=0.307 F1=0.274 ROC-AUC=0.971 AUPR=0.223 time=25.32s
+Epoch 062 | train_loss=0.1662 val_loss=0.1193 P=0.282 R=0.329 F1=0.304 ROC-AUC=0.977 AUPR=0.261 time=25.21s
+Epoch 063 | train_loss=0.0743 val_loss=0.1293 P=0.365 R=0.273 F1=0.312 ROC-AUC=0.975 AUPR=0.269 time=25.43s
+Epoch 064 | train_loss=0.0632 val_loss=0.1220 P=0.345 R=0.307 F1=0.325 ROC-AUC=0.975 AUPR=0.278 time=25.42s
+Epoch 065 | train_loss=0.1197 val_loss=0.1114 P=0.355 R=0.260 F1=0.300 ROC-AUC=0.980 AUPR=0.260 time=25.21s
+Epoch 066 | train_loss=0.2561 val_loss=0.1154 P=0.398 R=0.287 F1=0.334 ROC-AUC=0.977 AUPR=0.276 time=25.26s
+Epoch 067 | train_loss=0.1924 val_loss=0.2571 P=0.409 R=0.217 F1=0.284 ROC-AUC=0.940 AUPR=0.174 time=26.08s
+Epoch 068 | train_loss=0.1254 val_loss=0.1121 P=0.343 R=0.350 F1=0.347 ROC-AUC=0.978 AUPR=0.309 time=25.12s
+Epoch 069 | train_loss=0.0586 val_loss=0.1550 P=0.299 R=0.297 F1=0.298 ROC-AUC=0.968 AUPR=0.243 time=25.07s
+Epoch 070 | train_loss=0.2031 val_loss=0.1407 P=0.389 R=0.280 F1=0.326 ROC-AUC=0.970 AUPR=0.281 time=25.28s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: 'rclone' not found on PATH or near the Python interpreter; skipping sync. Set sync.rclone_path in base.yaml to the full path of rclone.exe (e.g. find it with `where rclone` / `which rclone` in the env where you ran `conda install -c conda-forge rclone`).
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: 'rclone' not found on PATH or near the Python interpreter; skipping sync. Set sync.rclone_path in base.yaml to the full path of rclone.exe (e.g. find it with `where rclone` / `which rclone` in the env where you ran `conda install -c conda-forge rclone`).
+Epoch 071 | train_loss=0.1453 val_loss=0.1346 P=0.383 R=0.259 F1=0.309 ROC-AUC=0.971 AUPR=0.256 time=25.31s
+Epoch 072 | train_loss=0.3429 val_loss=0.1289 P=0.346 R=0.288 F1=0.315 ROC-AUC=0.974 AUPR=0.278 time=25.62s
+Epoch 073 | train_loss=0.0634 val_loss=0.1502 P=0.318 R=0.329 F1=0.323 ROC-AUC=0.969 AUPR=0.277 time=25.44s
+Epoch 074 | train_loss=0.0756 val_loss=0.1538 P=0.408 R=0.235 F1=0.298 ROC-AUC=0.970 AUPR=0.256 time=25.34s
+Epoch 075 | train_loss=0.0899 val_loss=0.1318 P=0.412 R=0.298 F1=0.346 ROC-AUC=0.973 AUPR=0.300 time=25.08s
+Epoch 076 | train_loss=0.2095 val_loss=0.1251 P=0.401 R=0.340 F1=0.368 ROC-AUC=0.974 AUPR=0.333 time=25.27s
+Epoch 077 | train_loss=0.1926 val_loss=0.1388 P=0.477 R=0.303 F1=0.371 ROC-AUC=0.967 AUPR=0.332 time=25.02s
+Epoch 078 | train_loss=0.1202 val_loss=0.1553 P=0.360 R=0.313 F1=0.335 ROC-AUC=0.964 AUPR=0.276 time=25.19s
+Epoch 079 | train_loss=0.1257 val_loss=0.1850 P=0.363 R=0.300 F1=0.329 ROC-AUC=0.960 AUPR=0.271 time=25.05s
+Epoch 080 | train_loss=0.1846 val_loss=0.2106 P=0.365 R=0.295 F1=0.326 ROC-AUC=0.954 AUPR=0.264 time=25.11s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: 'rclone' not found on PATH or near the Python interpreter; skipping sync. Set sync.rclone_path in base.yaml to the full path of rclone.exe (e.g. find it with `where rclone` / `which rclone` in the env where you ran `conda install -c conda-forge rclone`).
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: 'rclone' not found on PATH or near the Python interpreter; skipping sync. Set sync.rclone_path in base.yaml to the full path of rclone.exe (e.g. find it with `where rclone` / `which rclone` in the env where you ran `conda install -c conda-forge rclone`).
+Epoch 081 | train_loss=0.1839 val_loss=0.1777 P=0.378 R=0.240 F1=0.294 ROC-AUC=0.961 AUPR=0.245 time=25.70s
+Epoch 082 | train_loss=0.0929 val_loss=0.1466 P=0.419 R=0.298 F1=0.348 ROC-AUC=0.969 AUPR=0.313 time=25.61s
+Epoch 083 | train_loss=0.2899 val_loss=0.1786 P=0.351 R=0.262 F1=0.300 ROC-AUC=0.959 AUPR=0.244 time=25.09s
+Epoch 084 | train_loss=0.0891 val_loss=0.1528 P=0.360 R=0.309 F1=0.332 ROC-AUC=0.969 AUPR=0.283 time=25.50s
+Epoch 085 | train_loss=0.1080 val_loss=0.1467 P=0.328 R=0.350 F1=0.339 ROC-AUC=0.967 AUPR=0.302 time=25.16s
+Epoch 086 | train_loss=0.1086 val_loss=0.1568 P=0.404 R=0.262 F1=0.318 ROC-AUC=0.967 AUPR=0.273 time=25.25s
+Epoch 087 | train_loss=0.2097 val_loss=0.1453 P=0.474 R=0.298 F1=0.366 ROC-AUC=0.970 AUPR=0.322 time=25.11s
+Epoch 088 | train_loss=0.1199 val_loss=0.1369 P=0.474 R=0.274 F1=0.347 ROC-AUC=0.970 AUPR=0.297 time=25.36s
+Epoch 089 | train_loss=0.3173 val_loss=0.1380 P=0.483 R=0.280 F1=0.355 ROC-AUC=0.968 AUPR=0.315 time=25.11s
+Epoch 090 | train_loss=0.2084 val_loss=0.1714 P=0.324 R=0.254 F1=0.285 ROC-AUC=0.964 AUPR=0.234 time=24.91s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: 'rclone' not found on PATH or near the Python interpreter; skipping sync. Set sync.rclone_path in base.yaml to the full path of rclone.exe (e.g. find it with `where rclone` / `which rclone` in the env where you ran `conda install -c conda-forge rclone`).
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: 'rclone' not found on PATH or near the Python interpreter; skipping sync. Set sync.rclone_path in base.yaml to the full path of rclone.exe (e.g. find it with `where rclone` / `which rclone` in the env where you ran `conda install -c conda-forge rclone`).
+Epoch 091 | train_loss=0.1307 val_loss=0.1508 P=0.453 R=0.277 F1=0.344 ROC-AUC=0.969 AUPR=0.301 time=25.37s
+
+Early stopping at epoch 91 (no val AUPR improvement for 15 epochs)
+
+Total training time: 2492.76s (41.5 min)
+
+Loading best model from epoch 76...
+Evaluating final model on train/val/test...
+======================================================================
+EVALUATION RESULTS: seed4_new_experiment TRAIN
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.7361
+  Recall:           0.6993
+  F1-Score:         0.7173
+  ROC-AUC:          0.9915
+  AUPR:             0.6994
+  Balanced Acc:     0.8496
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.7173
+  Cohen Kappa:      0.7170
+  Specificity:      0.9998
+
+THRESHOLD: 0.921
+
+CONFUSION MATRIX:
+  True Negatives:   3044175
+  False Positives:  576
+  False Negatives:  691
+  True Positives:   1607
+
+TOP-K PRECISION:
+  precision_at_100: 0.9600
+  precision_at_500: 0.9420
+  precision_at_1000: 0.8760
+======================================================================
+======================================================================
+EVALUATION RESULTS: seed4_new_experiment VAL
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.4009
+  Recall:           0.3401
+  F1-Score:         0.3680
+  ROC-AUC:          0.9743
+  AUPR:             0.3327
+  Balanced Acc:     0.6698
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.3686
+  Cohen Kappa:      0.3674
+  Specificity:      0.9995
+
+THRESHOLD: 0.887
+
+CONFUSION MATRIX:
+  True Negatives:   1014051
+  False Positives:  550
+  False Negatives:  714
+  True Positives:   368
+
+TOP-K PRECISION:
+  precision_at_100: 0.9500
+  precision_at_500: 0.5720
+  precision_at_1000: 0.3780
+======================================================================
+======================================================================
+EVALUATION RESULTS: seed4_new_experiment TEST
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.4374
+  Recall:           0.3617
+  F1-Score:         0.3960
+  ROC-AUC:          0.9794
+  AUPR:             0.3529
+  Balanced Acc:     0.6804
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.3968
+  Cohen Kappa:      0.3950
+  Specificity:      0.9992
+
+THRESHOLD: 0.921
+
+CONFUSION MATRIX:
+  True Negatives:   1013050
+  False Positives:  836
+  False Negatives:  1147
+  True Positives:   650
+
+TOP-K PRECISION:
+  precision_at_100: 0.9200
+  precision_at_500: 0.6760
+  precision_at_1000: 0.5200
+======================================================================
+
+Saving results...
+  - Saved metrics to: C:\Users\ASUS\Documents\GitHub\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_low\seed4_new_experiment\dyrep\metrics.json
+  - Saved prediction probabilities
+  - Saved experiment config
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: 'rclone' not found on PATH or near the Python interpreter; skipping sync. Set sync.rclone_path in base.yaml to the full path of rclone.exe (e.g. find it with `where rclone` / `which rclone` in the env where you ran `conda install -c conda-forge rclone`).
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: 'rclone' not found on PATH or near the Python interpreter; skipping sync. Set sync.rclone_path in base.yaml to the full path of rclone.exe (e.g. find it with `where rclone` / `which rclone` in the env where you ran `conda install -c conda-forge rclone`).
+
+======================================================================
+DyRep-style Training Complete!
+Results saved to: C:\Users\ASUS\Documents\GitHub\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_low\seed4_new_experiment\dyrep
+======================================================================
+
+================================================================================
+Logging ended at: 2026-07-19 13:00:27.887070
+================================================================================

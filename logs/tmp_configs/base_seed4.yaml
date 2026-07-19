@@ -1,0 +1,44 @@
+# configs/base.yaml
+experiment:
+  seed: 4
+  name: "new_experiment"
+
+paths:
+  root: ""                  # filled programmatically (current dir)
+  graphs_dir: "graphs"
+  tgat_graphs_dir: "graphs_tgat"
+  dyrep_graphs_dir: "graphs_dyrep"
+  splits_dir: "splits"
+  tgat_splits_dir: "splits_tgat"
+  dyrep_splits_dir: "splits_dyrep"
+  results_dir: "results"
+  logs_dir: "logs"
+
+evaluation:
+  threshold: 0.5
+  auto_threshold: true
+  compute_top_k: true
+  top_k_values: [100, 500, 1000]
+
+# Add these for completeness:
+logging:
+  print_interval: 1  # print every N epochs
+  save_history: true
+  save_best_only: true
+
+# Push results/logs/checkpoints to Google Drive after every epoch via rclone.
+# Requires `rclone config` to have been run once to set up the remote
+# (e.g. `rclone config create gdrive drive`).
+sync:
+  enabled: true              # set to true on the GPU machine to enable
+  rclone_remote: "gdrive"     # name of the rclone remote (see `rclone listremotes`)
+  drive_root: "AML_project_results"  # destination folder inside the Drive remote
+  sync_logs: true             # also sync the logs/ dir (tensorboard, train logs)
+  sync_every_n_epochs: 10     # push to Drive every N epochs (results dirs can be large);
+                               # a final sync always runs at the end of training regardless
+  extra_args: []              # any extra rclone flags, e.g. ["--drive-chunk-size=64M"]
+  # If `rclone` isn't on the PATH of the shell that launches training (common when
+  # rclone was installed via `conda install -c conda-forge rclone` into the project
+  # env but the bash script calls python.exe directly), set the full path here.
+  # Find it with `where rclone` (Windows) or `which rclone` (after conda activate).
+  rclone_path: 'C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe'           # e.g. "C:/Users/<you>/miniconda3/envs/aml_project/Library/bin/rclone.exe"
