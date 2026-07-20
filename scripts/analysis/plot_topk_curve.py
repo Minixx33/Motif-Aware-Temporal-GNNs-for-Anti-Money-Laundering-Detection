@@ -14,8 +14,8 @@ combination), grouped by dataset:
     Baseline  DyRep-Lite
     RAT-Med   GraphSAGE-T
     RAT-Med   DyRep-Lite
-    SLT-High  GraphSAGE-T
-    SLT-High  DyRep-Lite
+    SLT-Med  GraphSAGE-T
+    SLT-Med  DyRep-Lite
 
 Data source: per-seed test-set predictions and ground-truth labels, loaded
 directly from the results tree (NOT the aggregated metrics.json / paper
@@ -42,19 +42,19 @@ import matplotlib.pyplot as plt
 
 CONDITIONS = {
     "Baseline": {
+        # baseline was not rerun -- still the original seed folders
         "results_base": "../../results/HI-Small_Trans",
         "seeds": ["seed1337_experiment2", "seed2025_experiment_3",
                   "seed42_default_experiment", "seed4_seed4_experiment"],
     },
     "RAT-Med": {
+        # new injection runs (missing model/seed combinations are skipped)
         "results_base": "../../results/HI-Small_Trans_RAT_medium",
-        "seeds": ["seed1337_experiment2", "seed2025_experiment_3",
-                  "seed42_default_experiment", "seed4_seed4_experiment",
-                  "seed4_seed5_experiment"],
+        "seeds": [f"seed{i}_new_experiment" for i in range(1, 6)],
     },
-    "SLT-High": {
-        "results_base": "../../results/HI-Small_Trans_SLT_high",
-        "seeds": [f"seed{i}_seed1_experiment" for i in range(1, 6)],
+    "SLT-Med": {
+        "results_base": "../../results/HI-Small_Trans_SLT_medium",
+        "seeds": [f"seed{i}_new_experiment" for i in range(1, 6)],
     },
 }
 
@@ -64,41 +64,41 @@ MODEL_SPECS = {
         "graph_dir": {
             "Baseline": "../../graphs/HI-Small_Trans",
             "RAT-Med":  "../../graphs/HI-Small_Trans_RAT_medium",
-            "SLT-High": "../../graphs/HI-Small_Trans_SLT_high",
+            "SLT-Med": "../../graphs/HI-Small_Trans_SLT_medium",
         },
         "split_dir": {
             "Baseline": "../../splits/HI-Small_Trans",
             "RAT-Med":  "../../splits/HI-Small_Trans_RAT_medium",
-            "SLT-High": "../../splits/HI-Small_Trans_SLT_high",
+            "SLT-Med": "../../splits/HI-Small_Trans_SLT_medium",
         },
         "label_file": "y_edge.pt",
     },
     "DyRep-Lite": {
-        "result_dir_variants": ["dyrep"],
+        "result_dir_variants": ["dyrep", "dyrep/Dyrep"],
         "graph_dir": {
             "Baseline": "../../graphs_dyrep/HI-Small_Trans",
             "RAT-Med":  "../../graphs_dyrep/HI-Small_Trans_RAT_medium",
-            "SLT-High": "../../graphs_dyrep/HI-Small_Trans_SLT_high",
+            "SLT-Med": "../../graphs_dyrep/HI-Small_Trans_SLT_medium",
         },
         "split_dir": {
             "Baseline": "../../splits_dyrep/HI-Small_Trans",
             "RAT-Med":  "../../splits_dyrep/HI-Small_Trans_RAT_medium",
-            "SLT-High": "../../splits_dyrep/HI-Small_Trans_SLT_high",
+            "SLT-Med": "../../splits_dyrep/HI-Small_Trans_SLT_medium",
         },
         "label_file": "labels.pt",
     },
 }
 
 # (setting, model) pairs to plot -- must exist in CONDITIONS / MODEL_SPECS.
-# Grouped by dataset (Baseline, then RAT-Med, then SLT-High) so the legend
+# Grouped by dataset (Baseline, then RAT-Med, then SLT-Med) so the legend
 # reads top-to-bottom by dataset rather than by model.
 SERIES = [
     ("Baseline", "GraphSAGE-T"),
     ("Baseline", "DyRep-Lite"),
     ("RAT-Med",  "GraphSAGE-T"),
     ("RAT-Med",  "DyRep-Lite"),
-    ("SLT-High", "GraphSAGE-T"),
-    ("SLT-High", "DyRep-Lite"),
+    ("SLT-Med", "GraphSAGE-T"),
+    ("SLT-Med", "DyRep-Lite"),
 ]
 
 # K values the curve is evaluated at -- log-spaced, with 100/500/1000 forced
@@ -120,7 +120,7 @@ OUTPUT_PDF = "../../paper/figures/topk_retrieval_curve.pdf"
 COLORS = {
     "Baseline": "#e0aaff",   # light violet
     "RAT-Med":  "#9d4edd",   # medium violet
-    "SLT-High": "#4c1d73",   # dark violet
+    "SLT-Med": "#4c1d73",   # dark violet
 }
 LINESTYLES = {"GraphSAGE-T": "-", "DyRep-Lite": "--"}
 # Custom (longer, cleaner) dash pattern instead of matplotlib's default tight
