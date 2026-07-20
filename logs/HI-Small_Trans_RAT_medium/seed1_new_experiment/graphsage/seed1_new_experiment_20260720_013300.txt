@@ -1,0 +1,158 @@
+
+================================================================================
+Logging started at: 2026-07-20 01:33:00.178969
+Log file: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_medium\seed1_new_experiment\graphsage\seed1_new_experiment_20260720_013300.txt
+================================================================================
+
+[INFO] Logging to: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_medium\seed1_new_experiment\graphsage\seed1_new_experiment_20260720_013300.txt
+================================================================================
+EXPERIMENT CONFIG SUMMARY
+================================================================================
+
+[DATASET]
+  Name:       HI-Small_Trans_RAT_medium
+  Theory:     RAT
+  Intensity:  medium
+
+[MODEL]
+  GraphSAGE
+  Hidden dim: 128
+
+[PATHS]
+  Graphs:     C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs\HI-Small_Trans_RAT_medium
+  Splits:     C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits\HI-Small_Trans_RAT_medium
+  Results:    C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_medium\seed1_new_experiment\graphsage
+  Logs:       C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_medium\seed1_new_experiment\graphsage
+================================================================================
+
+[DEVICE] cuda
+
+
+======================================================================
+GPU Mini-Batch Training (GraphSAGE Stable)
+======================================================================
+Train batch size: 8192
+Eval batch size:  16384
+Mixed Precision:  False (disabled)
+Device:           cuda
+======================================================================
+
+Loading graph tensors...
+Nodes: 515,080, Edges: 5,078,415
+Node features: 6, Edge features: 38
+Train: 3,047,049, Val: 1,015,683, Test: 1,015,683
+pos_weight: 100.00
+[RESUME] Found checkpoint: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_medium\seed1_new_experiment\graphsage\checkpoint.pt
+[RESUME] WARNING: could not fully restore RNG state (RNG state must be a torch.ByteTensor)
+[RESUME] Resuming from epoch 350 (best_val=0.48218744839858946, best_epoch=350, patience=0)
+[RESUME] Checkpoint already completed 350 epochs; skipping training loop.
+
+Starting training for 350 epochs (starting at epoch 351)...
+
+
+Total training time: 0.00s (0.0 min)
+
+Loading best model from epoch 350...
+Evaluating on train/val/test...
+======================================================================
+EVALUATION RESULTS: seed1_new_experiment TRAIN
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.5600
+  Recall:           0.4430
+  F1-Score:         0.4947
+  ROC-AUC:          0.9899
+  AUPR:             0.4997
+  Balanced Acc:     0.7213
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.4976
+  Cohen Kappa:      0.4942
+  Specificity:      0.9996
+
+THRESHOLD: 0.970
+
+CONFUSION MATRIX:
+  True Negatives:   3042862
+  False Positives:  1081
+  False Negatives:  1730
+  True Positives:   1376
+
+TOP-K PRECISION:
+  precision_at_100: 0.9900
+  precision_at_500: 0.9560
+  precision_at_1000: 0.8500
+======================================================================
+======================================================================
+EVALUATION RESULTS: seed1_new_experiment VAL
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.6235
+  Recall:           0.4044
+  F1-Score:         0.4906
+  ROC-AUC:          0.9874
+  AUPR:             0.4822
+  Balanced Acc:     0.7021
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.5018
+  Cohen Kappa:      0.4902
+  Specificity:      0.9998
+
+THRESHOLD: 0.980
+
+CONFUSION MATRIX:
+  True Negatives:   1014394
+  False Positives:  253
+  False Negatives:  617
+  True Positives:   419
+
+TOP-K PRECISION:
+  precision_at_100: 0.9600
+  precision_at_500: 0.7180
+  precision_at_1000: 0.4990
+======================================================================
+======================================================================
+EVALUATION RESULTS: seed1_new_experiment TEST
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.4957
+  Recall:           0.4444
+  F1-Score:         0.4687
+  ROC-AUC:          0.9866
+  AUPR:             0.4615
+  Balanced Acc:     0.7220
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.4689
+  Cohen Kappa:      0.4682
+  Specificity:      0.9995
+
+THRESHOLD: 0.965
+
+CONFUSION MATRIX:
+  True Negatives:   1014180
+  False Positives:  468
+  False Negatives:  575
+  True Positives:   460
+
+TOP-K PRECISION:
+  precision_at_100: 0.9700
+  precision_at_500: 0.6860
+  precision_at_1000: 0.4740
+======================================================================
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed1_new_experiment (final)] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_medium\seed1_new_experiment\graphsage -> gdrive:AML_project_results/results/HI-Small_Trans_RAT_medium/seed1_new_experiment/graphsage
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed1_new_experiment (final)] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_medium\seed1_new_experiment\graphsage -> gdrive:AML_project_results/logs/HI-Small_Trans_RAT_medium/seed1_new_experiment/graphsage
+
+======================================================================
+Training Complete!
+======================================================================
+
+================================================================================
+Logging ended at: 2026-07-20 01:33:54.218940
+================================================================================
