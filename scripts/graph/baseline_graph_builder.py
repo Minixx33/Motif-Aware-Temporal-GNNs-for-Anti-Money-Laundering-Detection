@@ -15,7 +15,12 @@ Uses:
 
 Outputs (to graphs/HI-Small_Trans/):
   - edge_index.pt      [2, E]
-  - edge_attr.pt       [E, F_e]   (~20 features with temporal)
+  - edge_attr.pt       [E, F_e]   (12 features with temporal: payment
+                                   format / receiving currency are single
+                                   category-code columns, matching
+                                   motif_graph_builder_static.py's schema
+                                   -- NOT one-hot -- so baseline stays
+                                   consistent with the RAT/SLT graphs)
   - timestamps.pt      [E]
   - x.pt               [N, F_n]   (degrees + entity type)
   - y_edge.pt          [E]
@@ -279,12 +284,16 @@ log_time_since_dst = np.log1p(time_since_last_dst).astype(np.float32)
 
 print("Time-based features computed")
 
-# Categorical features
-pf_dummies = pd.get_dummies(df[PFORMAT_COL].astype(str), prefix="pf")
-rc_dummies = pd.get_dummies(df[RCURR_COL].astype(str), prefix="rc")
+# Categorical features -- encoded as category codes (NOT one-hot).
+# This matches motif_graph_builder_static.py's schema so that baseline and
+# the RAT/SLT graphs use identical payment-format/currency representations
+# for GraphSAGE/GraphSAGE-T. (The old one-hot pf_*/rc_* columns caused a
+# real train/test inconsistency between baseline and theory-injected runs.)
+pf_codes = df[PFORMAT_COL].astype("category").cat.codes.to_numpy(np.int16).astype(np.float32)
+rc_codes = df[RCURR_COL].astype("category").cat.codes.to_numpy(np.int16).astype(np.float32)
 
-print(f"Payment formats:  {len(pf_dummies.columns)} distinct")
-print(f"Receiving currs:  {len(rc_dummies.columns)} distinct")
+print(f"Payment formats:  {df[PFORMAT_COL].nunique()} distinct -> encoded as pf_code")
+print(f"Receiving currs:  {df[RCURR_COL].nunique()} distinct -> encoded as rc_code")
 
 edge_feat_df = pd.DataFrame({
     "log_amt_rec": log_amt_rec,
@@ -297,9 +306,9 @@ edge_feat_df = pd.DataFrame({
     "ts_normalized": ts_normalized,
     "log_time_since_src": log_time_since_src,
     "log_time_since_dst": log_time_since_dst,
+    "pf_code": pf_codes,
+    "rc_code": rc_codes,
 })
-
-edge_feat_df = pd.concat([edge_feat_df, pf_dummies, rc_dummies], axis=1)
 
 edge_feature_cols = list(edge_feat_df.columns)
 print(f"Total edge feature dims: {len(edge_feature_cols)}")
