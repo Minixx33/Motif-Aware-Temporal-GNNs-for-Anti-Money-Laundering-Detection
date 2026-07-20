@@ -16,6 +16,7 @@
 #   CONDA_ENV=aml_project                             # env to activate if
 #                                                     # python/torch not found
 #   DATASETS_ONLY="rat slt"                           # skip baseline
+#   MODELS_ONLY="dyrep"                               # only retrain dyrep
 # ============================================================
 set -u
 
@@ -142,6 +143,7 @@ run_one() {
 # Dataset-outer / seed-inner keeps all runs of one dataset together.
 start_time=$(date +%s)
 FILTER="${DATASETS_ONLY:-}"
+MODEL_FILTER="${MODELS_ONLY:-}"
 
 # Seed-outer ordering: complete one full sweep (all datasets x all models)
 # for seed 1 before starting seed 2, etc. This way a full single-seed set of
@@ -159,6 +161,14 @@ for SEED in $SEEDS; do
             [ "$keep" -eq 1 ] || continue
         fi
         for MOD_ENTRY in "${MODELS[@]}"; do
+            MOD_NAME="${MOD_ENTRY%%|*}"
+            if [ -n "$MODEL_FILTER" ]; then
+                mkeep=0
+                for mf in $MODEL_FILTER; do
+                    case "$MOD_NAME" in "$mf"*) mkeep=1 ;; esac
+                done
+                [ "$mkeep" -eq 1 ] || continue
+            fi
             run_one "$SEED" "$DS_ENTRY" "$MOD_ENTRY"
         done
     done
