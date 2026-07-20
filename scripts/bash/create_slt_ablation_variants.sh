@@ -65,7 +65,8 @@ fi
 
 # shellcheck disable=SC1091
 source "$CONDA_BASE/etc/profile.d/conda.sh"
-conda activate "/shared/conda_envs/aml_project"
+CONDA_ENV="${CONDA_ENV:-aml_project}"
+conda activate "$CONDA_ENV"
 
 echo "Using Python: $(which python)"
 python --version

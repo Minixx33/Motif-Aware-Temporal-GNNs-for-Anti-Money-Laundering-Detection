@@ -184,10 +184,22 @@ EOF
 make_dataset_config() {
     local VARIANT="$1"
     local CFG="configs/datasets/slt_${VARIANT}_${JOB_ID}_tmp.yaml"
+    # build_paths() resolves dataset_name as "${prefix}_${intensity}" whenever
+    # requires_intensity is true. The "current" variant's graphs were built
+    # WITHOUT a "_current" suffix (graphs/HI-Small_Trans_SLT_medium, same as
+    # the main non-ablation dataset) -- see create_slt_ablation_variants.sh.
+    # All other variants DO carry the suffix (graphs/HI-Small_Trans_SLT_<variant>_medium).
+    # So "current" needs the bare prefix; everything else needs "_<variant>".
+    local PREFIX
+    if [ "$VARIANT" = "current" ]; then
+        PREFIX="HI-Small_Trans_SLT"
+    else
+        PREFIX="HI-Small_Trans_SLT_${VARIANT}"
+    fi
     cat > "$CFG" <<EOF
 dataset:
   theory: "SLT"
-  prefix: "HI-Small_Trans_SLT_${VARIANT}"
+  prefix: "${PREFIX}"
   available_intensities: ["medium"]
   requires_intensity: true
 EOF
@@ -201,45 +213,56 @@ elapsed() { printf "%dh %dm %ds" $(($1/3600)) $((($1%3600)/60)) $(($1%60)); }
 
 # ---------------------------------------------------------------------------
 # MAIN
+# Seed-outer / variant-inner: one complete seed (all variants) finishes
+# before the next seed starts, so a full single-seed result set is available
+# as early as possible.
 # ---------------------------------------------------------------------------
 total_start=$(date +%s)
+FAILED_RUNS=()
 
-for PAIR in "${RUN_PAIRS[@]}"; do
-    read -r VARIANT INTENSITY <<< "$PAIR"
-
-    DATASET_CONFIG=$(make_dataset_config "$VARIANT")
-
+for SEED in "${SEEDS[@]}"; do
     log ""
-    log "==============================================================="
-    log " variant=$VARIANT  intensity=$INTENSITY"
-    log " Dataset config: $DATASET_CONFIG"
-    log "==============================================================="
+    log "################ SEED $SEED: full SLT ablation sweep ################"
 
-    for SEED in "${SEEDS[@]}"; do
+    for PAIR in "${RUN_PAIRS[@]}"; do
+        read -r VARIANT INTENSITY <<< "$PAIR"
+
+        DATASET_CONFIG=$(make_dataset_config "$VARIANT")
         EXP_NAME="slt_${VARIANT}_${INTENSITY}_graphsage_t_seed${SEED}"
 
         log ""
-        log ">>> [$(date +%H:%M:%S)] $EXP_NAME"
+        log "==============================================================="
+        log " seed=$SEED  variant=$VARIANT  intensity=$INTENSITY"
+        log " Dataset config: $DATASET_CONFIG"
+        log "==============================================================="
 
         patch_base_config "$SEED" "$EXP_NAME"
 
         t0=$(date +%s)
 
-        python "$TRAIN_SCRIPT" \
+        if python "$TRAIN_SCRIPT" \
             --config      "$MODEL_CONFIG" \
             --dataset     "$DATASET_CONFIG" \
             --base_config "$JOB_BASE_CONFIG" \
-            --intensity   "$INTENSITY"
+            --intensity   "$INTENSITY"; then
+            log ">>> OK: $EXP_NAME finished in $(elapsed $(($(date +%s) - t0)))"
+        else
+            log ">>> FAILED: $EXP_NAME"
+            FAILED_RUNS+=("seed=$SEED variant=$VARIANT")
+        fi
 
-        log ">>> Finished $EXP_NAME in $(elapsed $(($(date +%s) - t0)))"
+        rm -f "$DATASET_CONFIG"
 
-    done  # seeds
-
-    rm -f "$DATASET_CONFIG"
-
-done  # variant × intensity pairs
+    done  # variant × intensity pairs
+done  # seeds
 
 log ""
 log "==============================================================="
+if [ ${#FAILED_RUNS[@]} -gt 0 ]; then
+    log " FAILED RUNS (${#FAILED_RUNS[@]}):"
+    for r in "${FAILED_RUNS[@]}"; do
+        log "   $r"
+    done
+fi
 log " ALL DONE — total time: $(elapsed $(($(date +%s) - total_start)))"
 log "==============================================================="

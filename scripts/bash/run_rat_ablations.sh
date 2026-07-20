@@ -205,51 +205,66 @@ elapsed() {
 
 # ---------------------------------------------------------------------------
 # MAIN
+# Seed-outer / ablation-inner: one complete seed (all 9 ablations) finishes
+# before the next seed starts, so a full single-seed result set is available
+# as early as possible.
 # ---------------------------------------------------------------------------
 total_start=$(date +%s)
+FAILED_RUNS=()
 
+# Pre-flight: make sure every ablation graph this run needs already exists,
+# so we fail fast instead of partway through seed 1.
 for NAME in "${RUN_ABLATIONS[@]}"; do
     GRAPH_DIR="graphs/HI-Small_Trans_RAT_medium__${NAME}"
-
     if [ ! -d "$GRAPH_DIR" ]; then
         log "ERROR: Ablation graph not found: $GRAPH_DIR"
         log "       Run create_rat_ablation_graphs_static.sh first."
         exit 1
     fi
+done
 
-    DATASET_CONFIG=$(make_dataset_config "$NAME")
-
+for SEED in "${SEEDS[@]}"; do
     log ""
-    log "==============================================================="
-    log " ablation=$NAME"
-    log " Graph dir: $GRAPH_DIR"
-    log " Dataset config: $DATASET_CONFIG"
-    log "==============================================================="
+    log "################ SEED $SEED: full RAT ablation sweep ################"
 
-    for SEED in "${SEEDS[@]}"; do
+    for NAME in "${RUN_ABLATIONS[@]}"; do
+        GRAPH_DIR="graphs/HI-Small_Trans_RAT_medium__${NAME}"
+        DATASET_CONFIG=$(make_dataset_config "$NAME")
         EXP_NAME="rat_ablation_${NAME}_graphsage_t_seed${SEED}"
 
         log ""
-        log ">>> [$(date +%H:%M:%S)] $EXP_NAME"
+        log "==============================================================="
+        log " seed=$SEED  ablation=$NAME"
+        log " Graph dir: $GRAPH_DIR"
+        log " Dataset config: $DATASET_CONFIG"
+        log "==============================================================="
 
         patch_base_config "$SEED" "$EXP_NAME"
 
         t0=$(date +%s)
 
-        python "$TRAIN_SCRIPT" \
+        if python "$TRAIN_SCRIPT" \
             --config      "$MODEL_CONFIG" \
             --dataset     "$DATASET_CONFIG" \
-            --base_config "$JOB_BASE_CONFIG"
+            --base_config "$JOB_BASE_CONFIG"; then
+            log ">>> OK: $EXP_NAME finished in $(elapsed $(($(date +%s) - t0)))"
+        else
+            log ">>> FAILED: $EXP_NAME"
+            FAILED_RUNS+=("seed=$SEED ablation=$NAME")
+        fi
 
-        log ">>> Finished $EXP_NAME in $(elapsed $(($(date +%s) - t0)))"
+        rm -f "$DATASET_CONFIG"
 
-    done  # seeds
-
-    rm -f "$DATASET_CONFIG"
-
-done  # ablations
+    done  # ablations
+done  # seeds
 
 log ""
 log "==============================================================="
+if [ ${#FAILED_RUNS[@]} -gt 0 ]; then
+    log " FAILED RUNS (${#FAILED_RUNS[@]}):"
+    for r in "${FAILED_RUNS[@]}"; do
+        log "   $r"
+    done
+fi
 log " ALL DONE -- total time: $(elapsed $(($(date +%s) - total_start)))"
 log "==============================================================="
