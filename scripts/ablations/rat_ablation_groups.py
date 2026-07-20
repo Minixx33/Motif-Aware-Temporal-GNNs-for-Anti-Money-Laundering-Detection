@@ -1,15 +1,16 @@
 # ablation_groups.py
 
+# NOTE: motif_graph_builder_static.py encodes payment_format / receiving_currency
+# as single integer category-code columns ("pf_code", "rc_code") for the GNN's
+# embedding lookup, NOT as one-hot dummies (see lines ~309-310 of that file).
+# This list must match the graph's actual edge_attr_cols.json schema, since
+# run_ablation_static.py subsets edge_attr.pt by these exact names.
 FULL_FEATURES = [
     "log_amt_rec", "log_amt_paid",
     "same_bank", "same_currency",
     "hour_of_day", "day_of_week", "is_weekend",
     "ts_normalized", "log_time_since_src", "log_time_since_dst",
-    "pf_ACH","pf_Bitcoin","pf_Cash","pf_Cheque","pf_Credit Card",
-    "pf_Reinvestment","pf_Wire",
-    "rc_Australian Dollar","rc_Bitcoin","rc_Brazil Real","rc_Canadian Dollar",
-    "rc_Euro","rc_Mexican Peso","rc_Ruble","rc_Rupee","rc_Saudi Riyal",
-    "rc_Shekel","rc_Swiss Franc","rc_UK Pound","rc_US Dollar","rc_Yen","rc_Yuan",
+    "pf_code", "rc_code",
     "RAT_is_off_hours","RAT_is_weekend","RAT_is_cross_bank",
     "RAT_src_amount_z_pos","RAT_dst_amount_z_pos",
     "RAT_src_out_deg_norm","RAT_dst_in_deg_norm",
