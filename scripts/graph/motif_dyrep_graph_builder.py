@@ -201,8 +201,11 @@ for i, (d, ts) in enumerate(zip(dst, timestamps)):
     last_dst[d] = ts
 tsld = np.log1p(tsld)
 
-pf = pd.get_dummies(df[PFORMAT].astype(str), prefix="pf")
-rc = pd.get_dummies(df[RCURR].astype(str),  prefix="rc")
+# categorical codes instead of one-hot -- matches motif_graph_builder_static.py
+# so GraphSAGE, GraphSAGE-T, and DyRep all consume identical payment-format /
+# receiving-currency representations.
+pf_codes = df[PFORMAT].astype("category").cat.codes.to_numpy(np.int16).astype(np.float32)
+rc_codes = df[RCURR].astype("category").cat.codes.to_numpy(np.int16).astype(np.float32)
 
 baseline_df = pd.DataFrame({
     "log_amt_rec": log_amt_rec,
@@ -215,9 +218,9 @@ baseline_df = pd.DataFrame({
     "ts_normalized": ts_norm.astype(np.float32),
     "log_time_since_src": tsls.astype(np.float32),
     "log_time_since_dst": tsld.astype(np.float32),
+    "pf_code": pf_codes,
+    "rc_code": rc_codes,
 })
-
-baseline_df = pd.concat([baseline_df, pf, rc], axis=1)
 
 # ============================================================
 # THEORY + MOTIF FEATURES (z-score normalized)

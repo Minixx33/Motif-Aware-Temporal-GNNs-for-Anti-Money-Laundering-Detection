@@ -178,8 +178,11 @@ for i, (d, ts) in enumerate(zip(dst, timestamps)):
 log_time_since_src = np.log1p(time_since_last_src).astype(np.float32)
 log_time_since_dst = np.log1p(time_since_last_dst).astype(np.float32)
 
-pf_dummies = pd.get_dummies(df[PFORMAT].astype(str), prefix="pf")
-rc_dummies = pd.get_dummies(df[RCURR].astype(str),  prefix="rc")
+# categorical codes instead of one-hot -- matches motif_graph_builder_static.py
+# and motif_dyrep_graph_builder.py, so GraphSAGE, GraphSAGE-T, and DyRep all
+# consume identical payment-format / receiving-currency representations.
+pf_codes = df[PFORMAT].astype("category").cat.codes.to_numpy(np.int16).astype(np.float32)
+rc_codes = df[RCURR].astype("category").cat.codes.to_numpy(np.int16).astype(np.float32)
 
 edge_feat_df = pd.DataFrame({
     "log_amt_rec": log_amt_rec,
@@ -192,9 +195,9 @@ edge_feat_df = pd.DataFrame({
     "ts_normalized": ts_normalized,
     "log_time_since_src": log_time_since_src,
     "log_time_since_dst": log_time_since_dst,
+    "pf_code": pf_codes,
+    "rc_code": rc_codes,
 })
-
-edge_feat_df = pd.concat([edge_feat_df, pf_dummies, rc_dummies], axis=1)
 
 edge_attr_cols = list(edge_feat_df.columns)
 edge_attr = edge_feat_df.replace([np.inf, -np.inf], 0.0).fillna(0.0).values.astype(np.float32)
