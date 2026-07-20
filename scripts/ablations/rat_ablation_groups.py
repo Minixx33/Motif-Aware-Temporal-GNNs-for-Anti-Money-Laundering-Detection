@@ -65,13 +65,17 @@ NO_CROSS_BANK = [
     "RAT_is_cross_bank"
 ]
 
+# Built from the RF feature-importance ranking (results/feature_importance/rat_medium),
+# translated into graph-column space. The RF ranking used one-hot payment-format
+# dummies (pf_ACH rank 1, pf_Cheque rank 2, pf_Credit Card rank 6), but the graph
+# only has a single combined "pf_code" column -- so those 3 entries collapse to 1,
+# and the list is padded forward through the ranking (ranks 21-22: 
+# RAT_guardian_weakness_score, hour_of_day) to keep 20 real, non-redundant columns.
 TOP20_FEATURES = [
-    "pf_ACH",
-    "pf_Cheque",
+    "pf_code",
     "log_amt_paid",
     "log_amt_rec",
     "RAT_dst_in_deg_norm",
-    "pf_Credit Card",
     "motif_fanin",
     "motif_cycle",
     "RAT_combined_burst",
@@ -86,6 +90,8 @@ TOP20_FEATURES = [
     "RAT_dst_entity_acct_norm",
     "RAT_offender_score",
     "RAT_dst_entity_accounts",
+    "RAT_guardian_weakness_score",
+    "hour_of_day",
 ]
 
 ABLATED_SETS = {
