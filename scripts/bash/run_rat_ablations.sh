@@ -137,7 +137,7 @@ ABLATIONS=(
     "top20_features"   # 8
 )
 
-SEEDS=(1 2 3 4 5)
+SEEDS="${SEEDS:-1 2 3 4 5}"   # override: SEEDS="1 2 3" bash ...
 
 # ---------------------------------------------------------------------------
 # Select which ablations to run:
@@ -223,7 +223,7 @@ for NAME in "${RUN_ABLATIONS[@]}"; do
     fi
 done
 
-for SEED in "${SEEDS[@]}"; do
+for SEED in $SEEDS; do
     log ""
     log "################ SEED $SEED: full RAT ablation sweep ################"
 

@@ -124,7 +124,7 @@ VARIANTS=(
 )
 INTENSITIES=("medium")   # 0 1 2
 
-SEEDS=(1 2 3 4 5)
+SEEDS="${SEEDS:-1 2 3 4 5}"   # override: SEEDS="1 2 3" bash ...
 
 # ---------------------------------------------------------------------------
 # Select which (variant, intensity) pairs to run:
@@ -220,7 +220,7 @@ elapsed() { printf "%dh %dm %ds" $(($1/3600)) $((($1%3600)/60)) $(($1%60)); }
 total_start=$(date +%s)
 FAILED_RUNS=()
 
-for SEED in "${SEEDS[@]}"; do
+for SEED in $SEEDS; do
     log ""
     log "################ SEED $SEED: full SLT ablation sweep ################"
 
