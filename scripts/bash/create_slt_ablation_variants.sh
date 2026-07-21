@@ -2,14 +2,19 @@
 # ===========================================================================
 # create_slt_ablation_variants.sh
 #
-# Builds all SLT ablation graph variants:
+# Builds SLT ablation graph variants for GraphSAGE-T only (run_slt_ablations.sh
+# never trains DyRep on these, so no DyRep graph is built here):
 #   1. slt_injector.py                → ibm_transcations_datasets/SLT/<variant>/
 #   2. motif_graph_builder_static.py  → graphs/<dataset_name>/
-#   3. motif_dyrep_graph_builder.py   → graphs_dyrep/<dataset_name>/
-#   4. create_splits.py on both graph dirs
+#   3. create_splits.py on the static graph dir
 #
-# LOCAL:  bash create_slt_ablation_variants.sh   (runs all 5 variants sequentially)
-# SLURM:  sbatch create_slt_ablation_variants.sh (5 parallel jobs, one per variant)
+# The "current" variant is SKIPPED entirely -- it uses the exact same weights
+# as your main production SLT pipeline, so rebuilding it would just reproduce
+# graphs/HI-Small_Trans_SLT_medium byte-for-byte. run_slt_ablations.sh already
+# resolves "current" straight to that existing graph/splits, no rebuild needed.
+#
+# LOCAL:  bash create_slt_ablation_variants.sh   (runs the 4 non-current variants)
+# SLURM:  sbatch create_slt_ablation_variants.sh (parallel jobs, one per variant)
 #
 # SLURM directives — ignored when run with bash directly:
 #SBATCH --job-name=slt_create_variants
@@ -76,10 +81,9 @@ python --version
 # ---------------------------------------------------------------------------
 INJECTOR="scripts/SLT/slt_injector.py"
 STATIC_BUILDER="scripts/graph/motif_graph_builder_static.py"
-DYREP_BUILDER="scripts/graph/motif_dyrep_graph_builder.py"
 SPLITS_SCRIPT="scripts/create_splits.py"
 
-for s in "$INJECTOR" "$STATIC_BUILDER" "$DYREP_BUILDER" "$SPLITS_SCRIPT"; do
+for s in "$INJECTOR" "$STATIC_BUILDER" "$SPLITS_SCRIPT"; do
     [ -f "$s" ] || { echo "ERROR: Missing script: $s"; exit 1; }
 done
 
@@ -146,6 +150,15 @@ for VARIANT_LINE in "${VARIANTS_TO_RUN[@]}"; do
     log "   delta=$W_DEL  cumulative=$W_CUM"
     log "==============================================================="
 
+    if [ "$VARIANT" = "current" ]; then
+        log ""
+        log ">>> VARIANT=current uses the same weights as your main production"
+        log ">>> SLT pipeline -- skipping rebuild. run_slt_ablations.sh already"
+        log ">>> points this condition at the existing graphs/HI-Small_Trans_SLT_medium"
+        log ">>> and splits/HI-Small_Trans_SLT_medium."
+        continue
+    fi
+
     # STEP 1: Inject (medium intensity only -- that is all this pipeline
     # ever trains on; slt_injector.py would otherwise also produce unused
     # low/high CSVs for every variant)
@@ -164,18 +177,10 @@ for VARIANT_LINE in "${VARIANTS_TO_RUN[@]}"; do
 
     for INTENSITY in "${INTENSITIES[@]}"; do
 
-        # "current" uses the default flat path; all others use variant subfolder
-        if [ "$VARIANT" = "current" ]; then
-            DATASET_REL="SLT/HI-Small_Trans_SLT_${INTENSITY}.csv"
-            DATASET_NAME="HI-Small_Trans_SLT_${INTENSITY}"
-        else
-            DATASET_REL="SLT/${VARIANT}/HI-Small_Trans_SLT_${VARIANT}_${INTENSITY}.csv"
-            DATASET_NAME="HI-Small_Trans_SLT_${VARIANT}_${INTENSITY}"
-        fi
+        DATASET_REL="SLT/${VARIANT}/HI-Small_Trans_SLT_${VARIANT}_${INTENSITY}.csv"
+        DATASET_NAME="HI-Small_Trans_SLT_${VARIANT}_${INTENSITY}"
         STATIC_OUT="${PROJECT_ROOT}/graphs/${DATASET_NAME}"
-        DYREP_OUT="${PROJECT_ROOT}/graphs_dyrep/${DATASET_NAME}"
         STATIC_SPLIT_OUT="${PROJECT_ROOT}/splits/${DATASET_NAME}"
-        DYREP_SPLIT_OUT="${PROJECT_ROOT}/splits_dyrep/${DATASET_NAME}"
 
         log ""
         log "--- intensity=$INTENSITY ---"
@@ -186,22 +191,10 @@ for VARIANT_LINE in "${VARIANTS_TO_RUN[@]}"; do
         python "$STATIC_BUILDER" --dataset "$DATASET_REL"
         log ">>> done in $(elapsed $(($(date +%s) - t0)))"
 
-        # STEP 3: DyRep graph
-        log ">>> [$(date +%H:%M:%S)] STEP 3: DyRep graph"
-        t0=$(date +%s)
-        python "$DYREP_BUILDER" --dataset "$DATASET_REL"
-        log ">>> done in $(elapsed $(($(date +%s) - t0)))"
-
-        # STEP 4a: Splits — static
-        log ">>> [$(date +%H:%M:%S)] STEP 4a: Splits (static)"
+        # STEP 3: Splits — static
+        log ">>> [$(date +%H:%M:%S)] STEP 3: Splits (static)"
         t0=$(date +%s)
         python "$SPLITS_SCRIPT" --graph_folder "$STATIC_OUT" --out_dir "$STATIC_SPLIT_OUT"
-        log ">>> done in $(elapsed $(($(date +%s) - t0)))"
-
-        # STEP 4b: Splits — DyRep
-        log ">>> [$(date +%H:%M:%S)] STEP 4b: Splits (DyRep)"
-        t0=$(date +%s)
-        python "$SPLITS_SCRIPT" --graph_folder "$DYREP_OUT" --out_dir "$DYREP_SPLIT_OUT"
         log ">>> done in $(elapsed $(($(date +%s) - t0)))"
 
     done  # intensities
