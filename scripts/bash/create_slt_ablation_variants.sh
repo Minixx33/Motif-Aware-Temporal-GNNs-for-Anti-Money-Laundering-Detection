@@ -146,7 +146,9 @@ for VARIANT_LINE in "${VARIANTS_TO_RUN[@]}"; do
     log "   delta=$W_DEL  cumulative=$W_CUM"
     log "==============================================================="
 
-    # STEP 1: Inject (produces all 3 intensities at once)
+    # STEP 1: Inject (medium intensity only -- that is all this pipeline
+    # ever trains on; slt_injector.py would otherwise also produce unused
+    # low/high CSVs for every variant)
     log ""
     log ">>> [$(date +%H:%M:%S)] STEP 1: Injection"
     t0=$(date +%s)
@@ -156,7 +158,8 @@ for VARIANT_LINE in "${VARIANTS_TO_RUN[@]}"; do
         --w_amount     "$W_AMT" \
         --w_strong_tie "$W_STR" \
         --w_delta      "$W_DEL" \
-        --w_cum        "$W_CUM"
+        --w_cum        "$W_CUM" \
+        --intensities  "medium"
     log ">>> Injection done in $(elapsed $(($(date +%s) - t0)))"
 
     for INTENSITY in "${INTENSITIES[@]}"; do

@@ -50,6 +50,9 @@ _parser.add_argument("--data_dir",     type=str,   default=None,
                      help="Path to ibm_transcations_datasets/ (default: auto-resolved from script location)")
 _parser.add_argument("--output_dir",   type=str,   default=None,
                      help="Output directory for injected CSVs (default: <data_dir>/SLT[/<variant>])")
+_parser.add_argument("--intensities",  type=str,   default="low,medium,high",
+                     help="Comma/space separated subset of intensities to produce "
+                          "(default: all three, e.g. --intensities medium)")
 _args = _parser.parse_args()
 
 VARIANT      = _args.variant
@@ -103,6 +106,19 @@ INTENSITIES = {
     "medium": 0.10,
     "high": 0.20,
 }
+
+# Restrict to the requested subset (default: all three). Useful when only one
+# intensity is actually needed downstream -- e.g. ablation variants that only
+# ever train at medium -- so the injector doesn't waste a full pass over the
+# dataset producing CSVs nothing will read.
+_requested_intensities = [
+    x.strip() for x in _args.intensities.replace(",", " ").split() if x.strip()
+]
+for _ri in _requested_intensities:
+    if _ri not in INTENSITIES:
+        raise ValueError(f"Unknown intensity '{_ri}'. Valid: {list(INTENSITIES.keys())}")
+INTENSITIES = {k: v for k, v in INTENSITIES.items() if k in _requested_intensities}
+print(f"[SLT] Producing intensities: {list(INTENSITIES.keys())}")
 
 # Top 5% by unsupervised peer-risk score are considered "high-risk peers"
 PEER_RISK_PERCENTILE = 0.95
