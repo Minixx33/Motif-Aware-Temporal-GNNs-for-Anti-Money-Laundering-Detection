@@ -1,0 +1,519 @@
+
+================================================================================
+Logging started at: 2026-07-27 23:27:52.567919
+Log file: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t\seed2_new_experiment_20260727_232752.txt
+================================================================================
+
+[INFO] Logging to: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t\seed2_new_experiment_20260727_232752.txt
+================================================================================
+EXPERIMENT CONFIG SUMMARY
+================================================================================
+
+[DATASET]
+  Name:       HI-Small_Trans_SLT_amount_heavy_medium
+  Theory:     SLT
+  Intensity:  medium
+
+[MODEL]
+  GraphSAGE-T
+  Hidden dim: 128
+
+[PATHS]
+  Graphs:     C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs\HI-Small_Trans_SLT_amount_heavy_medium
+  Splits:     C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits\HI-Small_Trans_SLT_amount_heavy_medium
+  Results:    C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t
+  Logs:       C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t
+================================================================================
+
+[DEVICE] cuda
+
+
+======= GRAPHSAGE-T TRAINING (FP32) =======
+Batch size:       8192
+Eval batch size:  16384
+Device:           cuda
+===========================================
+
+
+Starting training for 350 epochs (starting at epoch 1)...
+
+Epoch 001 | train_loss=14.8209 val_loss=0.4622 P=0.017 R=0.005 F1=0.008 ROC-AUC=0.585 AUPR=0.002 time=44.57s
+Epoch 002 | train_loss=0.5046 val_loss=0.3615 P=0.019 R=0.029 F1=0.023 ROC-AUC=0.686 AUPR=0.003 time=44.70s
+Epoch 003 | train_loss=0.4551 val_loss=0.3253 P=0.063 R=0.125 F1=0.084 ROC-AUC=0.779 AUPR=0.014 time=44.70s
+Epoch 004 | train_loss=0.3829 val_loss=0.3026 P=0.085 R=0.084 F1=0.084 ROC-AUC=0.799 AUPR=0.018 time=44.50s
+Epoch 005 | train_loss=0.3469 val_loss=0.2754 P=0.104 R=0.078 F1=0.089 ROC-AUC=0.828 AUPR=0.021 time=44.58s
+Epoch 006 | train_loss=0.3282 val_loss=0.2649 P=0.073 R=0.133 F1=0.095 ROC-AUC=0.847 AUPR=0.023 time=44.85s
+Epoch 007 | train_loss=0.3289 val_loss=0.2934 P=0.094 R=0.117 F1=0.104 ROC-AUC=0.808 AUPR=0.031 time=44.66s
+Epoch 008 | train_loss=0.3651 val_loss=0.2642 P=0.090 R=0.132 F1=0.107 ROC-AUC=0.851 AUPR=0.037 time=44.56s
+Epoch 009 | train_loss=0.3055 val_loss=0.1546 P=0.129 R=0.210 F1=0.160 ROC-AUC=0.947 AUPR=0.078 time=44.52s
+Epoch 010 | train_loss=0.1965 val_loss=0.1941 P=0.204 R=0.108 F1=0.141 ROC-AUC=0.937 AUPR=0.041 time=44.47s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 011 | train_loss=0.1805 val_loss=0.1426 P=0.234 R=0.254 F1=0.243 ROC-AUC=0.958 AUPR=0.145 time=46.85s
+Epoch 012 | train_loss=0.1911 val_loss=0.1276 P=0.273 R=0.245 F1=0.258 ROC-AUC=0.972 AUPR=0.179 time=47.32s
+Epoch 013 | train_loss=0.1918 val_loss=0.1184 P=0.253 R=0.290 F1=0.270 ROC-AUC=0.976 AUPR=0.185 time=46.92s
+Epoch 014 | train_loss=0.1574 val_loss=0.1186 P=0.317 R=0.270 F1=0.292 ROC-AUC=0.975 AUPR=0.199 time=47.28s
+Epoch 015 | train_loss=0.1569 val_loss=0.1150 P=0.324 R=0.275 F1=0.297 ROC-AUC=0.977 AUPR=0.221 time=46.83s
+Epoch 016 | train_loss=0.1780 val_loss=0.1193 P=0.292 R=0.292 F1=0.292 ROC-AUC=0.976 AUPR=0.209 time=46.74s
+Epoch 017 | train_loss=0.1658 val_loss=0.1282 P=0.318 R=0.291 F1=0.304 ROC-AUC=0.969 AUPR=0.218 time=46.94s
+Epoch 018 | train_loss=0.1940 val_loss=0.1193 P=0.331 R=0.289 F1=0.308 ROC-AUC=0.973 AUPR=0.234 time=47.22s
+Epoch 019 | train_loss=0.1633 val_loss=0.1166 P=0.313 R=0.292 F1=0.302 ROC-AUC=0.975 AUPR=0.250 time=46.86s
+Epoch 020 | train_loss=0.1305 val_loss=0.1155 P=0.343 R=0.287 F1=0.312 ROC-AUC=0.976 AUPR=0.252 time=46.66s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 021 | train_loss=0.1599 val_loss=0.1151 P=0.380 R=0.277 F1=0.320 ROC-AUC=0.977 AUPR=0.262 time=46.91s
+Epoch 022 | train_loss=0.1492 val_loss=0.1147 P=0.353 R=0.296 F1=0.322 ROC-AUC=0.977 AUPR=0.262 time=46.89s
+Epoch 023 | train_loss=0.1250 val_loss=0.1133 P=0.399 R=0.269 F1=0.322 ROC-AUC=0.977 AUPR=0.270 time=46.69s
+Epoch 024 | train_loss=0.1825 val_loss=0.1136 P=0.350 R=0.299 F1=0.323 ROC-AUC=0.978 AUPR=0.272 time=46.65s
+Epoch 025 | train_loss=0.1255 val_loss=0.1112 P=0.337 R=0.291 F1=0.312 ROC-AUC=0.978 AUPR=0.259 time=46.79s
+Epoch 026 | train_loss=0.1212 val_loss=0.1102 P=0.346 R=0.299 F1=0.321 ROC-AUC=0.978 AUPR=0.277 time=46.76s
+Epoch 027 | train_loss=0.1533 val_loss=0.2096 P=0.338 R=0.241 F1=0.282 ROC-AUC=0.929 AUPR=0.226 time=47.08s
+Epoch 028 | train_loss=0.1538 val_loss=0.1094 P=0.333 R=0.297 F1=0.314 ROC-AUC=0.978 AUPR=0.281 time=46.78s
+Epoch 029 | train_loss=0.1207 val_loss=0.1097 P=0.450 R=0.245 F1=0.317 ROC-AUC=0.979 AUPR=0.277 time=46.72s
+Epoch 030 | train_loss=0.1136 val_loss=0.1088 P=0.334 R=0.315 F1=0.324 ROC-AUC=0.979 AUPR=0.286 time=46.88s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 031 | train_loss=0.1317 val_loss=0.1080 P=0.363 R=0.273 F1=0.312 ROC-AUC=0.979 AUPR=0.279 time=46.58s
+Epoch 032 | train_loss=0.1409 val_loss=0.1064 P=0.371 R=0.292 F1=0.326 ROC-AUC=0.980 AUPR=0.290 time=47.24s
+Epoch 033 | train_loss=0.1298 val_loss=0.1100 P=0.466 R=0.257 F1=0.331 ROC-AUC=0.980 AUPR=0.293 time=46.60s
+Epoch 034 | train_loss=0.1436 val_loss=0.1071 P=0.419 R=0.263 F1=0.323 ROC-AUC=0.979 AUPR=0.284 time=46.56s
+Epoch 035 | train_loss=0.1165 val_loss=0.1055 P=0.378 R=0.311 F1=0.341 ROC-AUC=0.981 AUPR=0.297 time=47.02s
+Epoch 036 | train_loss=0.1072 val_loss=0.1052 P=0.360 R=0.308 F1=0.332 ROC-AUC=0.980 AUPR=0.295 time=47.40s
+Epoch 037 | train_loss=0.1377 val_loss=0.1060 P=0.374 R=0.305 F1=0.336 ROC-AUC=0.980 AUPR=0.294 time=47.57s
+Epoch 038 | train_loss=0.1134 val_loss=0.1051 P=0.346 R=0.323 F1=0.334 ROC-AUC=0.980 AUPR=0.301 time=46.84s
+Epoch 039 | train_loss=0.1270 val_loss=0.1039 P=0.383 R=0.294 F1=0.333 ROC-AUC=0.981 AUPR=0.291 time=46.63s
+Epoch 040 | train_loss=0.1209 val_loss=0.1044 P=0.364 R=0.331 F1=0.347 ROC-AUC=0.981 AUPR=0.310 time=46.56s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 041 | train_loss=0.1092 val_loss=0.1056 P=0.362 R=0.325 F1=0.343 ROC-AUC=0.981 AUPR=0.303 time=47.64s
+Epoch 042 | train_loss=0.1479 val_loss=0.1043 P=0.395 R=0.299 F1=0.341 ROC-AUC=0.980 AUPR=0.306 time=47.88s
+Epoch 043 | train_loss=0.1587 val_loss=0.1056 P=0.436 R=0.297 F1=0.353 ROC-AUC=0.981 AUPR=0.317 time=47.66s
+Epoch 044 | train_loss=0.1063 val_loss=0.1044 P=0.413 R=0.293 F1=0.343 ROC-AUC=0.980 AUPR=0.306 time=47.55s
+Epoch 045 | train_loss=0.1359 val_loss=0.1031 P=0.407 R=0.303 F1=0.348 ROC-AUC=0.981 AUPR=0.310 time=47.74s
+Epoch 046 | train_loss=0.1526 val_loss=0.1019 P=0.371 R=0.323 F1=0.346 ROC-AUC=0.981 AUPR=0.312 time=47.49s
+Epoch 047 | train_loss=0.1153 val_loss=0.1033 P=0.399 R=0.326 F1=0.359 ROC-AUC=0.981 AUPR=0.323 time=47.60s
+Epoch 048 | train_loss=0.1528 val_loss=0.1053 P=0.412 R=0.320 F1=0.361 ROC-AUC=0.981 AUPR=0.327 time=47.60s
+Epoch 049 | train_loss=0.1305 val_loss=0.1022 P=0.441 R=0.302 F1=0.359 ROC-AUC=0.981 AUPR=0.325 time=47.99s
+Epoch 050 | train_loss=0.1199 val_loss=0.1071 P=0.379 R=0.328 F1=0.352 ROC-AUC=0.980 AUPR=0.321 time=47.88s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 051 | train_loss=0.1323 val_loss=0.1026 P=0.461 R=0.294 F1=0.359 ROC-AUC=0.981 AUPR=0.328 time=47.83s
+Epoch 052 | train_loss=0.1010 val_loss=0.1036 P=0.415 R=0.306 F1=0.352 ROC-AUC=0.981 AUPR=0.317 time=47.96s
+Epoch 053 | train_loss=0.0996 val_loss=0.1003 P=0.444 R=0.302 F1=0.360 ROC-AUC=0.982 AUPR=0.321 time=48.34s
+Epoch 054 | train_loss=0.1293 val_loss=0.1806 P=0.402 R=0.274 F1=0.326 ROC-AUC=0.942 AUPR=0.284 time=47.55s
+Epoch 055 | train_loss=0.1076 val_loss=0.1009 P=0.444 R=0.301 F1=0.359 ROC-AUC=0.981 AUPR=0.331 time=47.76s
+Epoch 056 | train_loss=0.1009 val_loss=0.1006 P=0.417 R=0.328 F1=0.367 ROC-AUC=0.982 AUPR=0.329 time=47.89s
+Epoch 057 | train_loss=0.1100 val_loss=0.1017 P=0.389 R=0.344 F1=0.365 ROC-AUC=0.981 AUPR=0.333 time=47.79s
+Epoch 058 | train_loss=0.1107 val_loss=0.1007 P=0.472 R=0.301 F1=0.368 ROC-AUC=0.982 AUPR=0.333 time=47.83s
+Epoch 059 | train_loss=0.1060 val_loss=0.1040 P=0.464 R=0.313 F1=0.373 ROC-AUC=0.981 AUPR=0.338 time=47.58s
+Epoch 060 | train_loss=0.1256 val_loss=0.0998 P=0.405 R=0.312 F1=0.352 ROC-AUC=0.982 AUPR=0.326 time=47.58s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 061 | train_loss=0.0994 val_loss=0.1027 P=0.430 R=0.314 F1=0.363 ROC-AUC=0.981 AUPR=0.328 time=47.72s
+Epoch 062 | train_loss=0.1119 val_loss=0.1000 P=0.435 R=0.332 F1=0.377 ROC-AUC=0.982 AUPR=0.339 time=48.04s
+Epoch 063 | train_loss=0.1288 val_loss=0.1004 P=0.414 R=0.338 F1=0.372 ROC-AUC=0.982 AUPR=0.341 time=47.92s
+Epoch 064 | train_loss=0.1359 val_loss=0.0998 P=0.489 R=0.310 F1=0.379 ROC-AUC=0.982 AUPR=0.347 time=47.59s
+Epoch 065 | train_loss=0.1047 val_loss=0.1021 P=0.420 R=0.333 F1=0.371 ROC-AUC=0.981 AUPR=0.343 time=47.77s
+Epoch 066 | train_loss=0.1011 val_loss=0.0993 P=0.476 R=0.318 F1=0.381 ROC-AUC=0.982 AUPR=0.353 time=48.27s
+Epoch 067 | train_loss=0.1095 val_loss=0.1003 P=0.424 R=0.337 F1=0.375 ROC-AUC=0.981 AUPR=0.344 time=49.11s
+Epoch 068 | train_loss=0.1059 val_loss=0.0988 P=0.456 R=0.318 F1=0.375 ROC-AUC=0.982 AUPR=0.342 time=49.34s
+Epoch 069 | train_loss=0.1125 val_loss=0.0986 P=0.440 R=0.332 F1=0.378 ROC-AUC=0.982 AUPR=0.349 time=47.63s
+Epoch 070 | train_loss=0.1175 val_loss=0.1001 P=0.494 R=0.326 F1=0.393 ROC-AUC=0.982 AUPR=0.359 time=48.93s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 071 | train_loss=0.1151 val_loss=0.0996 P=0.477 R=0.324 F1=0.386 ROC-AUC=0.982 AUPR=0.353 time=47.78s
+Epoch 072 | train_loss=0.1006 val_loss=0.0999 P=0.466 R=0.323 F1=0.382 ROC-AUC=0.982 AUPR=0.356 time=47.83s
+Epoch 073 | train_loss=0.1032 val_loss=0.0993 P=0.497 R=0.314 F1=0.385 ROC-AUC=0.982 AUPR=0.347 time=49.04s
+Epoch 074 | train_loss=0.1453 val_loss=0.1488 P=0.482 R=0.285 F1=0.358 ROC-AUC=0.953 AUPR=0.327 time=47.81s
+Epoch 075 | train_loss=0.1242 val_loss=0.0997 P=0.474 R=0.319 F1=0.382 ROC-AUC=0.983 AUPR=0.356 time=47.49s
+Epoch 076 | train_loss=0.1060 val_loss=0.0991 P=0.427 R=0.356 F1=0.388 ROC-AUC=0.982 AUPR=0.359 time=48.94s
+Epoch 077 | train_loss=0.1018 val_loss=0.0990 P=0.543 R=0.298 F1=0.385 ROC-AUC=0.982 AUPR=0.354 time=47.58s
+Epoch 078 | train_loss=0.1272 val_loss=0.0988 P=0.459 R=0.333 F1=0.386 ROC-AUC=0.982 AUPR=0.359 time=47.94s
+Epoch 079 | train_loss=0.1302 val_loss=0.1010 P=0.497 R=0.309 F1=0.381 ROC-AUC=0.982 AUPR=0.349 time=47.92s
+Epoch 080 | train_loss=0.1184 val_loss=0.1017 P=0.514 R=0.309 F1=0.386 ROC-AUC=0.982 AUPR=0.356 time=47.44s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 081 | train_loss=0.1121 val_loss=0.0978 P=0.468 R=0.313 F1=0.375 ROC-AUC=0.983 AUPR=0.345 time=48.56s
+Epoch 082 | train_loss=0.1169 val_loss=0.0989 P=0.454 R=0.331 F1=0.383 ROC-AUC=0.983 AUPR=0.352 time=47.53s
+Epoch 083 | train_loss=0.1071 val_loss=0.1000 P=0.461 R=0.346 F1=0.395 ROC-AUC=0.982 AUPR=0.359 time=47.83s
+Epoch 084 | train_loss=0.1108 val_loss=0.0975 P=0.484 R=0.328 F1=0.391 ROC-AUC=0.983 AUPR=0.362 time=47.69s
+Epoch 085 | train_loss=0.1332 val_loss=0.0965 P=0.427 R=0.365 F1=0.394 ROC-AUC=0.983 AUPR=0.357 time=47.93s
+Epoch 086 | train_loss=0.1281 val_loss=0.0983 P=0.466 R=0.327 F1=0.384 ROC-AUC=0.983 AUPR=0.352 time=47.90s
+Epoch 087 | train_loss=0.1084 val_loss=0.0965 P=0.520 R=0.327 F1=0.402 ROC-AUC=0.983 AUPR=0.364 time=47.63s
+Epoch 088 | train_loss=0.1003 val_loss=0.0985 P=0.531 R=0.316 F1=0.396 ROC-AUC=0.983 AUPR=0.364 time=47.69s
+Epoch 089 | train_loss=0.1210 val_loss=0.0950 P=0.526 R=0.327 F1=0.403 ROC-AUC=0.984 AUPR=0.370 time=47.51s
+Epoch 090 | train_loss=0.1157 val_loss=0.0981 P=0.523 R=0.329 F1=0.404 ROC-AUC=0.983 AUPR=0.374 time=47.32s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 091 | train_loss=0.1096 val_loss=0.0978 P=0.592 R=0.305 F1=0.403 ROC-AUC=0.983 AUPR=0.369 time=48.11s
+Epoch 092 | train_loss=0.1188 val_loss=0.0952 P=0.481 R=0.348 F1=0.404 ROC-AUC=0.984 AUPR=0.374 time=48.76s
+Epoch 093 | train_loss=0.1072 val_loss=0.0979 P=0.436 R=0.350 F1=0.389 ROC-AUC=0.983 AUPR=0.361 time=47.84s
+Epoch 094 | train_loss=0.1066 val_loss=0.0943 P=0.475 R=0.385 F1=0.425 ROC-AUC=0.984 AUPR=0.393 time=47.96s
+Epoch 095 | train_loss=0.1155 val_loss=0.1000 P=0.601 R=0.315 F1=0.413 ROC-AUC=0.983 AUPR=0.384 time=47.64s
+Epoch 096 | train_loss=0.1449 val_loss=0.0953 P=0.485 R=0.375 F1=0.423 ROC-AUC=0.984 AUPR=0.392 time=47.96s
+Epoch 097 | train_loss=0.1157 val_loss=0.0954 P=0.482 R=0.344 F1=0.401 ROC-AUC=0.984 AUPR=0.378 time=49.16s
+Epoch 098 | train_loss=0.1161 val_loss=0.0949 P=0.525 R=0.360 F1=0.427 ROC-AUC=0.984 AUPR=0.392 time=47.80s
+Epoch 099 | train_loss=0.1686 val_loss=0.0973 P=0.495 R=0.370 F1=0.423 ROC-AUC=0.983 AUPR=0.395 time=47.60s
+Epoch 100 | train_loss=0.1127 val_loss=0.0979 P=0.497 R=0.365 F1=0.421 ROC-AUC=0.984 AUPR=0.387 time=47.81s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 101 | train_loss=0.1414 val_loss=0.0947 P=0.553 R=0.330 F1=0.414 ROC-AUC=0.984 AUPR=0.390 time=47.82s
+Epoch 102 | train_loss=0.1388 val_loss=0.0970 P=0.523 R=0.338 F1=0.411 ROC-AUC=0.984 AUPR=0.384 time=47.78s
+Epoch 103 | train_loss=0.1102 val_loss=0.0975 P=0.537 R=0.339 F1=0.415 ROC-AUC=0.984 AUPR=0.394 time=48.73s
+Epoch 104 | train_loss=0.1339 val_loss=0.0936 P=0.535 R=0.348 F1=0.422 ROC-AUC=0.984 AUPR=0.391 time=47.55s
+Epoch 105 | train_loss=0.1159 val_loss=0.0942 P=0.523 R=0.346 F1=0.416 ROC-AUC=0.984 AUPR=0.396 time=47.62s
+Epoch 106 | train_loss=0.0983 val_loss=0.0939 P=0.531 R=0.356 F1=0.426 ROC-AUC=0.984 AUPR=0.395 time=47.79s
+Epoch 107 | train_loss=0.1037 val_loss=0.0975 P=0.579 R=0.323 F1=0.415 ROC-AUC=0.984 AUPR=0.382 time=47.87s
+Epoch 108 | train_loss=0.1619 val_loss=0.2194 P=0.578 R=0.335 F1=0.424 ROC-AUC=0.928 AUPR=0.396 time=48.06s
+Epoch 109 | train_loss=0.1333 val_loss=0.0966 P=0.500 R=0.366 F1=0.423 ROC-AUC=0.984 AUPR=0.398 time=47.54s
+Epoch 110 | train_loss=0.1095 val_loss=0.0951 P=0.557 R=0.354 F1=0.433 ROC-AUC=0.984 AUPR=0.407 time=47.64s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 111 | train_loss=0.1073 val_loss=0.0946 P=0.625 R=0.323 F1=0.426 ROC-AUC=0.984 AUPR=0.400 time=47.58s
+Epoch 112 | train_loss=0.1120 val_loss=0.0978 P=0.543 R=0.345 F1=0.422 ROC-AUC=0.984 AUPR=0.399 time=47.57s
+Epoch 113 | train_loss=0.1880 val_loss=0.0936 P=0.607 R=0.332 F1=0.429 ROC-AUC=0.984 AUPR=0.406 time=47.78s
+Epoch 114 | train_loss=0.1204 val_loss=0.0929 P=0.525 R=0.344 F1=0.415 ROC-AUC=0.984 AUPR=0.397 time=47.37s
+Epoch 115 | train_loss=0.1024 val_loss=0.0922 P=0.601 R=0.335 F1=0.430 ROC-AUC=0.985 AUPR=0.404 time=47.90s
+Epoch 116 | train_loss=0.0934 val_loss=0.0950 P=0.536 R=0.352 F1=0.425 ROC-AUC=0.984 AUPR=0.398 time=47.48s
+Epoch 117 | train_loss=0.1008 val_loss=0.2678 P=0.596 R=0.327 F1=0.422 ROC-AUC=0.922 AUPR=0.399 time=47.87s
+Epoch 118 | train_loss=0.1214 val_loss=0.0945 P=0.563 R=0.347 F1=0.430 ROC-AUC=0.984 AUPR=0.403 time=49.90s
+Epoch 119 | train_loss=0.1125 val_loss=0.0934 P=0.532 R=0.348 F1=0.421 ROC-AUC=0.984 AUPR=0.402 time=47.81s
+Epoch 120 | train_loss=0.1100 val_loss=0.0951 P=0.486 R=0.380 F1=0.427 ROC-AUC=0.984 AUPR=0.402 time=47.66s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 121 | train_loss=0.1270 val_loss=0.0933 P=0.578 R=0.351 F1=0.437 ROC-AUC=0.984 AUPR=0.406 time=48.00s
+Epoch 122 | train_loss=0.1222 val_loss=0.0930 P=0.540 R=0.366 F1=0.436 ROC-AUC=0.984 AUPR=0.414 time=47.85s
+Epoch 123 | train_loss=0.1082 val_loss=0.0947 P=0.621 R=0.320 F1=0.423 ROC-AUC=0.984 AUPR=0.403 time=47.63s
+Epoch 124 | train_loss=0.1211 val_loss=0.0956 P=0.618 R=0.343 F1=0.441 ROC-AUC=0.984 AUPR=0.409 time=47.49s
+Epoch 125 | train_loss=0.1042 val_loss=0.0923 P=0.625 R=0.334 F1=0.435 ROC-AUC=0.985 AUPR=0.410 time=47.37s
+Epoch 126 | train_loss=0.1086 val_loss=0.0921 P=0.493 R=0.383 F1=0.431 ROC-AUC=0.985 AUPR=0.414 time=47.57s
+Epoch 127 | train_loss=0.1298 val_loss=0.0934 P=0.591 R=0.364 F1=0.450 ROC-AUC=0.984 AUPR=0.417 time=47.78s
+Epoch 128 | train_loss=0.1218 val_loss=0.0983 P=0.513 R=0.368 F1=0.428 ROC-AUC=0.984 AUPR=0.406 time=47.47s
+Epoch 129 | train_loss=0.1134 val_loss=0.1801 P=0.647 R=0.311 F1=0.420 ROC-AUC=0.950 AUPR=0.385 time=47.74s
+Epoch 130 | train_loss=0.1029 val_loss=0.0963 P=0.567 R=0.338 F1=0.423 ROC-AUC=0.984 AUPR=0.399 time=47.70s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 131 | train_loss=0.1270 val_loss=0.0935 P=0.501 R=0.371 F1=0.426 ROC-AUC=0.984 AUPR=0.406 time=47.45s
+Epoch 132 | train_loss=0.1833 val_loss=0.0987 P=0.488 R=0.383 F1=0.429 ROC-AUC=0.982 AUPR=0.405 time=47.27s
+Epoch 133 | train_loss=0.1071 val_loss=0.0960 P=0.516 R=0.378 F1=0.437 ROC-AUC=0.984 AUPR=0.413 time=48.50s
+Epoch 134 | train_loss=0.0965 val_loss=0.0944 P=0.597 R=0.346 F1=0.438 ROC-AUC=0.984 AUPR=0.415 time=47.81s
+Epoch 135 | train_loss=0.0993 val_loss=0.0951 P=0.497 R=0.384 F1=0.434 ROC-AUC=0.984 AUPR=0.405 time=47.59s
+Epoch 136 | train_loss=0.1388 val_loss=0.0952 P=0.518 R=0.371 F1=0.432 ROC-AUC=0.985 AUPR=0.410 time=47.80s
+Epoch 137 | train_loss=0.1410 val_loss=0.1074 P=0.631 R=0.338 F1=0.440 ROC-AUC=0.978 AUPR=0.416 time=47.78s
+Epoch 138 | train_loss=0.1021 val_loss=0.0932 P=0.657 R=0.337 F1=0.445 ROC-AUC=0.985 AUPR=0.419 time=47.82s
+Epoch 139 | train_loss=0.1136 val_loss=0.0945 P=0.580 R=0.355 F1=0.440 ROC-AUC=0.984 AUPR=0.416 time=47.70s
+Epoch 140 | train_loss=0.1403 val_loss=0.0958 P=0.501 R=0.386 F1=0.436 ROC-AUC=0.983 AUPR=0.413 time=47.45s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 141 | train_loss=0.1046 val_loss=0.0934 P=0.574 R=0.357 F1=0.440 ROC-AUC=0.985 AUPR=0.413 time=47.70s
+Epoch 142 | train_loss=0.1383 val_loss=0.0968 P=0.580 R=0.368 F1=0.450 ROC-AUC=0.984 AUPR=0.420 time=47.55s
+Epoch 143 | train_loss=0.1466 val_loss=0.0925 P=0.595 R=0.357 F1=0.446 ROC-AUC=0.985 AUPR=0.421 time=47.95s
+Epoch 144 | train_loss=0.1206 val_loss=0.0956 P=0.596 R=0.332 F1=0.427 ROC-AUC=0.984 AUPR=0.402 time=47.78s
+Epoch 145 | train_loss=0.1191 val_loss=0.3632 P=0.538 R=0.386 F1=0.450 ROC-AUC=0.925 AUPR=0.419 time=46.72s
+Epoch 146 | train_loss=0.1331 val_loss=0.0951 P=0.621 R=0.361 F1=0.457 ROC-AUC=0.984 AUPR=0.425 time=47.08s
+Epoch 147 | train_loss=0.0908 val_loss=0.0938 P=0.539 R=0.376 F1=0.443 ROC-AUC=0.984 AUPR=0.418 time=46.66s
+Epoch 148 | train_loss=0.1040 val_loss=0.0944 P=0.585 R=0.357 F1=0.443 ROC-AUC=0.984 AUPR=0.413 time=46.84s
+Epoch 149 | train_loss=0.1492 val_loss=0.0984 P=0.586 R=0.369 F1=0.453 ROC-AUC=0.984 AUPR=0.422 time=46.70s
+Epoch 150 | train_loss=0.0925 val_loss=0.0937 P=0.534 R=0.369 F1=0.436 ROC-AUC=0.984 AUPR=0.410 time=46.68s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 151 | train_loss=0.1599 val_loss=0.0999 P=0.583 R=0.360 F1=0.445 ROC-AUC=0.983 AUPR=0.421 time=46.78s
+Epoch 152 | train_loss=0.1428 val_loss=0.0953 P=0.562 R=0.362 F1=0.440 ROC-AUC=0.984 AUPR=0.415 time=46.68s
+Epoch 153 | train_loss=0.1277 val_loss=0.0949 P=0.666 R=0.337 F1=0.447 ROC-AUC=0.984 AUPR=0.424 time=46.79s
+Epoch 154 | train_loss=0.1317 val_loss=0.0933 P=0.512 R=0.390 F1=0.443 ROC-AUC=0.985 AUPR=0.420 time=46.62s
+Epoch 155 | train_loss=0.1520 val_loss=0.0942 P=0.580 R=0.342 F1=0.430 ROC-AUC=0.984 AUPR=0.412 time=46.58s
+Epoch 156 | train_loss=0.1133 val_loss=0.1622 P=0.523 R=0.376 F1=0.438 ROC-AUC=0.945 AUPR=0.416 time=46.60s
+Epoch 157 | train_loss=0.1895 val_loss=0.0941 P=0.542 R=0.370 F1=0.440 ROC-AUC=0.983 AUPR=0.418 time=46.66s
+Epoch 158 | train_loss=0.1186 val_loss=0.2492 P=0.499 R=0.359 F1=0.418 ROC-AUC=0.939 AUPR=0.377 time=46.64s
+Epoch 159 | train_loss=0.1162 val_loss=0.0945 P=0.613 R=0.358 F1=0.452 ROC-AUC=0.984 AUPR=0.429 time=46.57s
+Epoch 160 | train_loss=0.1272 val_loss=0.0918 P=0.537 R=0.386 F1=0.449 ROC-AUC=0.985 AUPR=0.424 time=46.66s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 161 | train_loss=0.1217 val_loss=0.0969 P=0.549 R=0.379 F1=0.449 ROC-AUC=0.983 AUPR=0.429 time=46.83s
+Epoch 162 | train_loss=0.1779 val_loss=0.0914 P=0.502 R=0.388 F1=0.438 ROC-AUC=0.985 AUPR=0.424 time=46.62s
+Epoch 163 | train_loss=0.1247 val_loss=0.1855 P=0.592 R=0.365 F1=0.451 ROC-AUC=0.929 AUPR=0.427 time=46.82s
+Epoch 164 | train_loss=0.1623 val_loss=0.0955 P=0.463 R=0.425 F1=0.443 ROC-AUC=0.984 AUPR=0.419 time=46.61s
+Epoch 165 | train_loss=0.1565 val_loss=0.0941 P=0.501 R=0.389 F1=0.438 ROC-AUC=0.984 AUPR=0.421 time=46.64s
+Epoch 166 | train_loss=0.0971 val_loss=0.0957 P=0.578 R=0.383 F1=0.461 ROC-AUC=0.985 AUPR=0.434 time=46.84s
+Epoch 167 | train_loss=0.1436 val_loss=0.1007 P=0.583 R=0.366 F1=0.450 ROC-AUC=0.983 AUPR=0.416 time=46.85s
+Epoch 168 | train_loss=0.1454 val_loss=0.2153 P=0.524 R=0.373 F1=0.436 ROC-AUC=0.929 AUPR=0.400 time=46.88s
+Epoch 169 | train_loss=0.1734 val_loss=0.0946 P=0.486 R=0.428 F1=0.455 ROC-AUC=0.984 AUPR=0.437 time=46.85s
+Epoch 170 | train_loss=0.1432 val_loss=0.0897 P=0.541 R=0.403 F1=0.462 ROC-AUC=0.986 AUPR=0.435 time=46.79s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 171 | train_loss=0.1513 val_loss=0.1024 P=0.566 R=0.362 F1=0.442 ROC-AUC=0.983 AUPR=0.415 time=46.74s
+Epoch 172 | train_loss=0.1261 val_loss=0.0915 P=0.631 R=0.369 F1=0.466 ROC-AUC=0.985 AUPR=0.431 time=46.76s
+Epoch 173 | train_loss=0.1278 val_loss=0.0926 P=0.543 R=0.374 F1=0.443 ROC-AUC=0.985 AUPR=0.415 time=46.66s
+Epoch 174 | train_loss=0.1183 val_loss=0.0892 P=0.559 R=0.386 F1=0.457 ROC-AUC=0.986 AUPR=0.431 time=46.79s
+Epoch 175 | train_loss=0.1323 val_loss=0.0905 P=0.564 R=0.374 F1=0.449 ROC-AUC=0.985 AUPR=0.426 time=46.77s
+Epoch 176 | train_loss=0.1128 val_loss=0.0901 P=0.572 R=0.377 F1=0.455 ROC-AUC=0.985 AUPR=0.434 time=46.62s
+Epoch 177 | train_loss=0.0861 val_loss=0.0912 P=0.577 R=0.379 F1=0.458 ROC-AUC=0.985 AUPR=0.434 time=46.65s
+Epoch 178 | train_loss=0.1207 val_loss=0.0913 P=0.605 R=0.358 F1=0.450 ROC-AUC=0.985 AUPR=0.437 time=46.73s
+Epoch 179 | train_loss=0.0994 val_loss=0.0935 P=0.553 R=0.382 F1=0.452 ROC-AUC=0.985 AUPR=0.431 time=46.57s
+Epoch 180 | train_loss=0.1065 val_loss=0.0918 P=0.593 R=0.375 F1=0.460 ROC-AUC=0.984 AUPR=0.436 time=46.73s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 181 | train_loss=0.1326 val_loss=0.0901 P=0.533 R=0.414 F1=0.466 ROC-AUC=0.986 AUPR=0.438 time=46.89s
+Epoch 182 | train_loss=0.1365 val_loss=0.0911 P=0.517 R=0.402 F1=0.452 ROC-AUC=0.985 AUPR=0.431 time=46.72s
+Epoch 183 | train_loss=0.0915 val_loss=0.1671 P=0.517 R=0.364 F1=0.427 ROC-AUC=0.957 AUPR=0.395 time=46.72s
+Epoch 184 | train_loss=0.1654 val_loss=0.0906 P=0.597 R=0.370 F1=0.456 ROC-AUC=0.985 AUPR=0.435 time=46.76s
+Epoch 185 | train_loss=0.0946 val_loss=0.0916 P=0.582 R=0.391 F1=0.468 ROC-AUC=0.985 AUPR=0.442 time=46.73s
+Epoch 186 | train_loss=0.1185 val_loss=0.0981 P=0.565 R=0.388 F1=0.460 ROC-AUC=0.984 AUPR=0.440 time=46.89s
+Epoch 187 | train_loss=0.1205 val_loss=0.0943 P=0.575 R=0.375 F1=0.454 ROC-AUC=0.985 AUPR=0.425 time=46.91s
+Epoch 188 | train_loss=0.0915 val_loss=0.0903 P=0.578 R=0.405 F1=0.476 ROC-AUC=0.985 AUPR=0.453 time=46.80s
+Epoch 189 | train_loss=0.1078 val_loss=0.0947 P=0.560 R=0.401 F1=0.467 ROC-AUC=0.984 AUPR=0.440 time=46.71s
+Epoch 190 | train_loss=0.1262 val_loss=0.0924 P=0.592 R=0.388 F1=0.469 ROC-AUC=0.985 AUPR=0.452 time=47.02s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 191 | train_loss=0.1060 val_loss=0.0904 P=0.563 R=0.400 F1=0.468 ROC-AUC=0.985 AUPR=0.442 time=46.93s
+Epoch 192 | train_loss=0.1278 val_loss=0.0897 P=0.552 R=0.398 F1=0.462 ROC-AUC=0.985 AUPR=0.436 time=46.59s
+Epoch 193 | train_loss=0.1707 val_loss=0.0906 P=0.599 R=0.366 F1=0.454 ROC-AUC=0.985 AUPR=0.438 time=46.80s
+Epoch 194 | train_loss=0.1046 val_loss=0.3388 P=0.550 R=0.343 F1=0.422 ROC-AUC=0.909 AUPR=0.386 time=46.64s
+Epoch 195 | train_loss=0.1080 val_loss=0.0910 P=0.659 R=0.370 F1=0.474 ROC-AUC=0.985 AUPR=0.444 time=46.80s
+Epoch 196 | train_loss=0.1320 val_loss=0.3775 P=0.523 R=0.376 F1=0.438 ROC-AUC=0.915 AUPR=0.397 time=46.96s
+Epoch 197 | train_loss=0.1311 val_loss=0.0896 P=0.529 R=0.426 F1=0.472 ROC-AUC=0.985 AUPR=0.447 time=46.70s
+Epoch 198 | train_loss=0.0993 val_loss=0.0897 P=0.634 R=0.388 F1=0.481 ROC-AUC=0.985 AUPR=0.452 time=46.78s
+Epoch 199 | train_loss=0.0932 val_loss=0.0938 P=0.536 R=0.429 F1=0.476 ROC-AUC=0.985 AUPR=0.449 time=46.65s
+Epoch 200 | train_loss=0.1225 val_loss=0.0948 P=0.623 R=0.371 F1=0.465 ROC-AUC=0.985 AUPR=0.436 time=46.84s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 201 | train_loss=0.1280 val_loss=0.0901 P=0.547 R=0.415 F1=0.472 ROC-AUC=0.985 AUPR=0.446 time=46.80s
+Epoch 202 | train_loss=0.1196 val_loss=0.0944 P=0.623 R=0.362 F1=0.458 ROC-AUC=0.984 AUPR=0.438 time=46.60s
+Epoch 203 | train_loss=0.0989 val_loss=0.0895 P=0.566 R=0.407 F1=0.474 ROC-AUC=0.986 AUPR=0.440 time=46.55s
+Epoch 204 | train_loss=0.1204 val_loss=0.0934 P=0.573 R=0.417 F1=0.483 ROC-AUC=0.985 AUPR=0.454 time=46.71s
+Epoch 205 | train_loss=0.1214 val_loss=0.0919 P=0.627 R=0.381 F1=0.474 ROC-AUC=0.985 AUPR=0.449 time=46.86s
+Epoch 206 | train_loss=0.1335 val_loss=0.0964 P=0.562 R=0.398 F1=0.466 ROC-AUC=0.984 AUPR=0.438 time=46.53s
+Epoch 207 | train_loss=0.1316 val_loss=0.0939 P=0.605 R=0.393 F1=0.476 ROC-AUC=0.985 AUPR=0.448 time=46.61s
+Epoch 208 | train_loss=0.0962 val_loss=0.0905 P=0.620 R=0.380 F1=0.472 ROC-AUC=0.985 AUPR=0.453 time=47.34s
+Epoch 209 | train_loss=0.1219 val_loss=0.0913 P=0.574 R=0.395 F1=0.468 ROC-AUC=0.985 AUPR=0.448 time=46.64s
+Epoch 210 | train_loss=0.1178 val_loss=0.0919 P=0.599 R=0.391 F1=0.473 ROC-AUC=0.985 AUPR=0.443 time=46.70s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 211 | train_loss=0.1270 val_loss=0.0962 P=0.544 R=0.412 F1=0.469 ROC-AUC=0.984 AUPR=0.442 time=46.88s
+Epoch 212 | train_loss=0.1003 val_loss=0.0910 P=0.551 R=0.409 F1=0.470 ROC-AUC=0.985 AUPR=0.445 time=46.81s
+Epoch 213 | train_loss=0.1374 val_loss=0.1000 P=0.562 R=0.383 F1=0.456 ROC-AUC=0.983 AUPR=0.430 time=46.59s
+Epoch 214 | train_loss=0.0961 val_loss=0.7925 P=0.465 R=0.323 F1=0.382 ROC-AUC=0.853 AUPR=0.310 time=46.77s
+Epoch 215 | train_loss=0.1031 val_loss=0.0921 P=0.629 R=0.376 F1=0.471 ROC-AUC=0.985 AUPR=0.445 time=46.63s
+Epoch 216 | train_loss=0.1083 val_loss=0.0908 P=0.608 R=0.367 F1=0.458 ROC-AUC=0.985 AUPR=0.443 time=46.60s
+Epoch 217 | train_loss=0.1194 val_loss=0.0927 P=0.579 R=0.405 F1=0.477 ROC-AUC=0.985 AUPR=0.446 time=46.52s
+Epoch 218 | train_loss=0.1611 val_loss=0.0893 P=0.577 R=0.400 F1=0.472 ROC-AUC=0.986 AUPR=0.451 time=46.63s
+Epoch 219 | train_loss=0.0922 val_loss=0.1251 P=0.543 R=0.406 F1=0.465 ROC-AUC=0.977 AUPR=0.442 time=46.65s
+Epoch 220 | train_loss=0.1668 val_loss=0.0923 P=0.560 R=0.412 F1=0.475 ROC-AUC=0.984 AUPR=0.451 time=46.84s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 221 | train_loss=0.0813 val_loss=0.0904 P=0.563 R=0.416 F1=0.478 ROC-AUC=0.985 AUPR=0.456 time=46.63s
+Epoch 222 | train_loss=0.1196 val_loss=0.0907 P=0.603 R=0.393 F1=0.476 ROC-AUC=0.985 AUPR=0.456 time=47.11s
+Epoch 223 | train_loss=0.0957 val_loss=0.0921 P=0.573 R=0.390 F1=0.464 ROC-AUC=0.985 AUPR=0.442 time=46.61s
+Epoch 224 | train_loss=0.1512 val_loss=0.0950 P=0.557 R=0.400 F1=0.465 ROC-AUC=0.985 AUPR=0.438 time=46.49s
+Epoch 225 | train_loss=0.0924 val_loss=0.0921 P=0.596 R=0.399 F1=0.478 ROC-AUC=0.984 AUPR=0.453 time=46.64s
+Epoch 226 | train_loss=0.0987 val_loss=0.0912 P=0.610 R=0.396 F1=0.480 ROC-AUC=0.985 AUPR=0.453 time=46.91s
+Epoch 227 | train_loss=0.1188 val_loss=0.0921 P=0.593 R=0.403 F1=0.480 ROC-AUC=0.985 AUPR=0.451 time=47.04s
+Epoch 228 | train_loss=0.1119 val_loss=0.1349 P=0.517 R=0.387 F1=0.443 ROC-AUC=0.974 AUPR=0.416 time=46.93s
+Epoch 229 | train_loss=0.1279 val_loss=0.0937 P=0.581 R=0.397 F1=0.472 ROC-AUC=0.985 AUPR=0.451 time=47.52s
+Epoch 230 | train_loss=0.1077 val_loss=0.0902 P=0.542 R=0.426 F1=0.477 ROC-AUC=0.985 AUPR=0.452 time=47.73s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 231 | train_loss=0.1092 val_loss=0.0944 P=0.627 R=0.389 F1=0.480 ROC-AUC=0.984 AUPR=0.452 time=47.94s
+Epoch 232 | train_loss=0.1241 val_loss=0.0904 P=0.612 R=0.384 F1=0.472 ROC-AUC=0.986 AUPR=0.448 time=48.11s
+Epoch 233 | train_loss=0.0951 val_loss=0.0959 P=0.574 R=0.410 F1=0.479 ROC-AUC=0.984 AUPR=0.456 time=48.24s
+Epoch 234 | train_loss=0.1660 val_loss=0.0901 P=0.643 R=0.382 F1=0.479 ROC-AUC=0.985 AUPR=0.455 time=48.07s
+Epoch 235 | train_loss=0.1003 val_loss=0.0963 P=0.567 R=0.387 F1=0.460 ROC-AUC=0.984 AUPR=0.438 time=47.88s
+Epoch 236 | train_loss=0.1182 val_loss=0.0897 P=0.653 R=0.400 F1=0.496 ROC-AUC=0.985 AUPR=0.468 time=47.98s
+Epoch 237 | train_loss=0.1055 val_loss=0.0899 P=0.560 R=0.422 F1=0.481 ROC-AUC=0.986 AUPR=0.456 time=47.79s
+Epoch 238 | train_loss=0.1516 val_loss=0.0894 P=0.633 R=0.387 F1=0.481 ROC-AUC=0.986 AUPR=0.463 time=47.85s
+Epoch 239 | train_loss=0.0966 val_loss=0.0879 P=0.603 R=0.398 F1=0.479 ROC-AUC=0.986 AUPR=0.461 time=47.98s
+Epoch 240 | train_loss=0.1625 val_loss=0.7724 P=0.512 R=0.383 F1=0.438 ROC-AUC=0.876 AUPR=0.406 time=48.02s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 241 | train_loss=0.1463 val_loss=0.1473 P=0.647 R=0.350 F1=0.455 ROC-AUC=0.966 AUPR=0.416 time=46.83s
+Epoch 242 | train_loss=0.1429 val_loss=0.0951 P=0.564 R=0.417 F1=0.479 ROC-AUC=0.985 AUPR=0.458 time=47.52s
+Epoch 243 | train_loss=0.1232 val_loss=0.0931 P=0.584 R=0.377 F1=0.459 ROC-AUC=0.984 AUPR=0.434 time=46.66s
+Epoch 244 | train_loss=0.0856 val_loss=0.1102 P=0.596 R=0.353 F1=0.444 ROC-AUC=0.982 AUPR=0.415 time=47.77s
+Epoch 245 | train_loss=0.1534 val_loss=0.0901 P=0.536 R=0.420 F1=0.471 ROC-AUC=0.985 AUPR=0.450 time=47.06s
+Epoch 246 | train_loss=0.1077 val_loss=0.0911 P=0.624 R=0.400 F1=0.487 ROC-AUC=0.985 AUPR=0.462 time=46.77s
+Epoch 247 | train_loss=0.0785 val_loss=0.0957 P=0.624 R=0.381 F1=0.473 ROC-AUC=0.985 AUPR=0.447 time=46.69s
+Epoch 248 | train_loss=0.1213 val_loss=0.0941 P=0.596 R=0.394 F1=0.474 ROC-AUC=0.985 AUPR=0.445 time=46.70s
+Epoch 249 | train_loss=0.1306 val_loss=0.0905 P=0.633 R=0.375 F1=0.471 ROC-AUC=0.986 AUPR=0.447 time=46.72s
+Epoch 250 | train_loss=0.1325 val_loss=0.0980 P=0.649 R=0.369 F1=0.470 ROC-AUC=0.984 AUPR=0.439 time=46.96s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 251 | train_loss=0.1221 val_loss=0.3477 P=0.503 R=0.377 F1=0.431 ROC-AUC=0.907 AUPR=0.396 time=46.59s
+Epoch 252 | train_loss=0.1329 val_loss=0.1192 P=0.569 R=0.372 F1=0.450 ROC-AUC=0.978 AUPR=0.409 time=47.07s
+Epoch 253 | train_loss=0.1669 val_loss=0.0982 P=0.594 R=0.388 F1=0.469 ROC-AUC=0.984 AUPR=0.443 time=47.53s
+Epoch 254 | train_loss=0.1076 val_loss=0.0910 P=0.582 R=0.398 F1=0.472 ROC-AUC=0.985 AUPR=0.450 time=47.65s
+Epoch 255 | train_loss=0.1110 val_loss=0.0896 P=0.567 R=0.406 F1=0.473 ROC-AUC=0.986 AUPR=0.456 time=47.83s
+Epoch 256 | train_loss=0.1242 val_loss=0.0900 P=0.695 R=0.361 F1=0.475 ROC-AUC=0.985 AUPR=0.450 time=47.93s
+Epoch 257 | train_loss=0.1000 val_loss=0.0940 P=0.671 R=0.372 F1=0.478 ROC-AUC=0.985 AUPR=0.447 time=47.93s
+Epoch 258 | train_loss=0.1528 val_loss=0.3294 P=0.467 R=0.374 F1=0.415 ROC-AUC=0.918 AUPR=0.369 time=47.61s
+Epoch 259 | train_loss=0.1124 val_loss=0.0908 P=0.562 R=0.416 F1=0.478 ROC-AUC=0.985 AUPR=0.454 time=47.66s
+Epoch 260 | train_loss=0.1282 val_loss=0.0920 P=0.545 R=0.431 F1=0.481 ROC-AUC=0.986 AUPR=0.457 time=47.94s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+Epoch 261 | train_loss=0.1345 val_loss=0.0946 P=0.639 R=0.368 F1=0.467 ROC-AUC=0.985 AUPR=0.444 time=47.59s
+
+Early stopping at epoch 261
+
+Total training time: 12695.03s (211.6 min)
+
+Loading best model from epoch 236...
+Evaluating final model...
+======================================================================
+EVALUATION RESULTS: seed2_new_experiment TRAIN
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.6362
+  Recall:           0.4768
+  F1-Score:         0.5451
+  ROC-AUC:          0.9929
+  AUPR:             0.5470
+  Balanced Acc:     0.7383
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.5504
+  Cohen Kappa:      0.5447
+  Specificity:      0.9997
+
+THRESHOLD: 0.970
+
+CONFUSION MATRIX:
+  True Negatives:   3043096
+  False Positives:  847
+  False Negatives:  1625
+  True Positives:   1481
+
+TOP-K PRECISION:
+  precision_at_100: 1.0000
+  precision_at_500: 0.9760
+  precision_at_1000: 0.8960
+======================================================================
+======================================================================
+EVALUATION RESULTS: seed2_new_experiment VAL
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.6530
+  Recall:           0.3996
+  F1-Score:         0.4958
+  ROC-AUC:          0.9853
+  AUPR:             0.4675
+  Balanced Acc:     0.6997
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.5105
+  Cohen Kappa:      0.4954
+  Specificity:      0.9998
+
+THRESHOLD: 0.980
+
+CONFUSION MATRIX:
+  True Negatives:   1014427
+  False Positives:  220
+  False Negatives:  622
+  True Positives:   414
+
+TOP-K PRECISION:
+  precision_at_100: 0.9900
+  precision_at_500: 0.7440
+  precision_at_1000: 0.4790
+======================================================================
+======================================================================
+EVALUATION RESULTS: seed2_new_experiment TEST
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.6275
+  Recall:           0.4232
+  F1-Score:         0.5055
+  ROC-AUC:          0.9838
+  AUPR:             0.4744
+  Balanced Acc:     0.7115
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.5149
+  Cohen Kappa:      0.5051
+  Specificity:      0.9997
+
+THRESHOLD: 0.975
+
+CONFUSION MATRIX:
+  True Negatives:   1014388
+  False Positives:  260
+  False Negatives:  597
+  True Positives:   438
+
+TOP-K PRECISION:
+  precision_at_100: 0.9800
+  precision_at_500: 0.7500
+  precision_at_1000: 0.4890
+======================================================================
+
+Saving results...
+ Saved metrics to: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t\metrics.json
+ Saved prediction probabilities
+ Saved experiment config
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment (final)] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_new_experiment (final)] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_amount_heavy_medium/seed2_new_experiment/graphsage-t
+
+======================================================================
+GraphSAGE-T Training Complete!
+Results saved to: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_amount_heavy_medium\seed2_new_experiment\graphsage-t
+======================================================================
+
+================================================================================
+Logging ended at: 2026-07-28 03:00:38.685627
+================================================================================
