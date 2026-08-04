@@ -1,0 +1,309 @@
+
+================================================================================
+Logging started at: 2026-08-01 02:32:37.412371
+Log file: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep\seed4_new_experiment_20260801_023237.txt
+================================================================================
+
+[INFO] Logging to: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep\seed4_new_experiment_20260801_023237.txt
+================================================================================
+EXPERIMENT CONFIG SUMMARY
+================================================================================
+
+[DATASET]
+  Name:       HI-Small_Trans_RAT_low
+  Theory:     RAT
+  Intensity:  low
+
+[MODEL]
+  DyRep
+  Hidden dim: 128
+
+[PATHS]
+  Graphs:     C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs\HI-Small_Trans_RAT_low
+  Splits:     C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits\HI-Small_Trans_RAT_low
+  Results:    C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep
+  Logs:       C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep
+================================================================================
+
+[DEVICE] cuda
+
+[INFO] Using default graph directory: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs_dyrep\HI-Small_Trans_RAT_low
+
+======= DYREP-STYLE EVENT MODEL TRAINING (FP32) =======
+Graph folder:    C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs_dyrep\HI-Small_Trans_RAT_low
+Splits folder:   C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits_dyrep\HI-Small_Trans_RAT_low
+Results folder:  C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep
+Batch size:      8192
+Eval batch size: 16384
+Device:          cuda
+=======================================================
+
+Num nodes:        515,080
+Num events/edges: 5,078,415
+Node feat dim:    12
+Edge feat dim:    58
+Event types:      7
+
+Split sizes:
+  Train: 3,047,049
+  Val:   1,015,683
+  Test:  1,015,683
+
+pos_weight (train) = 100.000
+
+Starting training for up to 350 epochs (starting at epoch 1)...
+
+Epoch 001 | train_loss=8.4036 val_loss=0.1969 P=0.091 R=0.097 F1=0.094 ROC-AUC=0.927 AUPR=0.041 time=16.19s
+Epoch 002 | train_loss=0.9546 val_loss=0.2080 P=0.060 R=0.209 F1=0.093 ROC-AUC=0.920 AUPR=0.030 time=16.17s
+Epoch 003 | train_loss=1.0131 val_loss=0.2527 P=0.090 R=0.260 F1=0.134 ROC-AUC=0.905 AUPR=0.064 time=16.19s
+Epoch 004 | train_loss=0.7612 val_loss=1.2178 P=0.143 R=0.246 F1=0.181 ROC-AUC=0.864 AUPR=0.107 time=16.42s
+Epoch 005 | train_loss=0.7245 val_loss=0.5195 P=0.126 R=0.190 F1=0.151 ROC-AUC=0.900 AUPR=0.081 time=15.86s
+Epoch 006 | train_loss=0.6953 val_loss=0.1542 P=0.128 R=0.226 F1=0.164 ROC-AUC=0.956 AUPR=0.079 time=16.27s
+Epoch 007 | train_loss=0.7433 val_loss=0.1389 P=0.176 R=0.230 F1=0.199 ROC-AUC=0.968 AUPR=0.108 time=16.35s
+Epoch 008 | train_loss=0.4854 val_loss=0.1344 P=0.192 R=0.219 F1=0.204 ROC-AUC=0.969 AUPR=0.126 time=16.34s
+Epoch 009 | train_loss=0.4162 val_loss=0.2032 P=0.260 R=0.239 F1=0.249 ROC-AUC=0.916 AUPR=0.179 time=16.00s
+Epoch 010 | train_loss=0.3731 val_loss=0.1416 P=0.138 R=0.257 F1=0.180 ROC-AUC=0.965 AUPR=0.092 time=16.30s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: rclone exited 1 for C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep -> gdrive:AML_project_results/results/HI-Small_Trans_RAT_low/seed4_new_experiment/dyrep
+[DRIVE SYNC] stderr: 2026/08/01 02:37:36 ERROR : metrics.json: Couldn't delete: googleapi: Error 403: The user does not have sufficient permissions for this file., insufficientFilePermissions
+2026/08/01 02:37:36 ERROR : val_pred_probs.pt: Couldn't delete: googleapi: Error 403: The user does not have sufficient permissions for this file., insufficientFilePermissions
+2026/08/01 02:37:36 ERROR : train_pred_probs.pt: Couldn't delete: googleapi: Error 403: The user does not have sufficient permissions for this file., ins
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed4_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep -> gdrive:AML_project_results/logs/HI-Small_Trans_RAT_low/seed4_new_experiment/dyrep
+Epoch 011 | train_loss=0.3310 val_loss=0.1259 P=0.243 R=0.228 F1=0.235 ROC-AUC=0.976 AUPR=0.162 time=16.30s
+Epoch 012 | train_loss=0.4728 val_loss=0.7852 P=0.203 R=0.213 F1=0.208 ROC-AUC=0.897 AUPR=0.131 time=16.20s
+Epoch 013 | train_loss=0.3745 val_loss=0.1398 P=0.223 R=0.213 F1=0.217 ROC-AUC=0.967 AUPR=0.142 time=16.22s
+Epoch 014 | train_loss=0.3368 val_loss=0.1245 P=0.227 R=0.201 F1=0.213 ROC-AUC=0.975 AUPR=0.139 time=16.13s
+Epoch 015 | train_loss=0.3160 val_loss=0.1147 P=0.237 R=0.258 F1=0.247 ROC-AUC=0.978 AUPR=0.179 time=16.06s
+Epoch 016 | train_loss=0.1497 val_loss=0.1128 P=0.270 R=0.277 F1=0.274 ROC-AUC=0.979 AUPR=0.221 time=16.17s
+Epoch 017 | train_loss=0.2320 val_loss=0.1104 P=0.261 R=0.287 F1=0.273 ROC-AUC=0.980 AUPR=0.213 time=16.20s
+Epoch 018 | train_loss=0.2580 val_loss=0.1120 P=0.283 R=0.244 F1=0.262 ROC-AUC=0.980 AUPR=0.201 time=16.16s
+Epoch 019 | train_loss=0.2285 val_loss=2.9111 P=0.345 R=0.215 F1=0.265 ROC-AUC=0.868 AUPR=0.199 time=16.07s
+Epoch 020 | train_loss=0.1732 val_loss=0.1173 P=0.300 R=0.252 F1=0.274 ROC-AUC=0.978 AUPR=0.217 time=16.31s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: rclone exited 1 for C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep -> gdrive:AML_project_results/results/HI-Small_Trans_RAT_low/seed4_new_experiment/dyrep
+[DRIVE SYNC] stderr: 2026/08/01 02:42:38 ERROR : experiment_config.json: Couldn't delete: googleapi: Error 403: The user does not have sufficient permissions for this file., insufficientFilePermissions
+2026/08/01 02:42:38 ERROR : metrics.json: Couldn't delete: googleapi: Error 403: The user does not have sufficient permissions for this file., insufficientFilePermissions
+2026/08/01 02:42:38 ERROR : test_pred_probs.pt: Couldn't delete: googleapi: Error 403: The user does not have sufficient permissions for this file.,
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed4_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep -> gdrive:AML_project_results/logs/HI-Small_Trans_RAT_low/seed4_new_experiment/dyrep
+Epoch 021 | train_loss=0.1501 val_loss=0.1158 P=0.240 R=0.286 F1=0.261 ROC-AUC=0.979 AUPR=0.192 time=16.25s
+Epoch 022 | train_loss=0.1472 val_loss=0.1080 P=0.322 R=0.311 F1=0.317 ROC-AUC=0.981 AUPR=0.267 time=16.17s
+Epoch 023 | train_loss=0.1223 val_loss=0.3417 P=0.307 R=0.247 F1=0.274 ROC-AUC=0.914 AUPR=0.219 time=16.55s
+Epoch 024 | train_loss=0.1422 val_loss=0.1054 P=0.321 R=0.304 F1=0.312 ROC-AUC=0.982 AUPR=0.264 time=16.45s
+Epoch 025 | train_loss=0.1130 val_loss=0.1070 P=0.392 R=0.260 F1=0.313 ROC-AUC=0.981 AUPR=0.264 time=16.39s
+Epoch 026 | train_loss=0.2116 val_loss=0.1108 P=0.288 R=0.292 F1=0.290 ROC-AUC=0.979 AUPR=0.239 time=16.47s
+Epoch 027 | train_loss=0.1746 val_loss=0.1048 P=0.352 R=0.261 F1=0.300 ROC-AUC=0.982 AUPR=0.253 time=16.49s
+Epoch 028 | train_loss=0.1649 val_loss=0.2216 P=0.226 R=0.104 F1=0.142 ROC-AUC=0.953 AUPR=0.100 time=16.30s
+Epoch 029 | train_loss=0.0857 val_loss=0.1111 P=0.374 R=0.236 F1=0.289 ROC-AUC=0.980 AUPR=0.242 time=16.08s
+Epoch 030 | train_loss=0.1103 val_loss=0.0999 P=0.447 R=0.268 F1=0.335 ROC-AUC=0.983 AUPR=0.292 time=16.27s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: rclone exited 1 for C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep -> gdrive:AML_project_results/results/HI-Small_Trans_RAT_low/seed4_new_experiment/dyrep
+[DRIVE SYNC] stderr: 2026/08/01 02:49:36 ERROR : experiment_config.json: Couldn't delete: googleapi: Error 403: The user does not have sufficient permissions for this file., insufficientFilePermissions
+2026/08/01 02:49:36 ERROR : train_pred_probs.pt: Couldn't delete: googleapi: Error 403: The user does not have sufficient permissions for this file., insufficientFilePermissions
+2026/08/01 02:49:36 ERROR : metrics.json: Couldn't delete: googleapi: Error 403: The user does not have sufficient permissions for this file.
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed4_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep -> gdrive:AML_project_results/logs/HI-Small_Trans_RAT_low/seed4_new_experiment/dyrep
+Epoch 031 | train_loss=0.1109 val_loss=0.1037 P=0.418 R=0.267 F1=0.326 ROC-AUC=0.982 AUPR=0.287 time=16.15s
+Epoch 032 | train_loss=0.1789 val_loss=0.1007 P=0.367 R=0.285 F1=0.320 ROC-AUC=0.982 AUPR=0.273 time=16.11s
+Epoch 033 | train_loss=0.1020 val_loss=0.1034 P=0.359 R=0.287 F1=0.319 ROC-AUC=0.983 AUPR=0.279 time=16.44s
+Epoch 034 | train_loss=0.1211 val_loss=0.0992 P=0.390 R=0.288 F1=0.332 ROC-AUC=0.983 AUPR=0.289 time=16.31s
+Epoch 035 | train_loss=0.3073 val_loss=0.1057 P=0.302 R=0.301 F1=0.302 ROC-AUC=0.982 AUPR=0.267 time=16.00s
+Epoch 036 | train_loss=0.0835 val_loss=0.1066 P=0.379 R=0.254 F1=0.304 ROC-AUC=0.981 AUPR=0.265 time=16.02s
+Epoch 037 | train_loss=0.1412 val_loss=0.1030 P=0.340 R=0.266 F1=0.298 ROC-AUC=0.982 AUPR=0.268 time=16.23s
+Epoch 038 | train_loss=0.1617 val_loss=0.1001 P=0.448 R=0.261 F1=0.330 ROC-AUC=0.983 AUPR=0.295 time=16.18s
+Epoch 039 | train_loss=0.1730 val_loss=0.1037 P=0.372 R=0.299 F1=0.332 ROC-AUC=0.982 AUPR=0.292 time=16.23s
+Epoch 040 | train_loss=0.1381 val_loss=0.0981 P=0.367 R=0.338 F1=0.352 ROC-AUC=0.983 AUPR=0.317 time=16.13s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: rclone exited 1 for C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep -> gdrive:AML_project_results/results/HI-Small_Trans_RAT_low/seed4_new_experiment/dyrep
+[DRIVE SYNC] stderr: 2026/08/01 02:54:29 ERROR : experiment_config.json: Couldn't delete: googleapi: Error 403: The user does not have sufficient permissions for this file., insufficientFilePermissions
+2026/08/01 02:54:29 ERROR : val_pred_probs.pt: Couldn't delete: googleapi: Error 403: The user does not have sufficient permissions for this file., insufficientFilePermissions
+2026/08/01 02:54:29 ERROR : test_pred_probs.pt: Couldn't delete: googleapi: Error 403: The user does not have sufficient permissions for this f
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed4_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep -> gdrive:AML_project_results/logs/HI-Small_Trans_RAT_low/seed4_new_experiment/dyrep
+Epoch 041 | train_loss=0.0942 val_loss=0.0974 P=0.460 R=0.282 F1=0.350 ROC-AUC=0.983 AUPR=0.321 time=16.15s
+Epoch 042 | train_loss=0.0795 val_loss=0.1044 P=0.388 R=0.237 F1=0.294 ROC-AUC=0.981 AUPR=0.265 time=15.98s
+Epoch 043 | train_loss=0.0926 val_loss=0.0974 P=0.345 R=0.342 F1=0.344 ROC-AUC=0.983 AUPR=0.317 time=16.31s
+Epoch 044 | train_loss=0.1805 val_loss=0.1101 P=0.354 R=0.280 F1=0.313 ROC-AUC=0.980 AUPR=0.275 time=16.56s
+Epoch 045 | train_loss=0.1082 val_loss=0.1017 P=0.400 R=0.289 F1=0.336 ROC-AUC=0.983 AUPR=0.304 time=16.23s
+Epoch 046 | train_loss=0.1577 val_loss=0.1046 P=0.332 R=0.269 F1=0.297 ROC-AUC=0.981 AUPR=0.266 time=16.22s
+Epoch 047 | train_loss=0.0923 val_loss=0.0989 P=0.383 R=0.330 F1=0.354 ROC-AUC=0.983 AUPR=0.330 time=16.63s
+Epoch 048 | train_loss=0.2999 val_loss=0.1032 P=0.389 R=0.298 F1=0.337 ROC-AUC=0.981 AUPR=0.306 time=16.31s
+Epoch 049 | train_loss=0.1055 val_loss=0.1011 P=0.347 R=0.304 F1=0.324 ROC-AUC=0.982 AUPR=0.295 time=16.23s
+Epoch 050 | train_loss=0.1036 val_loss=0.1001 P=0.462 R=0.274 F1=0.344 ROC-AUC=0.983 AUPR=0.321 time=16.32s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: rclone exited 1 for C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep -> gdrive:AML_project_results/results/HI-Small_Trans_RAT_low/seed4_new_experiment/dyrep
+[DRIVE SYNC] stderr: 2026/08/01 03:05:01 ERROR : experiment_config.json: Couldn't delete: googleapi: Error 403: The user does not have sufficient permissions for this file., insufficientFilePermissions
+2026/08/01 03:05:01 ERROR : metrics.json: Couldn't delete: googleapi: Error 403: The user does not have sufficient permissions for this file., insufficientFilePermissions
+2026/08/01 03:05:30 ERROR : train_pred_probs.pt: Couldn't delete: googleapi: Error 403: The user does not have sufficient permissions for this file.
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed4_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep -> gdrive:AML_project_results/logs/HI-Small_Trans_RAT_low/seed4_new_experiment/dyrep
+Epoch 051 | train_loss=0.1791 val_loss=0.0976 P=0.437 R=0.312 F1=0.364 ROC-AUC=0.983 AUPR=0.327 time=16.25s
+Epoch 052 | train_loss=0.0863 val_loss=0.1040 P=0.363 R=0.287 F1=0.321 ROC-AUC=0.982 AUPR=0.287 time=16.32s
+Epoch 053 | train_loss=0.0759 val_loss=0.1131 P=0.356 R=0.294 F1=0.322 ROC-AUC=0.980 AUPR=0.289 time=16.16s
+Epoch 054 | train_loss=0.0871 val_loss=0.0994 P=0.443 R=0.274 F1=0.339 ROC-AUC=0.983 AUPR=0.310 time=16.20s
+Epoch 055 | train_loss=0.0913 val_loss=0.0994 P=0.411 R=0.293 F1=0.342 ROC-AUC=0.983 AUPR=0.314 time=16.53s
+Epoch 056 | train_loss=0.0754 val_loss=0.1079 P=0.399 R=0.283 F1=0.331 ROC-AUC=0.981 AUPR=0.291 time=16.72s
+Epoch 057 | train_loss=0.1091 val_loss=0.1219 P=0.355 R=0.274 F1=0.310 ROC-AUC=0.978 AUPR=0.264 time=17.03s
+Epoch 058 | train_loss=0.1039 val_loss=0.1136 P=0.382 R=0.250 F1=0.303 ROC-AUC=0.979 AUPR=0.266 time=16.51s
+Epoch 059 | train_loss=0.1063 val_loss=0.1102 P=0.429 R=0.254 F1=0.319 ROC-AUC=0.980 AUPR=0.281 time=16.67s
+Epoch 060 | train_loss=0.1537 val_loss=0.1163 P=0.435 R=0.272 F1=0.334 ROC-AUC=0.979 AUPR=0.297 time=16.59s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: rclone exited 1 for C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep -> gdrive:AML_project_results/results/HI-Small_Trans_RAT_low/seed4_new_experiment/dyrep
+[DRIVE SYNC] stderr: 2026/08/01 03:10:46 ERROR : val_pred_probs.pt: Couldn't delete: googleapi: Error 403: The user does not have sufficient permissions for this file., insufficientFilePermissions
+2026/08/01 03:10:46 ERROR : test_pred_probs.pt: Couldn't delete: googleapi: Error 403: The user does not have sufficient permissions for this file., insufficientFilePermissions
+2026/08/01 03:10:46 ERROR : train_pred_probs.pt: Couldn't delete: googleapi: Error 403: The user does not have sufficient permissions for this file
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed4_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep -> gdrive:AML_project_results/logs/HI-Small_Trans_RAT_low/seed4_new_experiment/dyrep
+Epoch 061 | train_loss=0.0717 val_loss=0.1029 P=0.426 R=0.301 F1=0.353 ROC-AUC=0.983 AUPR=0.320 time=16.02s
+Epoch 062 | train_loss=0.1028 val_loss=0.1043 P=0.475 R=0.301 F1=0.369 ROC-AUC=0.982 AUPR=0.347 time=16.17s
+Epoch 063 | train_loss=0.0797 val_loss=0.1053 P=0.427 R=0.353 F1=0.386 ROC-AUC=0.984 AUPR=0.364 time=16.24s
+Epoch 064 | train_loss=0.1289 val_loss=0.0988 P=0.443 R=0.299 F1=0.357 ROC-AUC=0.984 AUPR=0.340 time=16.20s
+Epoch 065 | train_loss=0.0696 val_loss=0.1133 P=0.471 R=0.284 F1=0.354 ROC-AUC=0.980 AUPR=0.322 time=15.82s
+Epoch 066 | train_loss=0.2415 val_loss=0.1156 P=0.404 R=0.282 F1=0.332 ROC-AUC=0.980 AUPR=0.302 time=16.24s
+Epoch 067 | train_loss=0.0710 val_loss=0.1191 P=0.447 R=0.250 F1=0.320 ROC-AUC=0.978 AUPR=0.280 time=16.27s
+Epoch 068 | train_loss=0.1061 val_loss=0.0925 P=0.536 R=0.311 F1=0.394 ROC-AUC=0.985 AUPR=0.374 time=16.40s
+Epoch 069 | train_loss=0.0825 val_loss=0.1007 P=0.476 R=0.285 F1=0.356 ROC-AUC=0.983 AUPR=0.335 time=16.12s
+Epoch 070 | train_loss=0.1873 val_loss=0.1341 P=0.506 R=0.222 F1=0.308 ROC-AUC=0.975 AUPR=0.290 time=16.26s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: rclone exited 1 for C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep -> gdrive:AML_project_results/results/HI-Small_Trans_RAT_low/seed4_new_experiment/dyrep
+[DRIVE SYNC] stderr: 2026/08/01 03:15:44 ERROR : val_pred_probs.pt: Couldn't delete: googleapi: Error 403: The user does not have sufficient permissions for this file., insufficientFilePermissions
+2026/08/01 03:15:44 ERROR : metrics.json: Couldn't delete: googleapi: Error 403: The user does not have sufficient permissions for this file., insufficientFilePermissions
+2026/08/01 03:15:44 ERROR : test_pred_probs.pt: Couldn't delete: googleapi: Error 403: The user does not have sufficient permissions for this file., insu
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed4_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep -> gdrive:AML_project_results/logs/HI-Small_Trans_RAT_low/seed4_new_experiment/dyrep
+Epoch 071 | train_loss=0.0662 val_loss=0.1188 P=0.414 R=0.274 F1=0.330 ROC-AUC=0.979 AUPR=0.308 time=16.30s
+Epoch 072 | train_loss=0.0654 val_loss=0.1322 P=0.439 R=0.217 F1=0.291 ROC-AUC=0.975 AUPR=0.268 time=16.26s
+Epoch 073 | train_loss=0.0660 val_loss=0.1175 P=0.326 R=0.358 F1=0.341 ROC-AUC=0.979 AUPR=0.319 time=16.26s
+Epoch 074 | train_loss=0.0926 val_loss=0.0973 P=0.418 R=0.321 F1=0.363 ROC-AUC=0.983 AUPR=0.353 time=16.16s
+Epoch 075 | train_loss=0.1511 val_loss=0.1034 P=0.456 R=0.343 F1=0.392 ROC-AUC=0.982 AUPR=0.367 time=15.92s
+Epoch 076 | train_loss=0.0769 val_loss=0.1276 P=0.448 R=0.305 F1=0.363 ROC-AUC=0.977 AUPR=0.333 time=16.35s
+Epoch 077 | train_loss=0.0978 val_loss=0.1339 P=0.396 R=0.290 F1=0.335 ROC-AUC=0.975 AUPR=0.306 time=16.28s
+Epoch 078 | train_loss=0.1605 val_loss=0.1235 P=0.478 R=0.286 F1=0.358 ROC-AUC=0.977 AUPR=0.332 time=16.15s
+Epoch 079 | train_loss=0.0609 val_loss=0.1116 P=0.477 R=0.309 F1=0.375 ROC-AUC=0.980 AUPR=0.354 time=16.18s
+Epoch 080 | train_loss=0.1260 val_loss=0.1366 P=0.524 R=0.302 F1=0.383 ROC-AUC=0.973 AUPR=0.372 time=16.06s
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: rclone exited 1 for C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep -> gdrive:AML_project_results/results/HI-Small_Trans_RAT_low/seed4_new_experiment/dyrep
+[DRIVE SYNC] stderr: 2026/08/01 03:20:42 ERROR : metrics.json: Couldn't delete: googleapi: Error 403: The user does not have sufficient permissions for this file., insufficientFilePermissions
+2026/08/01 03:20:42 ERROR : val_pred_probs.pt: Couldn't delete: googleapi: Error 403: The user does not have sufficient permissions for this file., insufficientFilePermissions
+2026/08/01 03:20:42 ERROR : test_pred_probs.pt: Couldn't delete: googleapi: Error 403: The user does not have sufficient permissions for this file., insu
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed4_new_experiment] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep -> gdrive:AML_project_results/logs/HI-Small_Trans_RAT_low/seed4_new_experiment/dyrep
+Epoch 081 | train_loss=0.2177 val_loss=0.1555 P=0.436 R=0.340 F1=0.382 ROC-AUC=0.969 AUPR=0.356 time=15.89s
+Epoch 082 | train_loss=0.0711 val_loss=0.1587 P=0.447 R=0.298 F1=0.357 ROC-AUC=0.969 AUPR=0.330 time=15.97s
+Epoch 083 | train_loss=0.0612 val_loss=0.1378 P=0.449 R=0.296 F1=0.357 ROC-AUC=0.973 AUPR=0.327 time=16.38s
+
+Early stopping at epoch 83 (no val AUPR improvement for 15 epochs)
+
+Total training time: 2939.78s (49.0 min)
+
+Loading best model from epoch 68...
+Evaluating final model on train/val/test...
+======================================================================
+EVALUATION RESULTS: seed4_new_experiment TRAIN
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.4648
+  Recall:           0.3681
+  F1-Score:         0.4109
+  ROC-AUC:          0.9878
+  AUPR:             0.4213
+  Balanced Acc:     0.6839
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.4133
+  Cohen Kappa:      0.4105
+  Specificity:      0.9997
+
+THRESHOLD: 0.985
+
+CONFUSION MATRIX:
+  True Negatives:   3043777
+  False Positives:  974
+  False Negatives:  1452
+  True Positives:   846
+
+TOP-K PRECISION:
+  precision_at_100: 1.0000
+  precision_at_500: 0.8760
+  precision_at_1000: 0.6540
+======================================================================
+======================================================================
+EVALUATION RESULTS: seed4_new_experiment VAL
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.5358
+  Recall:           0.3115
+  F1-Score:         0.3939
+  ROC-AUC:          0.9846
+  AUPR:             0.3736
+  Balanced Acc:     0.6556
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.4080
+  Cohen Kappa:      0.3934
+  Specificity:      0.9997
+
+THRESHOLD: 0.985
+
+CONFUSION MATRIX:
+  True Negatives:   1014309
+  False Positives:  292
+  False Negatives:  745
+  True Positives:   337
+
+TOP-K PRECISION:
+  precision_at_100: 0.9700
+  precision_at_500: 0.6160
+  precision_at_1000: 0.3970
+======================================================================
+======================================================================
+EVALUATION RESULTS: seed4_new_experiment TEST
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.5959
+  Recall:           0.4168
+  F1-Score:         0.4905
+  ROC-AUC:          0.9871
+  AUPR:             0.4971
+  Balanced Acc:     0.7082
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.4976
+  Cohen Kappa:      0.4898
+  Specificity:      0.9995
+
+THRESHOLD: 0.985
+
+CONFUSION MATRIX:
+  True Negatives:   1013378
+  False Positives:  508
+  False Negatives:  1048
+  True Positives:   749
+
+TOP-K PRECISION:
+  precision_at_100: 0.9800
+  precision_at_500: 0.8840
+  precision_at_1000: 0.6690
+======================================================================
+
+Saving results...
+  - Saved metrics to: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep\metrics.json
+  - Saved prediction probabilities
+  - Saved experiment config
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed4_new_experiment (final)] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep -> gdrive:AML_project_results/results/HI-Small_Trans_RAT_low/seed4_new_experiment/dyrep
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed4_new_experiment (final)] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep -> gdrive:AML_project_results/logs/HI-Small_Trans_RAT_low/seed4_new_experiment/dyrep
+
+======================================================================
+DyRep-style Training Complete!
+Results saved to: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_low\seed4_new_experiment\dyrep
+======================================================================
+
+================================================================================
+Logging ended at: 2026-08-01 03:27:35.147516
+================================================================================
