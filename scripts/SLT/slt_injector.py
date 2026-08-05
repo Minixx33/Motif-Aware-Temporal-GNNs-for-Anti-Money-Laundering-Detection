@@ -53,6 +53,12 @@ _parser.add_argument("--output_dir",   type=str,   default=None,
 _parser.add_argument("--intensities",  type=str,   default="low,medium,high",
                      help="Comma/space separated subset of intensities to produce "
                           "(default: all three, e.g. --intensities medium)")
+_parser.add_argument("--dump_pristine", action="store_true",
+                     help="Also write a snapshot of the data BEFORE any intensity "
+                          "boosting is applied (SLT_* features at their pristine, "
+                          "never-boosted values). Same row count/order as the "
+                          "low/medium/high CSVs -- used for post-hoc leakage/"
+                          "robustness checks, not part of normal training.")
 _args = _parser.parse_args()
 
 VARIANT      = _args.variant
@@ -765,6 +771,18 @@ for _c in BOOST_COLS:
     _v = df[_c].values
     _pos = _v[_v > 0]
     _hi[_c] = float(np.quantile(_pos, 0.95)) if len(_pos) else 1.0
+
+# df is still fully pristine here -- nothing below has boosted it yet.
+# Dumping now gives a CSV with the exact same rows/order as every
+# HI-Small_Trans_SLT_<intensity>.csv, but with SLT_* features at their
+# never-boosted values.
+if _args.dump_pristine:
+    pristine_path = os.path.join(OUTPUT_DIR, "HI-Small_Trans_SLT_pristine.csv") \
+        if VARIANT == "current" else \
+        os.path.join(OUTPUT_DIR, f"HI-Small_Trans_SLT_{VARIANT}_pristine.csv")
+    print(f"Saving pristine (un-boosted) snapshot: {pristine_path}")
+    df.to_csv(pristine_path, index=False)
+    print(f"Saved {pristine_path} [0 injected rows by construction]")
 
 for name, frac in INTENSITIES.items():
     threshold = float(np.quantile(launder_scores, 1 - frac))

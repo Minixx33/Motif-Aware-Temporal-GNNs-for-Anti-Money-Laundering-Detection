@@ -23,6 +23,12 @@ _parser.add_argument("--patterns_file", type=str, default="HI-Small_Patterns.txt
                      help="Patterns txt filename inside data_dir (default: HI-Small_Patterns.txt)")
 _parser.add_argument("--output_dir",  type=str, default=None,
                      help="Output directory for injected CSVs (default: <data_dir>/RAT)")
+_parser.add_argument("--dump_pristine", action="store_true",
+                     help="Also write a snapshot of the data BEFORE any intensity "
+                          "boosting is applied (RAT_*/motif_* features at their "
+                          "pristine, never-boosted values). Same row count/order "
+                          "as the low/medium/high CSVs -- used for post-hoc "
+                          "leakage/robustness checks, not part of normal training.")
 _args = _parser.parse_args()
 
 # ===================== CONFIG =====================
@@ -297,6 +303,17 @@ SCORE_COLS = ["RAT_offender_score", "RAT_target_score",
 _originals = {c: df[c].copy() for c in BOOST_COLS + SCORE_COLS}
 _q95 = {c: float(np.nanquantile(df[c].values.astype(float), 0.95)) for c in BOOST_COLS}
 _dst_age_norm = norm_by_quantile(df["dst_age_days"].fillna(0))
+
+# df is still fully pristine here -- nothing in the intensity loop below has
+# touched it yet. Dumping now (before any boosting) gives a CSV with the
+# exact same rows/order as every HI-Small_Trans_RAT_<intensity>.csv, but
+# with RAT_*/motif_* features at their never-boosted values.
+if _args.dump_pristine:
+    out_base = os.path.splitext(os.path.basename(_args.trans_file))[0]
+    pristine_path = os.path.join(OUTPUT_DIR, f"{out_base}_RAT_pristine.csv")
+    print(f"Saving pristine (un-boosted) snapshot: {pristine_path}")
+    df.to_csv(pristine_path, index=False)
+    print(f"Saved {pristine_path} [0 injected rows by construction]")
 
 for name, frac in INTENSITIES.items():
     # restore pristine feature values before applying this intensity's boost
