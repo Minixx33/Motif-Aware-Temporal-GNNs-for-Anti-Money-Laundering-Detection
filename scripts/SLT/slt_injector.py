@@ -245,6 +245,12 @@ print("Cleaning and downcasting transaction data...")
 # Parse timestamp once
 df[TS_COL] = pd.to_datetime(df[TS_COL], errors="raise")
 
+# Sort chronologically BEFORE any feature engineering. The causal/running
+# account-behavior features below (txn count, amount flow, unique
+# counterparties, peer-risk score -- all computed "as of just before this
+# transaction") only make sense, and are only causal, in time order.
+df = df.sort_values(TS_COL, kind="mergesort").reset_index(drop=True)
+
 # Convert account IDs to string first, then to category to save memory
 df[SRC_COL] = df[SRC_COL].astype(str)
 df[DST_COL] = df[DST_COL].astype(str)
@@ -299,115 +305,156 @@ if ACCT_ENTITY_NAME in df_acct.columns:
 
 print_mem_hint(df_acct, "accounts table")
 
-# ===================== ACCOUNT-LEVEL BEHAVIORAL RISK FEATURES =====================
+# ===================== ACCOUNT-LEVEL BEHAVIORAL RISK FEATURES (POINT-IN-TIME / CAUSAL) =====================
+# Old version: one peer_risk_score PER ACCOUNT, computed from that account's
+# ENTIRE transaction history (both directions, summed over the whole
+# dataset), then mapped onto every one of that account's transactions --
+# meaning its very FIRST transaction got the same "risk" value as its
+# 1000th. That's leakage: an account's future total activity level shouldn't
+# be visible when scoring an earlier transaction.
+#
+# Causal version: peer_risk_score becomes a PER-TRANSACTION quantity --
+# "this account's behavioral risk, using only activity STRICTLY BEFORE this
+# transaction." An account's behavior is tracked across BOTH roles it plays
+# (sender and receiver) combined, via a single running per-account state.
+#
+# Known remaining, disclosed limitation (same as rat_injector.py): the
+# normalization scale (robust_norm's global P95) and the tau threshold below
+# are calibrated from the full dataset's distribution of causal scores, not
+# an expanding/point-in-time one. That's a fixed rescaling constant, not a
+# per-row leak of any specific account's own future activity, but it is not
+# fully point-in-time either. Not implemented here due to added complexity.
 
-print("Computing account-level behavioral statistics...")
+print("Computing account-level behavioral statistics (point-in-time / causal)...")
 
-# Outgoing stats per account
-src_stats = df.groupby(SRC_COL, observed=True).agg(
-    src_txn_count=(SRC_COL, "size"),
-    src_total_paid=(AMT_PAID, "sum"),
-    src_avg_paid=(AMT_PAID, "mean"),
-    src_unique_dsts=(DST_COL, "nunique"),
-    src_cross_bank_ratio=("is_cross_bank", "mean"),
-    src_off_hours_ratio=("is_off_hours", "mean"),
-    src_weekend_ratio=("is_weekend", "mean"),
-    src_first_seen=(TS_COL, "min"),
-    src_last_seen=(TS_COL, "max"),
-)
+_n = len(df)
+_orig_idx = np.arange(_n)
 
-# Incoming stats per account
-dst_stats = df.groupby(DST_COL, observed=True).agg(
-    dst_txn_count=(DST_COL, "size"),
-    dst_total_received=(AMT_REC, "sum"),
-    dst_avg_received=(AMT_REC, "mean"),
-    dst_unique_srcs=(SRC_COL, "nunique"),
-    dst_first_seen=(TS_COL, "min"),
-    dst_last_seen=(TS_COL, "max"),
-)
+# Every transaction contributes two "touches": one for its SRC account
+# (outgoing) and one for its DST account (incoming). Combining both into one
+# table lets an account's running stats accumulate correctly regardless of
+# which role it plays on any given transaction.
+_touches = pd.concat([
+    pd.DataFrame({
+        "account": df[SRC_COL].to_numpy(dtype=str),
+        "counterparty": df[DST_COL].to_numpy(dtype=str),
+        "amount": df[AMT_PAID].to_numpy(dtype=np.float64),
+        "is_cross_bank": df["is_cross_bank"].to_numpy(),
+        "orig_idx": _orig_idx,
+    }),
+    pd.DataFrame({
+        "account": df[DST_COL].to_numpy(dtype=str),
+        "counterparty": df[SRC_COL].to_numpy(dtype=str),
+        "amount": df[AMT_REC].to_numpy(dtype=np.float64),
+        "is_cross_bank": df["is_cross_bank"].to_numpy(),
+        "orig_idx": _orig_idx,
+    }),
+], ignore_index=True).sort_values("orig_idx", kind="mergesort").reset_index(drop=True)
 
-# Merge into a single account stats table
-acct_stats = src_stats.join(dst_stats, how="outer").fillna(0)
+_is_new_cpty = (~_touches.duplicated(subset=["account", "counterparty"], keep="first")).astype(np.int32)
 
-# First/last seen over both directions
-src_first = acct_stats["src_first_seen"].replace(0, pd.NaT)
-dst_first = acct_stats["dst_first_seen"].replace(0, pd.NaT)
-src_last = acct_stats["src_last_seen"].replace(0, pd.NaT)
-dst_last = acct_stats["dst_last_seen"].replace(0, pd.NaT)
+# Running per-account state "after" each touch (includes that touch's own
+# contribution) -- the merge_asof lookup below, with allow_exact_matches=
+# False, is what turns this into a strictly-prior ("before") value per
+# original transaction row.
+_touches["cum_txn_count"]   = _touches.groupby("account").cumcount() + 1
+_touches["cum_amount"]      = _touches.groupby("account")["amount"].cumsum()
+_touches["cum_unique_cpty"] = _is_new_cpty.groupby(_touches["account"]).cumsum()
+_touches["cum_cross_bank"]  = _touches.groupby("account")["is_cross_bank"].cumsum()
 
-acct_stats["first_seen"] = pd.concat([src_first, dst_first], axis=1).min(axis=1)
-acct_stats["last_seen"]  = pd.concat([src_last, dst_last], axis=1).max(axis=1)
+_touch_state_cols = ["account", "orig_idx", "cum_txn_count", "cum_amount", "cum_unique_cpty", "cum_cross_bank"]
 
-acct_stats["active_days"] = (
-    (acct_stats["last_seen"] - acct_stats["first_seen"]).dt.total_seconds() / (3600 * 24)
-).fillna(0).clip(lower=0).astype(np.float32)
+def _asof_account_state(role_account_col):
+    """For each original row, look up that row's account's running state as
+    of the last touch (either role) with orig_idx STRICTLY LESS than this
+    row's own orig_idx -- which excludes this transaction's own two touches
+    (both share the same orig_idx)."""
+    keys = pd.DataFrame({
+        "account": df[role_account_col].to_numpy(dtype=str),
+        "orig_idx": _orig_idx,
+    })
+    return pd.merge_asof(
+        keys, _touches[_touch_state_cols],
+        on="orig_idx", by="account",
+        direction="backward", allow_exact_matches=False,
+    )
 
-# Combine incoming + outgoing behavior
-acct_stats["total_txn_count"] = (
-    pd.to_numeric(acct_stats["src_txn_count"], errors="coerce").fillna(0).astype(np.int32) +
-    pd.to_numeric(acct_stats["dst_txn_count"], errors="coerce").fillna(0).astype(np.int32)
-)
+_src_state = _asof_account_state(SRC_COL)
+_dst_state = _asof_account_state(DST_COL)
+del _touches, _is_new_cpty
 
-acct_stats["total_amount_flow"] = (
-    pd.to_numeric(acct_stats["src_total_paid"], errors="coerce").fillna(0).astype(np.float32) +
-    pd.to_numeric(acct_stats["dst_total_received"], errors="coerce").fillna(0).astype(np.float32)
-)
+# first_seen is safe to compute globally (unlike everything else here): an
+# account's first-ever transaction time is the same value regardless of what
+# future data you can see, since it's a minimum. Combines both roles.
+_acct_first_seen = pd.concat([
+    df.groupby(SRC_COL, observed=True)[TS_COL].min(),
+    df.groupby(DST_COL, observed=True)[TS_COL].min(),
+], axis=1).min(axis=1)
+_src_first_seen_ts = df[SRC_COL].map(_acct_first_seen)
+_dst_first_seen_ts = df[DST_COL].map(_acct_first_seen)
 
-acct_stats["total_unique_counterparties"] = (
-    pd.to_numeric(acct_stats["src_unique_dsts"], errors="coerce").fillna(0).astype(np.int32) +
-    pd.to_numeric(acct_stats["dst_unique_srcs"], errors="coerce").fillna(0).astype(np.int32)
-)
+def _build_causal_peer_inputs(state, first_seen_ts):
+    txn_count   = state["cum_txn_count"].fillna(0).astype(np.float32)
+    amount_flow = state["cum_amount"].fillna(0).astype(np.float32)
+    unique_cpty = state["cum_unique_cpty"].fillna(0).astype(np.float32)
+    cross_bank_ratio = safe_divide(state["cum_cross_bank"].fillna(0), txn_count)
+    active_days = ((df[TS_COL] - first_seen_ts).dt.total_seconds() / (3600 * 24)).fillna(0).clip(lower=0).astype(np.float32)
+    txn_per_active_day = safe_divide(txn_count, active_days + 1)
+    return txn_count, amount_flow, unique_cpty, cross_bank_ratio, txn_per_active_day
 
-# Approximate burstiness / intensity of activity over life of account
-acct_stats["txn_per_active_day"] = safe_divide(
-    acct_stats["total_txn_count"],
-    acct_stats["active_days"] + 1
-)
+(_src_txn_count, _src_amount_flow, _src_unique_cpty,
+ _src_cross_bank_ratio, _src_txn_per_active_day) = _build_causal_peer_inputs(_src_state, _src_first_seen_ts)
+(_dst_txn_count, _dst_amount_flow, _dst_unique_cpty,
+ _dst_cross_bank_ratio, _dst_txn_per_active_day) = _build_causal_peer_inputs(_dst_state, _dst_first_seen_ts)
+del _src_state, _dst_state
 
-# NOTE: a "pattern_flag" term (derived from the AMLworld simulator's
-# ground-truth laundering-pattern export via `pattern_accounts`) used to be
-# included here. It has been REMOVED: it is information a real investigator
-# would not have before prediction (review feedback, Aug 4 2026, sec 3.1).
-# `pattern_accounts` is still loaded above but no longer feeds any feature.
+# Normalize each component using the pooled (src-role + dst-role) causal
+# distribution, so both roles share one consistent scale, then combine into
+# the UNSUPERVISED peer-risk score. This is NOT a laundering label -- it's a
+# behavioral abnormality / risk proxy. Weights are the original
+# 0.25/0.25/0.20/0.15/0.10 values (which summed to 0.95 alongside the
+# now-removed 0.05 pattern-flag term) renormalized to sum to 1.0.
+def _pooled_norm(a, b):
+    pooled = pd.concat([pd.Series(a).reset_index(drop=True), pd.Series(b).reset_index(drop=True)], ignore_index=True)
+    normed = robust_norm(pooled)
+    half = len(a)
+    return normed.iloc[:half].reset_index(drop=True), normed.iloc[half:].reset_index(drop=True)
 
-# Normalize the core components
-acct_stats["norm_total_txn_count"] = robust_norm(acct_stats["total_txn_count"])
-acct_stats["norm_total_amount_flow"] = robust_norm(acct_stats["total_amount_flow"])
-acct_stats["norm_unique_counterparties"] = robust_norm(acct_stats["total_unique_counterparties"])
-acct_stats["norm_txn_per_active_day"] = robust_norm(acct_stats["txn_per_active_day"])
-acct_stats["norm_cross_bank_ratio"] = pd.to_numeric(acct_stats["src_cross_bank_ratio"], errors="coerce").fillna(0).clip(0, 1).astype(np.float32)
+_norm_txn_count_s, _norm_txn_count_d = _pooled_norm(_src_txn_count, _dst_txn_count)
+_norm_amount_s, _norm_amount_d = _pooled_norm(_src_amount_flow, _dst_amount_flow)
+_norm_cpty_s, _norm_cpty_d = _pooled_norm(_src_unique_cpty, _dst_unique_cpty)
+_norm_tpad_s, _norm_tpad_d = _pooled_norm(_src_txn_per_active_day, _dst_txn_per_active_day)
 
-# Build UNSUPERVISED peer-risk score
-# This is NOT a laundering label. It is a behavioral abnormality / risk proxy.
-# Weights below are the original 0.25/0.25/0.20/0.15/0.10 values (which summed
-# to 0.95 alongside the now-removed 0.05 pattern-flag term) renormalized to sum
-# to 1.0 over the remaining 5 components.
-acct_stats["peer_risk_score"] = (
-    (0.25 / 0.95) * acct_stats["norm_total_txn_count"] +
-    (0.25 / 0.95) * acct_stats["norm_total_amount_flow"] +
-    (0.20 / 0.95) * acct_stats["norm_unique_counterparties"] +
-    (0.15 / 0.95) * acct_stats["norm_txn_per_active_day"] +
-    (0.10 / 0.95) * acct_stats["norm_cross_bank_ratio"]
-).astype(np.float32).clip(0, 1)
+def _peer_risk(norm_txn, norm_amt, norm_cpty, norm_tpad, cross_bank_ratio):
+    # safe_divide returns a plain numpy array; the norm_* Series are
+    # converted to numpy explicitly so this adds cleanly regardless of index.
+    return (
+        (0.25 / 0.95) * norm_txn.to_numpy() +
+        (0.25 / 0.95) * norm_amt.to_numpy() +
+        (0.20 / 0.95) * norm_cpty.to_numpy() +
+        (0.15 / 0.95) * norm_tpad.to_numpy() +
+        (0.10 / 0.95) * np.clip(np.asarray(cross_bank_ratio), 0, 1)
+    ).clip(0, 1).astype(np.float32)
 
-# Tau = threshold for defining a high-risk peer
-tau = float(acct_stats["peer_risk_score"].quantile(PEER_RISK_PERCENTILE))
-if (not np.isfinite(tau)):
-    tau = float(acct_stats["peer_risk_score"].max())
+df["src_peer_risk_score"] = _peer_risk(_norm_txn_count_s, _norm_amount_s, _norm_cpty_s, _norm_tpad_s, _src_cross_bank_ratio)
+df["dst_peer_risk_score"] = _peer_risk(_norm_txn_count_d, _norm_amount_d, _norm_cpty_d, _norm_tpad_d, _dst_cross_bank_ratio)
 
-acct_stats["is_high_risk_peer"] = (acct_stats["peer_risk_score"] >= tau).astype(np.int8)
+# Tau = threshold for "high-risk peer", calibrated from the pooled
+# distribution of causal peer-risk scores across both roles (see disclosed
+# limitation above: this is a fixed scale/threshold from the full dataset,
+# not an expanding one).
+_pooled_scores = np.concatenate([df["src_peer_risk_score"].to_numpy(), df["dst_peer_risk_score"].to_numpy()])
+tau = float(np.quantile(_pooled_scores, PEER_RISK_PERCENTILE))
+if not np.isfinite(tau):
+    tau = float(np.nanmax(_pooled_scores))
 
-print(f"Peer-risk threshold tau (P{int(PEER_RISK_PERCENTILE * 100)}): {tau:.4f}")
-print(f"High-risk peer accounts: {int(acct_stats['is_high_risk_peer'].sum())}")
-print_mem_hint(acct_stats, "account stats")
+df["src_is_high_risk_peer"] = (df["src_peer_risk_score"] >= tau).astype(np.int8)
+df["dst_is_high_risk_peer"] = (df["dst_peer_risk_score"] >= tau).astype(np.int8)
 
-# Attach peer-risk info to each transaction row
-print("Mapping peer-risk metadata onto transactions...")
-df["src_peer_risk_score"] = df[SRC_COL].astype(str).map(acct_stats["peer_risk_score"]).fillna(0).astype(np.float32)
-df["dst_peer_risk_score"] = df[DST_COL].astype(str).map(acct_stats["peer_risk_score"]).fillna(0).astype(np.float32)
-
-df["src_is_high_risk_peer"] = df[SRC_COL].astype(str).map(acct_stats["is_high_risk_peer"]).fillna(0).astype(np.int8)
-df["dst_is_high_risk_peer"] = df[DST_COL].astype(str).map(acct_stats["is_high_risk_peer"]).fillna(0).astype(np.int8)
+print(f"Peer-risk threshold tau (P{int(PEER_RISK_PERCENTILE * 100)}, causal/pooled): {tau:.4f}")
+print(f"High-risk peer (account, transaction) instances: "
+      f"src={int(df['src_is_high_risk_peer'].sum())}  dst={int(df['dst_is_high_risk_peer'].sum())}")
+print_mem_hint(df, "transactions after causal peer-risk computation")
 
 # ===================== SOURCE-SIDE DAILY EXPOSURE =====================
 

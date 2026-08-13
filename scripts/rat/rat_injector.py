@@ -180,6 +180,14 @@ df[LABEL_COL] = pd.to_numeric(df[LABEL_COL], errors="coerce", downcast="integer"
 df[SRC_COL] = df[SRC_COL].astype(str)
 df[DST_COL] = df[DST_COL].astype(str)
 
+# Sort chronologically BEFORE any feature engineering. Everything below this
+# point (degree, amount mean/std, burstiness, mutual-flow) is computed with
+# cumulative/expanding operations that only make sense -- and are only
+# causal -- if rows are in time order first. This also matches
+# motif_graph_builder_static.py's own sort, so the graph builder's re-sort
+# is idempotent on this output.
+df = df.sort_values(TS_COL, kind="mergesort").reset_index(drop=True)
+
 
 # ===================== LOAD ACCOUNTS =====================
 
@@ -200,21 +208,87 @@ if os.path.exists(PATTERNS_TXT_PATH):
                 pattern_accounts.add(acc)
 print(f"Pattern accounts loaded: {len(pattern_accounts)}")
 
-# ===================== PER-ACCOUNT STATS =====================
+# ===================== PER-ACCOUNT STATS (POINT-IN-TIME / CAUSAL) =====================
+# Everything in this section used to be computed with a plain groupby over the
+# WHOLE dataset (e.g. src_group[DST_COL].nunique()), which means a
+# transaction's "out-degree"/"average amount"/etc. feature reflected that
+# account's ENTIRE history -- including transactions that happen after it,
+# possibly in the val/test period. That is leakage: a real investigator
+# scoring a transaction at time t cannot see what the account does at t+1.
+#
+# Below, every one of these features is rebuilt to be strictly a function of
+# transactions STRICTLY BEFORE the current row (row order = chronological,
+# guaranteed by the sort right after loading). Two features -- first_seen and
+# the age derived from it -- were already causal even under the old global
+# groupby (an account's first-ever transaction time doesn't change depending
+# on what "future" data you can see), so they're left as-is.
+#
+# Known remaining, disclosed limitation: the *normalization scale* used below
+# (norm_by_quantile's global P95, and the boost target's global P95 further
+# down) is still computed from the full dataset. That is a much weaker form
+# of dependence than the raw feature values themselves (it's a fixed rescaling
+# constant, not a per-row leak of that account's own future activity), but it
+# is not fully point-in-time. A fully rigorous fix would use an expanding
+# quantile instead; not implemented here due to the added complexity/runtime
+# cost of a per-row expanding quantile over a multi-million-row file.
 
+is_new_pair = ~df.duplicated(subset=[SRC_COL, DST_COL], keep="first")
+_is_new_pair_int = is_new_pair.astype(np.int32)
+
+# Running (causal) out-degree / in-degree: count of DISTINCT counterparties
+# this account has transacted with STRICTLY BEFORE this row. A repeat
+# transaction with an already-seen counterparty does not increase degree.
+_src_new_cumsum = _is_new_pair_int.groupby(df[SRC_COL]).cumsum()
+_dst_new_cumsum = _is_new_pair_int.groupby(df[DST_COL]).cumsum()
+df["src_out_degree"] = (_src_new_cumsum - _is_new_pair_int).astype(np.int32)
+df["dst_in_degree"]  = (_dst_new_cumsum - _is_new_pair_int).astype(np.int32)
+
+# Running (causal) amount mean/std: computed from this account's PRIOR
+# transactions only (population formula via cumulative sum / sum-of-squares,
+# excluding the current row). First transaction for an account has no prior
+# history -> NaN mean/std -> z-score fillna(0) below (no baseline yet, so
+# "not anomalous" is the only defensible default).
+_amt_paid_sq = df[AMT_PAID].astype(np.float64) ** 2
+_amt_rec_sq  = df[AMT_REC].astype(np.float64) ** 2
+
+# NOTE: computed in float64 throughout (not the float32 AMT_PAID/AMT_REC
+# columns) -- the E[X^2] - E[X]^2 variance formula is numerically unstable
+# under catastrophic cancellation, and float32 precision was leaving a
+# spurious nonzero residual even in cases where the true variance is exactly
+# zero (e.g. an account's 2nd-ever transaction, with only 1 prior value).
+_amt_paid_f64 = df[AMT_PAID].astype(np.float64)
+_amt_rec_f64  = df[AMT_REC].astype(np.float64)
+
+_src_cumsum   = _amt_paid_f64.groupby(df[SRC_COL]).cumsum()
+_src_cumsumsq = _amt_paid_sq.groupby(df[SRC_COL]).cumsum()
+_src_cumcount = df.groupby(SRC_COL).cumcount()  # # of PRIOR rows in group (excludes current)
+
+_dst_cumsum   = _amt_rec_f64.groupby(df[DST_COL]).cumsum()
+_dst_cumsumsq = _amt_rec_sq.groupby(df[DST_COL]).cumsum()
+_dst_cumcount = df.groupby(DST_COL).cumcount()
+
+_src_prior_sum   = _src_cumsum - _amt_paid_f64
+_src_prior_sumsq = _src_cumsumsq - _amt_paid_sq
+_src_prior_n     = _src_cumcount.replace(0, np.nan)
+
+_dst_prior_sum   = _dst_cumsum - _amt_rec_f64
+_dst_prior_sumsq = _dst_cumsumsq - _amt_rec_sq
+_dst_prior_n     = _dst_cumcount.replace(0, np.nan)
+
+df["src_amt_mean"] = _src_prior_sum / _src_prior_n
+_src_amt_var = (_src_prior_sumsq / _src_prior_n) - df["src_amt_mean"] ** 2
+df["src_amt_std"] = np.sqrt(_src_amt_var.clip(lower=0))
+
+df["dst_amt_mean"] = _dst_prior_sum / _dst_prior_n
+_dst_amt_var = (_dst_prior_sumsq / _dst_prior_n) - df["dst_amt_mean"] ** 2
+df["dst_amt_std"] = np.sqrt(_dst_amt_var.clip(lower=0))
+
+# first_seen / age_days: already causal (an account's first-ever transaction
+# time is the same value whether or not you can see the future), no change.
 src_group = df.groupby(SRC_COL)
 dst_group = df.groupby(DST_COL)
-
-df["src_out_degree"] = src_group[DST_COL].nunique().reindex(df[SRC_COL]).values
-df["dst_in_degree"]  = dst_group[SRC_COL].nunique().reindex(df[DST_COL]).values
-
-df["src_amt_mean"] = src_group[AMT_PAID].mean().reindex(df[SRC_COL]).values
-df["src_amt_std"]  = src_group[AMT_PAID].std().reindex(df[SRC_COL]).values
-df["dst_amt_mean"] = dst_group[AMT_REC].mean().reindex(df[DST_COL]).values
-df["dst_amt_std"]  = dst_group[AMT_REC].std().reindex(df[DST_COL]).values
-
-df["src_first_seen"] = src_group[TS_COL].min().reindex(df[SRC_COL]).values
-df["dst_first_seen"] = dst_group[TS_COL].min().reindex(df[DST_COL]).values
+df["src_first_seen"] = src_group[TS_COL].transform("min")
+df["dst_first_seen"] = dst_group[TS_COL].transform("min")
 
 df["src_age_days"] = (df[TS_COL] - df["src_first_seen"]).dt.total_seconds() / (3600*24)
 df["dst_age_days"] = (df[TS_COL] - df["dst_first_seen"]).dt.total_seconds() / (3600*24)
@@ -222,11 +296,15 @@ df["dst_age_days"] = (df[TS_COL] - df["dst_first_seen"]).dt.total_seconds() / (3
 df["src_age_days"] = df["src_age_days"].fillna(0)
 df["dst_age_days"] = df["dst_age_days"].fillna(0)
 
-# ===================== BURSTINESS =====================
+# ===================== BURSTINESS (POINT-IN-TIME / CAUSAL) =====================
+# "How many transactions has this account made TODAY, up to and including
+# this one" -- a running same-day count instead of the old
+# groupby(...).transform("count"), which counted the WHOLE day's activity
+# (including transactions that happen later that same day).
 
 df["date_only"] = df[TS_COL].dt.date
-df["src_day_tx_count"] = df.groupby([SRC_COL,"date_only"])[AMT_PAID].transform("count")
-df["dst_day_tx_count"] = df.groupby([DST_COL,"date_only"])[AMT_REC].transform("count")
+df["src_day_tx_count"] = (df.groupby([SRC_COL, "date_only"]).cumcount() + 1).astype(np.int32)
+df["dst_day_tx_count"] = (df.groupby([DST_COL, "date_only"]).cumcount() + 1).astype(np.int32)
 
 # ===================== TIME CONTEXT =====================
 
@@ -239,10 +317,11 @@ df["RAT_is_cross_bank"] = (df[FROM_BANK] != df[TO_BANK]).astype(int)
 
 # ===================== AMOUNT Z-SCORES =====================
 
-df["RAT_src_amount_z_pos"] = clip_positive(safe_zscore(df[AMT_PAID], df["src_amt_mean"], df["src_amt_std"]))
-df["RAT_dst_amount_z_pos"] = clip_positive(safe_zscore(df[AMT_REC],  df["dst_amt_mean"], df["dst_amt_std"]))
+df["RAT_src_amount_z_pos"] = clip_positive(safe_zscore(df[AMT_PAID], df["src_amt_mean"], df["src_amt_std"])).fillna(0)
+df["RAT_dst_amount_z_pos"] = clip_positive(safe_zscore(df[AMT_REC],  df["dst_amt_mean"], df["dst_amt_std"])).fillna(0)
 
 # ===================== NORMALIZE STRUCTURAL =====================
+# (see the disclosed-limitation note above: the P95 scale itself is global)
 
 df["RAT_src_out_deg_norm"] = norm_by_quantile(df["src_out_degree"].fillna(0))
 df["RAT_dst_in_deg_norm"]  = norm_by_quantile(df["dst_in_degree"].fillna(0))
@@ -278,26 +357,62 @@ df["RAT_dst_entity_acct_norm"] = norm_by_quantile(df["RAT_dst_entity_accounts"])
 # see review feedback Aug 4 2026, sec 3.1. `pattern_accounts` is still
 # loaded above but is no longer used to construct any feature.
 
-# ===================== MUTUAL FLOW =====================
+# ===================== MUTUAL FLOW (POINT-IN-TIME / CAUSAL) =====================
+# Old version: flag (src,dst) if the REVERSE (dst,src) pair occurs ANYWHERE
+# in the dataset -- including after this transaction. That lets a
+# transaction's feature depend on a reversal that hasn't happened yet at
+# prediction time. Causal version: flag only if dst had ALREADY sent to src
+# at some point STRICTLY BEFORE this transaction's timestamp. This requires
+# a genuinely sequential scan (an "as of this instant, have I seen the
+# reverse edge yet" query), so it's an explicit single pass rather than a
+# vectorized groupby -- same pattern already used for log_time_since_src/dst
+# in motif_graph_builder_static.py at this dataset's scale.
+_seen_pairs = set()
+_mutual_flag = np.zeros(len(df), dtype=np.int8)
+_src_vals = df[SRC_COL].to_numpy()
+_dst_vals = df[DST_COL].to_numpy()
+for _i in range(len(df)):
+    _s, _d = _src_vals[_i], _dst_vals[_i]
+    if (_d, _s) in _seen_pairs:
+        _mutual_flag[_i] = 1
+    _seen_pairs.add((_s, _d))
+df["RAT_mutual_flag"] = _mutual_flag
+del _seen_pairs
 
-edge_counts = df.groupby([SRC_COL, DST_COL]).size().reset_index(name="count")
-rev = edge_counts.rename(columns={SRC_COL:"DST_tmp", DST_COL:"SRC_tmp"})
-
-mutual = edge_counts.merge(
-    rev,
-    left_on=[SRC_COL, DST_COL],
-    right_on=["DST_tmp", "SRC_tmp"],
-    how="inner"
-)[[SRC_COL, DST_COL]].drop_duplicates()
-
-mutual["RAT_mutual_flag"] = 1
-df = df.merge(mutual, on=[SRC_COL, DST_COL], how="left")
-df["RAT_mutual_flag"] = df["RAT_mutual_flag"].fillna(0)
-
-# ===================== MOTIF FEATURES =====================
-
-src_outdeg_by_acct = df.groupby(SRC_COL)[DST_COL].nunique()
-df["dst_out_degree"] = df[DST_COL].map(src_outdeg_by_acct)
+# ===================== MOTIF FEATURES (POINT-IN-TIME / CAUSAL) =====================
+# dst_out_degree = "as if the DST account were a source, how many distinct
+# counterparties has IT sent money to, as of just before this transaction."
+# That history lives on OTHER rows (the ones where this account appears as
+# SRC_COL), so a simple positional cumsum doesn't reach it -- use merge_asof
+# to look up, for each row's dst account, the most recent (strictly prior)
+# causal out-degree value computed for that account back when it acted as a
+# source.
+#
+# Match on row POSITION (_seq), not the raw Timestamp value: every other
+# causal feature above (src_out_degree, dst_in_degree, day counts,
+# mutual_flag) treats "before" as "earlier row position", using row order as
+# a deterministic tiebreak when timestamps are equal (this dataset has many
+# exact-timestamp ties). merge_asof on the raw Timestamp instead would treat
+# tied rows as simultaneous and exclude them from matching -- a different,
+# inconsistent definition of "before" from the rest of this file. Row
+# position has no ties by construction, so this keeps the convention uniform.
+_seq = np.arange(len(df))
+_src_role_lookup = pd.DataFrame({
+    "acct": df[SRC_COL].to_numpy(),
+    "_seq": _seq,
+    "out_degree_after": _src_new_cumsum.to_numpy(),  # includes this row's own new-pair contribution
+})
+_dst_lookup_keys = pd.DataFrame({
+    "acct": df[DST_COL].to_numpy(),
+    "_seq": _seq,
+})
+_dst_asof = pd.merge_asof(
+    _dst_lookup_keys, _src_role_lookup,
+    on="_seq", by="acct",
+    direction="backward", allow_exact_matches=False,  # strictly earlier row position
+)
+df["dst_out_degree"] = _dst_asof["out_degree_after"].fillna(0).to_numpy().astype(np.int32)
+del _src_role_lookup, _dst_lookup_keys, _dst_asof, _seq
 
 df["dst_out_deg_norm"]  = norm_by_quantile(df["dst_out_degree"].fillna(0))
 

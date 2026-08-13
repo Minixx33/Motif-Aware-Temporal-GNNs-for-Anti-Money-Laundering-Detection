@@ -131,9 +131,19 @@ class GraphSAGE_T(nn.Module):
 
 def run_epoch_minibatch(
     model, optimizer, loss_fn,
-    x, edge_index, feat, y, train_idx,
+    x, edge_index, train_edge_index, feat, y, train_idx,
     batch_size, device
 ):
+    # NOTE: `edge_index` (full graph, all splits) is used ONLY to index which
+    # (src,dst) pair each batch edge connects -- that's classification-time
+    # metadata, not message passing. `train_edge_index` (train-split edges
+    # only) is what the encoder actually message-passes over, both here and
+    # in evaluate_minibatch below. This is what closes the transductive
+    # leakage channel: GraphSAGE otherwise message-passes through every edge
+    # in the graph regardless of split, so a val/test edge's mere existence
+    # (not its features or label -- just whether it exists) would otherwise
+    # shape the embeddings used to score OTHER edges during training. See
+    # review feedback Aug 4 2026 / response doc for the full writeup.
     model.train()
     total_loss = 0.0
     steps = 0
@@ -146,7 +156,7 @@ def run_epoch_minibatch(
         batch_edges = idx[start:end]
 
         optimizer.zero_grad(set_to_none=True)
-        h = model.encode(x, edge_index)
+        h = model.encode(x, train_edge_index)
 
         eidx = edge_index[:, batch_edges]
         fb = feat[batch_edges]
@@ -168,9 +178,13 @@ def run_epoch_minibatch(
 @torch.no_grad()
 def evaluate_minibatch(
     model, loss_fn,
-    x, edge_index, feat, y, split_idx,
+    x, edge_index, train_edge_index, feat, y, split_idx,
     batch_size, device, eval_cfg
 ):
+    # Same train_edge_index restriction as training (see note above) -- val
+    # and test edges are scored using embeddings built ONLY from train-split
+    # structure, so evaluating on them never required their own (or each
+    # other's) existence to have influenced the encoder.
     model.eval()
     total_loss = 0.0
     steps = 0
@@ -180,7 +194,7 @@ def evaluate_minibatch(
         end = min(start + batch_size, split_idx.size(0))
         idx = split_idx[start:end]
 
-        h = model.encode(x, edge_index)
+        h = model.encode(x, train_edge_index)
         logits = model.classify(h, edge_index[:, idx], feat[idx])
         probs = torch.sigmoid(logits)
         labels = y[idx].float()
@@ -272,6 +286,19 @@ def main():
     val_idx = torch.load(f"{split_folder}/val_edge_idx.pt").to(device)
     test_idx = torch.load(f"{split_folder}/test_edge_idx.pt").to(device)
 
+    # Point-in-time message-passing graph: train-split edges only. Used for
+    # every model.encode() call (training AND val/test evaluation) so a
+    # val/test edge's existence in the full graph never influences the
+    # embeddings used to score anything -- closes the transductive leakage
+    # channel described in the review feedback response doc. `edge_index`
+    # (full graph) is still used elsewhere purely to index which (src,dst)
+    # node pair a given edge id connects to, which is metadata, not
+    # something the encoder should be allowed to message-pass through.
+    train_edge_index = edge_index[:, train_idx]
+    print(f"Message-passing graph: {train_edge_index.size(1):,} train edges "
+          f"(of {edge_index.size(1):,} total) -- val/test edges never seen "
+          f"by the encoder.")
+
     # Model
     model = GraphSAGE_T(
         node_dim=x.size(1),
@@ -331,13 +358,13 @@ def main():
 
         train_loss = run_epoch_minibatch(
             model, optimizer, loss_fn,
-            x, edge_index, feat, y_edge,
+            x, edge_index, train_edge_index, feat, y_edge,
             train_idx, batch_size, device
         )
 
         val_metrics, _, val_loss = evaluate_minibatch(
             model, loss_fn,
-            x, edge_index, feat, y_edge,
+            x, edge_index, train_edge_index, feat, y_edge,
             val_idx, eval_batch_size, device, eval_cfg
         )
 
@@ -404,15 +431,15 @@ def main():
     print("Evaluating final model...")
 
     train_m, train_p, _ = evaluate_minibatch(
-        model, loss_fn, x, edge_index, feat, y_edge,
+        model, loss_fn, x, edge_index, train_edge_index, feat, y_edge,
         train_idx, eval_batch_size, device, eval_cfg
     )
     val_m, val_p, _ = evaluate_minibatch(
-        model, loss_fn, x, edge_index, feat, y_edge,
+        model, loss_fn, x, edge_index, train_edge_index, feat, y_edge,
         val_idx, eval_batch_size, device, eval_cfg
     )
     test_m, test_p, _ = evaluate_minibatch(
-        model, loss_fn, x, edge_index, feat, y_edge,
+        model, loss_fn, x, edge_index, train_edge_index, feat, y_edge,
         test_idx, eval_batch_size, device, eval_cfg
     )
 

@@ -144,6 +144,7 @@ def run_epoch_minibatch(
     loss_fn,
     x,
     edge_index,
+    train_edge_index,
     edge_attr,
     y_edge,
     train_idx,
@@ -155,10 +156,18 @@ def run_epoch_minibatch(
     Train with edge mini-batches.
     Both encoder and classifier learn end-to-end.
     For each batch:
-      - Recompute node embeddings h = encode_nodes(x, edge_index)
+      - Recompute node embeddings h = encode_nodes(x, train_edge_index)
       - Classify only batch edges
       - Backprop and step
     This is heavier but much more robust.
+
+    `edge_index` (full graph, every split) is used ONLY to look up which
+    (src,dst) node pair a batch edge id connects to -- indexing metadata,
+    not message passing. `train_edge_index` (train-split edges only) is
+    what the encoder actually aggregates over, here and in
+    evaluate_split_minibatch below, so a val/test edge's mere existence
+    never shapes the embeddings used to score anything (transductive
+    leakage fix, review feedback Aug 4 2026 / response doc).
     """
     model.train()
     total_loss = 0.0
@@ -174,8 +183,8 @@ def run_epoch_minibatch(
 
         optimizer.zero_grad(set_to_none=True)
 
-        # 1) Encode ALL nodes for current model params
-        h = model.encode_nodes(x, edge_index)
+        # 1) Encode nodes from the train-only subgraph for current model params
+        h = model.encode_nodes(x, train_edge_index)
 
         # 2) Pick batch edges
         edge_index_batch = edge_index[:, batch_idx]
@@ -214,6 +223,7 @@ def evaluate_split_minibatch(
     model,
     x,
     edge_index,
+    train_edge_index,
     edge_attr,
     y_edge,
     split_idx,
@@ -223,12 +233,14 @@ def evaluate_split_minibatch(
 ):
     """
     Evaluate edge classifier on a given split using edge mini-batches.
-    Encoder is run once in inference mode.
+    Encoder is run once in inference mode, on the train-only subgraph (see
+    run_epoch_minibatch's docstring) so val/test evaluation never depends on
+    val/test edges having been visible to the encoder.
     """
     model.eval()
 
-    # Encode nodes once (no grad)
-    h = model.encode_nodes(x, edge_index)
+    # Encode nodes once (no grad), from the train-only subgraph
+    h = model.encode_nodes(x, train_edge_index)
 
     all_probs = []
     num_edges = len(split_idx)
@@ -339,6 +351,14 @@ def main():
 
     print(f"Train: {len(train_idx):,}, Val: {len(val_idx):,}, Test: {len(test_idx):,}")
 
+    # Point-in-time message-passing graph: train-split edges only. See
+    # run_epoch_minibatch's docstring -- val/test edges are never seen by
+    # the encoder, closing the transductive leakage channel.
+    train_edge_index = edge_index[:, train_idx]
+    print(f"Message-passing graph: {train_edge_index.size(1):,} train edges "
+          f"(of {edge_index.size(1):,} total) -- val/test edges never seen "
+          f"by the encoder.")
+
     # Model
     model = GraphSAGE_EdgeModel(
         in_dim_node=x.size(1),
@@ -410,6 +430,7 @@ def main():
             loss_fn,
             x,
             edge_index,
+            train_edge_index,
             edge_attr,
             y_edge,
             train_idx,
@@ -422,6 +443,7 @@ def main():
             model,
             x,
             edge_index,
+            train_edge_index,
             edge_attr,
             y_edge,
             val_idx,
@@ -485,6 +507,7 @@ def main():
         model,
         x,
         edge_index,
+        train_edge_index,
         edge_attr,
         y_edge,
         train_idx,
@@ -496,6 +519,7 @@ def main():
         model,
         x,
         edge_index,
+        train_edge_index,
         edge_attr,
         y_edge,
         val_idx,
@@ -507,6 +531,7 @@ def main():
         model,
         x,
         edge_index,
+        train_edge_index,
         edge_attr,
         y_edge,
         test_idx,

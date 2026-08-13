@@ -94,11 +94,15 @@ DATASETS=(
     # Primary natural-features experiment (review feedback Aug 4 2026):
     # base (baseline, above) vs. base+structural vs. base+RAT-natural vs.
     # base+SLT-natural, all built from pristine (never-boosted) features so
-    # there is no injection/leakage question for these at all. Static graphs
-    # only (GraphSAGE/GraphSAGE-T) -- no DyRep event-graph equivalent has been
-    # built for these, so run with MODELS_ONLY="graphsage graphsage_t" e.g.:
-    #   DATASETS_ONLY="structural_only rat_natural slt_natural" \
-    #   MODELS_ONLY="graphsage graphsage_t" bash scripts/bash/run_all.sh
+    # there is no injection/leakage question for these at all. Now has a
+    # DyRep-Lite equivalent too (review feedback directive #4): build
+    # graphs_dyrep/{HI-Small_Trans, HI-Small_Trans_RAT_pristine,
+    # HI-Small_Trans_SLT_pristine, HI-Small_Trans_RAT_pristine_structural_only}
+    # + matching splits_dyrep/ entries (via motif_dyrep_graph_builder.py,
+    # build_structural_only_graph_dyrep.py, and create_splits.py) before
+    # including "dyrep" below, e.g.:
+    #   DATASETS_ONLY="baseline structural_only rat_natural slt_natural" \
+    #   MODELS_ONLY="graphsage graphsage_t dyrep" bash scripts/bash/run_all.sh
     "structural_only|configs/datasets/structural_only.yaml|"
     "rat_natural|configs/datasets/rat_natural.yaml|"
     "slt_natural|configs/datasets/slt_natural.yaml|"
