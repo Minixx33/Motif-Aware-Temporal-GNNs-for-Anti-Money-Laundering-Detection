@@ -175,8 +175,19 @@ def build_parquet_from_csv_cengine(csv_path: str, pq_path: str):
         memory_map=True,
         chunksize=500_000,
     )):
-        # keep your exact timestamp logic
-        chunk[TS_COL] = pd.to_datetime(chunk[TS_COL], errors="raise")
+        # format="mixed": pandas' to_csv writes a datetime64 column as
+        # date-only text ("YYYY-MM-DD") if that whole column happens to be
+        # all-midnight, full "YYYY-MM-DD HH:MM:SS" otherwise -- a
+        # column-wide, data-dependent decision made by whatever script last
+        # wrote this CSV (e.g. rat_injector.py/slt_injector.py's pristine
+        # dump). Per-chunk format auto-detection here can pick a format
+        # from one chunk's sampled values that doesn't hold for the whole
+        # file, raising "unconverted data remains" on a mismatched row.
+        # format="mixed" makes pandas infer the format per-element instead
+        # of caching one guess for the whole chunk -- slower, but immune to
+        # this class of failure regardless of which format the source file
+        # is actually in.
+        chunk[TS_COL] = pd.to_datetime(chunk[TS_COL], format="mixed", errors="raise")
 
         # write parquet incrementally (no big RAM spike)
         table = pa.Table.from_pandas(chunk, preserve_index=False)

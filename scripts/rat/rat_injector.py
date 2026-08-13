@@ -553,7 +553,16 @@ if _args.dump_pristine:
     out_base = os.path.splitext(os.path.basename(_args.trans_file))[0]
     pristine_path = os.path.join(OUTPUT_DIR, f"{out_base}_RAT_pristine{_suffix}.csv")
     print(f"Saving pristine (un-boosted) snapshot: {pristine_path}")
-    df.to_csv(pristine_path, index=False)
+    # Explicit date_format: pandas' to_csv formats a whole datetime64 column
+    # as date-only ("YYYY-MM-DD", no time) if EVERY value in it happens to
+    # land exactly at midnight, and with full "YYYY-MM-DD HH:MM:SS" otherwise
+    # -- a column-wide decision, not per-row. Forcing the format here
+    # guarantees this CSV's Timestamp column is unambiguous and always
+    # includes the time component, so downstream readers (graph builders)
+    # that call pd.to_datetime() without an explicit format can't hit a
+    # format-inference mismatch depending on what this run's data happened
+    # to look like.
+    df.to_csv(pristine_path, index=False, date_format="%Y-%m-%d %H:%M:%S")
     print(f"Saved {pristine_path} [0 injected rows by construction]")
 
 for name, frac in INTENSITIES.items():
@@ -626,7 +635,7 @@ for name, frac in INTENSITIES.items():
 
     out_base = os.path.splitext(os.path.basename(_args.trans_file))[0]
     out_path = os.path.join(OUTPUT_DIR, f"{out_base}_RAT_{name}{_suffix}.csv")
-    df.to_csv(out_path, index=False)
+    df.to_csv(out_path, index=False, date_format="%Y-%m-%d %H:%M:%S")  # see pristine dump's comment above
     print(f"Saved {out_path} [{int(df['RAT_injected'].sum())} injected rows]")
 
 

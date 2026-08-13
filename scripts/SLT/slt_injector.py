@@ -927,7 +927,14 @@ if _args.dump_pristine:
         if VARIANT == "current" else \
         os.path.join(OUTPUT_DIR, f"HI-Small_Trans_SLT_{VARIANT}_pristine{_suffix}.csv")
     print(f"Saving pristine (un-boosted) snapshot: {pristine_path}")
-    df.to_csv(pristine_path, index=False)
+    # Explicit date_format: pandas' to_csv formats a whole datetime64 column
+    # as date-only ("YYYY-MM-DD", no time) if EVERY value in it happens to
+    # land exactly at midnight, and with full "YYYY-MM-DD HH:MM:SS"
+    # otherwise -- a column-wide decision, not per-row. Forcing the format
+    # here guarantees this CSV's Timestamp column is unambiguous, so
+    # downstream readers (graph builders) that call pd.to_datetime()
+    # without an explicit format can't hit a format-inference mismatch.
+    df.to_csv(pristine_path, index=False, date_format="%Y-%m-%d %H:%M:%S")
     print(f"Saved {pristine_path} [0 injected rows by construction]")
 
 for name, frac in INTENSITIES.items():
@@ -996,7 +1003,7 @@ for name, frac in INTENSITIES.items():
     else:
         out_path = os.path.join(OUTPUT_DIR, f"HI-Small_Trans_SLT_{VARIANT}_{name}{_suffix}.csv")
     print(f"Saving: {out_path}")
-    df.to_csv(out_path, index=False)
+    df.to_csv(out_path, index=False, date_format="%Y-%m-%d %H:%M:%S")  # see pristine dump's comment above
     print(f"Saved {out_path} [{int(df['SLT_injected'].sum())} injected rows]")
 
     # restore pristine values so boosts never accumulate across intensities

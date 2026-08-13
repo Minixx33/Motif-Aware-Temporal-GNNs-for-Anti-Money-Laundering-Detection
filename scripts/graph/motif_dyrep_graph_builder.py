@@ -102,7 +102,12 @@ print(f"Loading: {INPUT_PATH}")
 df = pd.read_csv(INPUT_PATH, low_memory=False)
 print(f"Loaded {len(df):,} rows")
 
-df[TS_COL] = pd.to_datetime(df[TS_COL], errors="raise")
+# format="mixed": defends against the same format-inference mismatch fixed
+# in motif_graph_builder_static.py's build_parquet_from_csv_cengine (see
+# comment there) -- this file can also be pointed at an injector-produced
+# CSV (RAT/SLT pristine or boosted variants), and per-value format
+# inference is immune to whatever format decision that CSV's writer made.
+df[TS_COL] = pd.to_datetime(df[TS_COL], format="mixed", errors="raise")
 df = df.sort_values(TS_COL).reset_index(drop=True)
 
 df[SRC_COL] = df[SRC_COL].astype(str)

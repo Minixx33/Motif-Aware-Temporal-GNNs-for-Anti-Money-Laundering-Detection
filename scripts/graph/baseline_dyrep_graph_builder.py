@@ -96,7 +96,10 @@ print(f"Loading accounts: {INPUT_ACCT}")
 df_acct = pd.read_csv(INPUT_ACCT, low_memory=False)
 print(f"  Loaded {len(df_acct):,} accounts")
 
-df[TS_COL] = pd.to_datetime(df[TS_COL], errors="raise")
+# format="mixed": defends against a format-inference mismatch if the raw
+# CSV's timestamp strings aren't perfectly uniform (see the identical fix in
+# motif_graph_builder_static.py's build_parquet_from_csv_cengine).
+df[TS_COL] = pd.to_datetime(df[TS_COL], format="mixed", errors="raise")
 df = df.sort_values(TS_COL).reset_index(drop=True)
 
 df[SRC_COL] = df[SRC_COL].astype(str)
