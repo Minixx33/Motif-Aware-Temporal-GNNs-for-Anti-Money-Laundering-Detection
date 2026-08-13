@@ -317,6 +317,24 @@ print_mem_hint(df, "cleaned transactions")
 print("Cleaning accounts table...")
 
 df_acct[ACCT_ID_COL] = df_acct[ACCT_ID_COL].astype(str)
+
+# The real accounts file can have duplicate ACCT_ID_COL values (this ID
+# isn't necessarily globally unique across banks in this dataset). The
+# entity merge further below (df.merge(src_acct_meta, on="src_account_key",
+# how="left")) silently expands df's row count if the right side has
+# duplicate keys -- every step before that merge assumes len(df) is fixed
+# at the transaction count (the causal per-account arrays computed earlier
+# are indexed 0..len(df)-1), so a row-count change there would corrupt
+# everything and desync the pristine CSV from the intensity-boosted CSVs'
+# row order. Deduplicate up front so the merge can only ever be
+# many-to-one, never many-to-many.
+_n_acct_before = len(df_acct)
+df_acct = df_acct.drop_duplicates(subset=[ACCT_ID_COL], keep="first")
+if len(df_acct) < _n_acct_before:
+    print(f"[accounts] Dropped {_n_acct_before - len(df_acct)} duplicate "
+          f"'{ACCT_ID_COL}' rows (keeping first) so the entity merge below "
+          f"can't change the transaction row count.")
+
 df_acct = df_acct.set_index(ACCT_ID_COL)
 
 # Keep account metadata lightweight

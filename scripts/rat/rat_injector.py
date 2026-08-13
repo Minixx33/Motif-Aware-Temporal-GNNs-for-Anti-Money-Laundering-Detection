@@ -205,6 +205,23 @@ df_acct = pd.read_csv(ACCOUNTS_CSV_PATH, low_memory=False)
 
 # Make join key consistent BEFORE setting index
 df_acct[ACCT_ID_COL] = df_acct[ACCT_ID_COL].astype(str)
+
+# The real accounts file can have duplicate ACCT_ID_COL values (this ID
+# isn't necessarily globally unique across banks in this dataset). If
+# df_acct's index has duplicates, the entity join further below
+# (df.join(df_acct..., on=SRC_COL)) silently expands df's row count --
+# every later step assumes len(df) is fixed at the transaction count (the
+# causal per-account arrays computed above are indexed 0..len(df)-1), so
+# that row-count change corrupts everything downstream and eventually
+# blows up with a length-mismatch error. Deduplicate up front so the join
+# can only ever be many-to-one, never one-to-many.
+_n_acct_before = len(df_acct)
+df_acct = df_acct.drop_duplicates(subset=[ACCT_ID_COL], keep="first")
+if len(df_acct) < _n_acct_before:
+    print(f"[accounts] Dropped {_n_acct_before - len(df_acct)} duplicate "
+          f"'{ACCT_ID_COL}' rows (keeping first) so the entity join below "
+          f"can't change the transaction row count.")
+
 df_acct = df_acct.set_index(ACCT_ID_COL)
 
 # Optional pattern accounts
