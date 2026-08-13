@@ -154,11 +154,20 @@ EPS = 1e-8
 def safe_zscore(x, mean, std):
     return (x - mean) / (std.replace(0, np.nan) + EPS)
 
-def norm_by_quantile(series, q=0.95):
+def norm_by_quantile(series, q=0.95, fit_n=None):
+    """Rescale by a P95-ish upper quantile. If fit_n is given, the quantile
+    (the scale CONSTANT) is fit using only the first fit_n rows of `series`
+    -- the caller is responsible for making sure `series` is already in
+    chronological order, which every caller in this file is (df is sorted
+    chronologically right after loading). This keeps the rescaling constant
+    itself point-in-time: it never depends on rows that occur later than the
+    train-period cutoff, even though the transform is then applied to every
+    row. See NORM_TRAIN_FRAC below for how fit_n is chosen."""
     s = series.astype(float)
-    qv = s.quantile(q)
+    fit_s = s.iloc[:fit_n] if fit_n is not None else s
+    qv = fit_s.quantile(q)
     if not np.isfinite(qv) or qv <= 0:
-        qv = s.max()
+        qv = fit_s.max()
     if not np.isfinite(qv) or qv <= 0:
         return pd.Series(0.0, index=series.index)
     out = (s / qv).replace([np.inf, -np.inf], np.nan).fillna(0)
@@ -223,14 +232,26 @@ print(f"Pattern accounts loaded: {len(pattern_accounts)}")
 # groupby (an account's first-ever transaction time doesn't change depending
 # on what "future" data you can see), so they're left as-is.
 #
-# Known remaining, disclosed limitation: the *normalization scale* used below
-# (norm_by_quantile's global P95, and the boost target's global P95 further
-# down) is still computed from the full dataset. That is a much weaker form
-# of dependence than the raw feature values themselves (it's a fixed rescaling
-# constant, not a per-row leak of that account's own future activity), but it
-# is not fully point-in-time. A fully rigorous fix would use an expanding
-# quantile instead; not implemented here due to the added complexity/runtime
-# cost of a per-row expanding quantile over a multi-million-row file.
+# The *normalization scale* used below (norm_by_quantile's P95) is a single
+# constant per column, not a per-row value, so a full per-row expanding
+# quantile is overkill -- but fitting that constant on the FULL dataset
+# (including val/test-period rows) still means the scale itself reflects
+# distributional information that would not have been available yet at
+# train time. Fixed by fitting the quantile on only the first NORM_TRAIN_FRAC
+# (chronological) fraction of rows and applying that fixed constant to every
+# row -- see norm_by_quantile's fit_n param and _NORM_FIT_N below. This is
+# independent of how splits are eventually assigned (stratified-random vs.
+# chronological): it's a conservative point-in-time cutoff, not a claim about
+# the real train/val/test boundary.
+#
+# (The boost target's global P95 further down, `_q95`, is a different thing:
+# it's part of the label-conditioned intensity-boosting mechanism used to
+# build the synthetic rat_low/medium/high variants, not the natural features
+# used in the primary comparison, and that mechanism already has its own
+# leakage handling via the train-corrected splicing fix / pristine_test_eval.py.)
+
+NORM_TRAIN_FRAC = 0.60  # matches create_splits.py's default train_ratio
+_NORM_FIT_N = int(len(df) * NORM_TRAIN_FRAC)
 
 is_new_pair = ~df.duplicated(subset=[SRC_COL, DST_COL], keep="first")
 _is_new_pair_int = is_new_pair.astype(np.int32)
@@ -323,14 +344,13 @@ df["RAT_dst_amount_z_pos"] = clip_positive(safe_zscore(df[AMT_REC],  df["dst_amt
 # ===================== NORMALIZE STRUCTURAL =====================
 # (see the disclosed-limitation note above: the P95 scale itself is global)
 
-df["RAT_src_out_deg_norm"] = norm_by_quantile(df["src_out_degree"].fillna(0))
-df["RAT_dst_in_deg_norm"]  = norm_by_quantile(df["dst_in_degree"].fillna(0))
-df["RAT_src_burst_norm"]   = norm_by_quantile(df["src_day_tx_count"].fillna(0))
-df["RAT_dst_burst_norm"]   = norm_by_quantile(df["dst_day_tx_count"].fillna(0))
+df["RAT_src_out_deg_norm"] = norm_by_quantile(df["src_out_degree"].fillna(0), fit_n=_NORM_FIT_N)
+df["RAT_dst_in_deg_norm"]  = norm_by_quantile(df["dst_in_degree"].fillna(0), fit_n=_NORM_FIT_N)
+df["RAT_src_burst_norm"]   = norm_by_quantile(df["src_day_tx_count"].fillna(0), fit_n=_NORM_FIT_N)
+df["RAT_dst_burst_norm"]   = norm_by_quantile(df["dst_day_tx_count"].fillna(0), fit_n=_NORM_FIT_N)
 df["RAT_combined_burst"]   = norm_by_quantile(df["src_day_tx_count"].fillna(0) +
-                                              df["dst_day_tx_count"].fillna(0)
-
-)
+                                              df["dst_day_tx_count"].fillna(0),
+                                              fit_n=_NORM_FIT_N)
 
 # ===================== MERGE ENTITY INFO =====================
 
@@ -346,8 +366,8 @@ entity_acct_count = df_acct.reset_index().groupby(ACCT_ENTITY_ID)[ACCT_ID_COL].n
 df["RAT_src_entity_accounts"] = df["src_entity_id"].map(entity_acct_count).fillna(1)
 df["RAT_dst_entity_accounts"] = df["dst_entity_id"].map(entity_acct_count).fillna(1)
 
-df["RAT_src_entity_acct_norm"] = norm_by_quantile(df["RAT_src_entity_accounts"])
-df["RAT_dst_entity_acct_norm"] = norm_by_quantile(df["RAT_dst_entity_accounts"])
+df["RAT_src_entity_acct_norm"] = norm_by_quantile(df["RAT_src_entity_accounts"], fit_n=_NORM_FIT_N)
+df["RAT_dst_entity_acct_norm"] = norm_by_quantile(df["RAT_dst_entity_accounts"], fit_n=_NORM_FIT_N)
 
 # ===================== PATTERN FLAGS (REMOVED) =====================
 # RAT_src_pattern_flag / RAT_dst_pattern_flag used to be derived here from
@@ -414,7 +434,7 @@ _dst_asof = pd.merge_asof(
 df["dst_out_degree"] = _dst_asof["out_degree_after"].fillna(0).to_numpy().astype(np.int32)
 del _src_role_lookup, _dst_lookup_keys, _dst_asof, _seq
 
-df["dst_out_deg_norm"]  = norm_by_quantile(df["dst_out_degree"].fillna(0))
+df["dst_out_deg_norm"]  = norm_by_quantile(df["dst_out_degree"].fillna(0), fit_n=_NORM_FIT_N)
 
 df["motif_fanin"]   = df["RAT_dst_in_deg_norm"]
 df["motif_fanout"]  = df["RAT_src_out_deg_norm"]
@@ -439,7 +459,7 @@ df["RAT_offender_score"] = (
 df["RAT_target_score"] = (
     W_TAR_AMT*df["RAT_dst_amount_z_pos"] +
     W_TAR_INDEG*df["RAT_dst_in_deg_norm"] +
-    W_TAR_AGE*(1 - norm_by_quantile(df["dst_age_days"].fillna(0))) +
+    W_TAR_AGE*(1 - norm_by_quantile(df["dst_age_days"].fillna(0), fit_n=_NORM_FIT_N)) +
     W_TAR_ENTITY*df["RAT_dst_entity_acct_norm"]
 )
 
@@ -506,7 +526,7 @@ SCORE_COLS = ["RAT_offender_score", "RAT_target_score",
 # pristine copies so boosts never accumulate across intensity iterations
 _originals = {c: df[c].copy() for c in BOOST_COLS + SCORE_COLS}
 _q95 = {c: float(np.nanquantile(df[c].values.astype(float), 0.95)) for c in BOOST_COLS}
-_dst_age_norm = norm_by_quantile(df["dst_age_days"].fillna(0))
+_dst_age_norm = norm_by_quantile(df["dst_age_days"].fillna(0), fit_n=_NORM_FIT_N)
 
 # df is still fully pristine here -- nothing in the intensity loop below has
 # touched it yet. Dumping now (before any boosting) gives a CSV with the

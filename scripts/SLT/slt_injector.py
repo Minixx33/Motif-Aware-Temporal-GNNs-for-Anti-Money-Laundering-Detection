@@ -172,16 +172,25 @@ def safe_divide(a, b):
     return np.where(np.abs(b) < EPS, 0.0, a / (b + EPS)).astype(np.float32)
 
 
-def robust_norm(series, q=0.95):
+def robust_norm(series, q=0.95, fit_series=None):
     """
     Normalize by a robust upper quantile instead of max.
     This keeps huge outliers from dominating the scale.
     Output is clipped to [0,1].
+
+    If fit_series is given, the quantile (the scale CONSTANT) is fit from
+    fit_series instead of the full `series` -- used to fit on a train-period
+    subset only while still transforming every row, so the constant doesn't
+    depend on val/test-period values. See NORM_TRAIN_FRAC / _NORM_FIT_N.
     """
     s = pd.to_numeric(series, errors="coerce").fillna(0).astype(np.float32)
-    qv = float(s.quantile(q))
+    if fit_series is not None:
+        fit_s = pd.to_numeric(fit_series, errors="coerce").fillna(0).astype(np.float32)
+    else:
+        fit_s = s
+    qv = float(fit_s.quantile(q))
     if (not np.isfinite(qv)) or (qv <= 0):
-        qv = float(s.max())
+        qv = float(fit_s.max())
     if (not np.isfinite(qv)) or (qv <= 0):
         return pd.Series(0.0, index=series.index, dtype=np.float32)
     out = (s / qv).replace([np.inf, -np.inf], np.nan).fillna(0).clip(0, 1)
@@ -250,6 +259,21 @@ df[TS_COL] = pd.to_datetime(df[TS_COL], errors="raise")
 # counterparties, peer-risk score -- all computed "as of just before this
 # transaction") only make sense, and are only causal, in time order.
 df = df.sort_values(TS_COL, kind="mergesort").reset_index(drop=True)
+
+# Used to fit normalization scale constants (robust_norm's P95, the
+# peer-risk tau threshold) on a train-period-only window, so they don't
+# reflect val/test-period distributional information. The per-row values
+# feeding into these are already point-in-time causal; this just keeps the
+# rescaling CONSTANTS point-in-time too, matching rat_injector.py's fix.
+# Independent of how splits are eventually assigned (stratified-random vs.
+# chronological) -- a conservative causal cutoff, not a claim about the real
+# train/val/test boundary.
+NORM_TRAIN_FRAC = 0.60  # matches create_splits.py's default train_ratio
+_NORM_FIT_N = int(len(df) * NORM_TRAIN_FRAC)
+# Same cutoff expressed as a timestamp, for the day_exposure table further
+# down (grouped by account+date, not globally date-sorted, so a row-index
+# cutoff doesn't apply there -- a date cutoff does).
+_TRAIN_CUTOFF_TS = df[TS_COL].iloc[min(_NORM_FIT_N, len(df) - 1)].floor("D")
 
 # Convert account IDs to string first, then to category to save memory
 df[SRC_COL] = df[SRC_COL].astype(str)
@@ -415,8 +439,14 @@ del _src_state, _dst_state
 # 0.25/0.25/0.20/0.15/0.10 values (which summed to 0.95 alongside the
 # now-removed 0.05 pattern-flag term) renormalized to sum to 1.0.
 def _pooled_norm(a, b):
-    pooled = pd.concat([pd.Series(a).reset_index(drop=True), pd.Series(b).reset_index(drop=True)], ignore_index=True)
-    normed = robust_norm(pooled)
+    a = pd.Series(a).reset_index(drop=True)
+    b = pd.Series(b).reset_index(drop=True)
+    pooled = pd.concat([a, b], ignore_index=True)
+    # Fit the P95 scale constant from only the train-period-chronological
+    # rows of EACH role (a and b are both df-row-order-aligned), not the
+    # full pooled series -- see NORM_TRAIN_FRAC / _NORM_FIT_N above.
+    fit_pooled = pd.concat([a.iloc[:_NORM_FIT_N], b.iloc[:_NORM_FIT_N]], ignore_index=True)
+    normed = robust_norm(pooled, fit_series=fit_pooled)
     half = len(a)
     return normed.iloc[:half].reset_index(drop=True), normed.iloc[half:].reset_index(drop=True)
 
@@ -440,18 +470,23 @@ df["src_peer_risk_score"] = _peer_risk(_norm_txn_count_s, _norm_amount_s, _norm_
 df["dst_peer_risk_score"] = _peer_risk(_norm_txn_count_d, _norm_amount_d, _norm_cpty_d, _norm_tpad_d, _dst_cross_bank_ratio)
 
 # Tau = threshold for "high-risk peer", calibrated from the pooled
-# distribution of causal peer-risk scores across both roles (see disclosed
-# limitation above: this is a fixed scale/threshold from the full dataset,
-# not an expanding one).
+# distribution of causal peer-risk scores across both roles. Fit on the
+# train-period-only window (first _NORM_FIT_N chronological rows of each
+# role), then applied to every row -- same fix as robust_norm above, so tau
+# doesn't reflect val/test-period score distribution either.
 _pooled_scores = np.concatenate([df["src_peer_risk_score"].to_numpy(), df["dst_peer_risk_score"].to_numpy()])
-tau = float(np.quantile(_pooled_scores, PEER_RISK_PERCENTILE))
+_pooled_scores_fit = np.concatenate([
+    df["src_peer_risk_score"].to_numpy()[:_NORM_FIT_N],
+    df["dst_peer_risk_score"].to_numpy()[:_NORM_FIT_N],
+])
+tau = float(np.quantile(_pooled_scores_fit, PEER_RISK_PERCENTILE))
 if not np.isfinite(tau):
-    tau = float(np.nanmax(_pooled_scores))
+    tau = float(np.nanmax(_pooled_scores_fit))
 
 df["src_is_high_risk_peer"] = (df["src_peer_risk_score"] >= tau).astype(np.int8)
 df["dst_is_high_risk_peer"] = (df["dst_peer_risk_score"] >= tau).astype(np.int8)
 
-print(f"Peer-risk threshold tau (P{int(PEER_RISK_PERCENTILE * 100)}, causal/pooled): {tau:.4f}")
+print(f"Peer-risk threshold tau (P{int(PEER_RISK_PERCENTILE * 100)}, train-period-fit): {tau:.4f}")
 print(f"High-risk peer (account, transaction) instances: "
       f"src={int(df['src_is_high_risk_peer'].sum())}  dst={int(df['dst_is_high_risk_peer'].sum())}")
 print_mem_hint(df, "transactions after causal peer-risk computation")
@@ -672,9 +707,20 @@ day_exposure["SLT_cum_amt_exposure_7d"] = (
                 .astype(np.float32)
 )
 
-# Normalize cumulative features
-day_exposure["SLT_cum_exposure_7d_norm"] = robust_norm(day_exposure["SLT_cum_exposure_7d"])
-day_exposure["SLT_cum_amt_exposure_7d_norm"] = robust_norm(day_exposure["SLT_cum_amt_exposure_7d"])
+# Normalize cumulative features. day_exposure is sorted by (account, date),
+# not globally by date, so a row-index cutoff doesn't isolate the train
+# period the way it does for the transaction-level df above -- use the date
+# cutoff (_TRAIN_CUTOFF_TS) instead to build the fit subset, same idea as
+# robust_norm's fit_series elsewhere in this file.
+_day_exposure_fit_mask = day_exposure["date_only"] < _TRAIN_CUTOFF_TS
+day_exposure["SLT_cum_exposure_7d_norm"] = robust_norm(
+    day_exposure["SLT_cum_exposure_7d"],
+    fit_series=day_exposure.loc[_day_exposure_fit_mask, "SLT_cum_exposure_7d"],
+)
+day_exposure["SLT_cum_amt_exposure_7d_norm"] = robust_norm(
+    day_exposure["SLT_cum_amt_exposure_7d"],
+    fit_series=day_exposure.loc[_day_exposure_fit_mask, "SLT_cum_amt_exposure_7d"],
+)
 
 # ===================== MERGE SLT FEATURES BACK TO TRANSACTIONS =====================
 
