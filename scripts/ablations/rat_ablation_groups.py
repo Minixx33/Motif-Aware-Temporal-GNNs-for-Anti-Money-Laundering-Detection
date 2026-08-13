@@ -5,6 +5,14 @@
 # embedding lookup, NOT as one-hot dummies (see lines ~309-310 of that file).
 # This list must match the graph's actual edge_attr_cols.json schema, since
 # run_ablation_static.py subsets edge_attr.pt by these exact names.
+#
+# RAT_src_pattern_flag / RAT_dst_pattern_flag REMOVED (Aug 14 2026): these
+# columns no longer exist in rat_injector.py's output -- they were derived
+# from the AMLworld simulator's ground-truth laundering-pattern export
+# (review feedback Aug 4 2026, sec 3.1) and have been dropped from the
+# injector entirely. Any graph rebuilt after that change will NOT have these
+# columns in edge_attr_cols.json; leaving them here would make
+# run_ablation_static.py raise ValueError("Feature '...' not found").
 FULL_FEATURES = [
     "log_amt_rec", "log_amt_paid",
     "same_bank", "same_currency",
@@ -18,7 +26,7 @@ FULL_FEATURES = [
     "RAT_same_entity",
     "RAT_src_entity_accounts","RAT_dst_entity_accounts",
     "RAT_src_entity_acct_norm","RAT_dst_entity_acct_norm",
-    "RAT_src_pattern_flag","RAT_dst_pattern_flag","RAT_mutual_flag",
+    "RAT_mutual_flag",
     "motif_fanin","motif_fanout","motif_chain","motif_cycle",
     "RAT_offender_score","RAT_target_score",
     "RAT_guardian_weakness_score","RAT_score"
@@ -43,7 +51,7 @@ NO_AMOUNT = [
 
 NO_BURST_PATTERN = [
     "RAT_src_burst_norm","RAT_dst_burst_norm","RAT_combined_burst",
-    "RAT_src_pattern_flag","RAT_dst_pattern_flag","RAT_mutual_flag"
+    "RAT_mutual_flag"
 ]
 
 NO_ENTITY = [

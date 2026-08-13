@@ -1,0 +1,14 @@
+# configs/datasets/structural_only.yaml
+#
+# "base + structural" condition of the primary natural-features experiment
+# (review feedback Aug 4 2026): the 12 baseline transaction features plus
+# the 4 motif_* graph-topology features only (fanin/fanout/chain/cycle) --
+# no RAT or SLT composite theory scores at all. Built by
+# scripts/analysis/build_structural_only_graph.py, which subsets the
+# pristine RAT graph's edge_attr down to baseline_cols + motif_cols via
+# run_ablation_static. Sits between "baseline" (no graph structure) and
+# "rat_natural"/"slt_natural" (full theory) in the 4-condition comparison.
+dataset:
+  theory: "structural"
+  prefix: "HI-Small_Trans_RAT_pristine_structural_only"
+  requires_intensity: false

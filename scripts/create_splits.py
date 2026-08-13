@@ -142,6 +142,96 @@ def split_static_graph(folder, out_dir,
 
 
 # ------------------------------------------------------------
+# STATIC GRAPH SPLIT -- CHRONOLOGICAL VARIANT (GraphSAGE / GraphSAGE-T)
+# ------------------------------------------------------------
+# motif_graph_builder_static.py sorts transactions by Timestamp before
+# building edge_index and also saves a matching timestamps.pt, so edge row i
+# already corresponds to the i-th earliest transaction. This lets us apply
+# the same chronological 60/20/20 cut used for DyRep/TGAT (split_temporal_graph)
+# directly to the static graph's edge order, instead of the stratified-random
+# split above. Added per review feedback (Aug 4 2026): GraphSAGE/GraphSAGE-T
+# should be evaluated under the same time-ordered protocol as DyRep-Lite.
+def split_static_graph_chronological(folder, out_dir,
+                                     train_ratio=0.60, val_ratio=0.20, test_ratio=0.20):
+
+    print("\n" + "=" * 70)
+    print("STATIC GRAPH DETECTED (GraphSAGE / GraphSAGE-T) -- CHRONOLOGICAL SPLIT")
+    print("=" * 70)
+
+    edge_index = torch.load(os.path.join(folder, "edge_index.pt"))
+    x = torch.load(os.path.join(folder, "x.pt"))
+
+    ts_path = os.path.join(folder, "timestamps.pt")
+    if not os.path.exists(ts_path):
+        raise FileNotFoundError(
+            f"Chronological split requested but {ts_path} does not exist. "
+            f"Rebuild this graph with motif_graph_builder_static.py (which "
+            f"saves timestamps.pt) before using --split_mode chronological."
+        )
+    timestamps_np = torch.load(ts_path).numpy()
+
+    num_nodes = x.shape[0]
+    num_edges = edge_index.shape[1]
+
+    if len(timestamps_np) != num_edges:
+        raise ValueError(
+            f"timestamps.pt has {len(timestamps_np)} entries but edge_index.pt "
+            f"has {num_edges} edges -- graph directory is inconsistent."
+        )
+
+    # Sort defensively (graph builder already sorts, but don't assume it here)
+    if not np.all(timestamps_np[:-1] <= timestamps_np[1:]):
+        print("⚠️ WARNING: timestamps not sorted — sorting now")
+        order = np.argsort(timestamps_np)
+    else:
+        order = np.arange(num_edges)
+
+    train_end = int(train_ratio * num_edges)
+    val_end = int((train_ratio + val_ratio) * num_edges)
+
+    train_idx = order[:train_end]
+    val_idx = order[train_end:val_end]
+    test_idx = order[val_end:]
+
+    # Node masks (nodes touched by edges), same convention as the stratified split
+    train_nodes = torch.zeros(num_nodes, dtype=torch.bool)
+    val_nodes = torch.zeros(num_nodes, dtype=torch.bool)
+    test_nodes = torch.zeros(num_nodes, dtype=torch.bool)
+
+    src = edge_index[0].numpy()
+    dst = edge_index[1].numpy()
+
+    for i in train_idx:
+        train_nodes[src[i]] = True
+        train_nodes[dst[i]] = True
+    for i in val_idx:
+        val_nodes[src[i]] = True
+        val_nodes[dst[i]] = True
+    for i in test_idx:
+        test_nodes[src[i]] = True
+        test_nodes[dst[i]] = True
+
+    os.makedirs(out_dir, exist_ok=True)
+    torch.save(torch.tensor(train_idx), os.path.join(out_dir, "train_edge_idx.pt"))
+    torch.save(torch.tensor(val_idx), os.path.join(out_dir, "val_edge_idx.pt"))
+    torch.save(torch.tensor(test_idx), os.path.join(out_dir, "test_edge_idx.pt"))
+    torch.save(train_nodes, os.path.join(out_dir, "train_node_mask.pt"))
+    torch.save(val_nodes, os.path.join(out_dir, "val_node_mask.pt"))
+    torch.save(test_nodes, os.path.join(out_dir, "test_node_mask.pt"))
+
+    meta = {
+        "type": "static",
+        "split_method": "chronological",
+        "num_edges": int(num_edges),
+        "num_nodes": int(num_nodes)
+    }
+    with open(os.path.join(out_dir, "split_metadata.json"), "w") as f:
+        json.dump(meta, f, indent=2)
+
+    print(f"✓ Static chronological splits saved → {out_dir}")
+
+
+# ------------------------------------------------------------
 # TEMPORAL GRAPH SPLIT (TGAT + DyRep)
 # ------------------------------------------------------------
 def split_temporal_graph(folder, out_dir,
@@ -202,7 +292,7 @@ def split_temporal_graph(folder, out_dir,
 # ------------------------------------------------------------
 def create_splits(graph_folder, out_dir=None,
                   train_ratio=0.60, val_ratio=0.20, test_ratio=0.20,
-                  random_seed=42):
+                  random_seed=42, split_mode="stratified"):
 
     dataset_name = os.path.basename(graph_folder)
 
@@ -211,20 +301,28 @@ def create_splits(graph_folder, out_dir=None,
         splits_dir = "splits_dyrep" if graph_type == "temporal" else "splits"
         base = os.path.join(os.path.dirname(graph_folder), "..", splits_dir)
         out_dir = os.path.join(base, dataset_name)
+        if graph_type == "static" and split_mode == "chronological":
+            out_dir = out_dir + "_chrono"
 
     out_dir = os.path.abspath(out_dir)
 
     print("\n" + "=" * 70)
-    print(f"CREATING SPLITS FOR: {dataset_name}")
+    print(f"CREATING SPLITS FOR: {dataset_name} (split_mode={split_mode})")
     print("=" * 70)
 
     graph_type = detect_graph_type(graph_folder)
 
     if graph_type == "static":
-        split_static_graph(
-            graph_folder, out_dir,
-            train_ratio, val_ratio, test_ratio, random_seed
-        )
+        if split_mode == "chronological":
+            split_static_graph_chronological(
+                graph_folder, out_dir,
+                train_ratio, val_ratio, test_ratio
+            )
+        else:
+            split_static_graph(
+                graph_folder, out_dir,
+                train_ratio, val_ratio, test_ratio, random_seed
+            )
     else:
         split_temporal_graph(
             graph_folder, out_dir,
@@ -246,6 +344,16 @@ if __name__ == "__main__":
     parser.add_argument("--val_ratio", type=float, default=0.20)
     parser.add_argument("--test_ratio", type=float, default=0.20)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--split_mode", choices=["stratified", "chronological"],
+                        default="stratified",
+                        help="Only affects static graphs (GraphSAGE/GraphSAGE-T). "
+                             "'stratified' (default) keeps the existing "
+                             "label-stratified random 60/20/20 split. "
+                             "'chronological' cuts by transaction time (using "
+                             "timestamps.pt), matching DyRep-Lite/TGAT's "
+                             "evaluation protocol. Temporal graphs (DyRep/TGAT) "
+                             "always use chronological splitting regardless of "
+                             "this flag.")
 
     args = parser.parse_args()
 
@@ -255,5 +363,6 @@ if __name__ == "__main__":
         args.train_ratio,
         args.val_ratio,
         args.test_ratio,
-        args.seed
+        args.seed,
+        args.split_mode
     )

@@ -82,6 +82,26 @@ DATASETS=(
     "slt_low|configs/datasets/slt.yaml|low"
     "slt_medium|configs/datasets/slt.yaml|medium"
     "slt_high|configs/datasets/slt.yaml|high"
+    # Train-boosted / val+test-pristine corrected variants (see
+    # build_traincorrected_graph.py + pristine_test_eval.py). All three
+    # intensities, matching the boosted rat_*/slt_* entries above.
+    "rat_traincorrected_low|configs/datasets/rat_traincorrected.yaml|low"
+    "rat_traincorrected_medium|configs/datasets/rat_traincorrected.yaml|medium"
+    "rat_traincorrected_high|configs/datasets/rat_traincorrected.yaml|high"
+    "slt_traincorrected_low|configs/datasets/slt_traincorrected.yaml|low"
+    "slt_traincorrected_medium|configs/datasets/slt_traincorrected.yaml|medium"
+    "slt_traincorrected_high|configs/datasets/slt_traincorrected.yaml|high"
+    # Primary natural-features experiment (review feedback Aug 4 2026):
+    # base (baseline, above) vs. base+structural vs. base+RAT-natural vs.
+    # base+SLT-natural, all built from pristine (never-boosted) features so
+    # there is no injection/leakage question for these at all. Static graphs
+    # only (GraphSAGE/GraphSAGE-T) -- no DyRep event-graph equivalent has been
+    # built for these, so run with MODELS_ONLY="graphsage graphsage_t" e.g.:
+    #   DATASETS_ONLY="structural_only rat_natural slt_natural" \
+    #   MODELS_ONLY="graphsage graphsage_t" bash scripts/bash/run_all.sh
+    "structural_only|configs/datasets/structural_only.yaml|"
+    "rat_natural|configs/datasets/rat_natural.yaml|"
+    "slt_natural|configs/datasets/slt_natural.yaml|"
 )
 
 # One line per model: "name|training_script|model_config".

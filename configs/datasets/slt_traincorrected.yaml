@@ -1,0 +1,18 @@
+# configs/datasets/slt_traincorrected.yaml
+#
+# Same theory-injected SLT features as slt.yaml, but built by
+# build_traincorrected_graph.py so that only TRAIN-split edges keep the
+# theory-injection boost; val/test edges are forced to their pristine
+# (never-boosted) values. See pristine_test_eval.py for the robustness
+# check that motivated this (SLT: test AUPR drops ~22% on average across
+# seeds when test rows are de-boosted, ROC-AUC roughly unchanged).
+#
+# All three intensities are corrected -- the paper reports low/medium/high,
+# and the leakage mechanism (boost before split) is the same at every
+# intensity, just affecting a different fraction of laundering rows
+# (5% / 10% / 20%).
+dataset:
+  theory: "SLT"
+  prefix: "HI-Small_Trans_SLT_traincorrected"
+  available_intensities: ["low", "medium", "high"]  # for documentation
+  requires_intensity: true  # flag to validate CLI args

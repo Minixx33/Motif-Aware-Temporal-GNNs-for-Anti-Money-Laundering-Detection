@@ -1,0 +1,15 @@
+# configs/datasets/rat_natural.yaml
+#
+# "base + RAT-natural" condition of the primary natural-features experiment
+# (review feedback Aug 4 2026): RAT theory features computed the normal way
+# from historical transaction data, with NO label-conditioned intensity
+# boosting at all -- this is the --dump_pristine snapshot from rat_injector.py
+# (HI-Small_Trans_RAT_pristine.csv), built into a graph the same way as any
+# other RAT-injected dataset. Since there is no boosting here, there is also
+# no train/val/test leakage question for this condition; it exists to answer
+# a different question than rat.yaml / rat_traincorrected.yaml: do naturally
+# computed RAT features add predictive value at all, absent any injection.
+dataset:
+  theory: "RAT"
+  prefix: "HI-Small_Trans_RAT_pristine"
+  requires_intensity: false

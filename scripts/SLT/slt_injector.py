@@ -59,14 +59,45 @@ _parser.add_argument("--dump_pristine", action="store_true",
                           "never-boosted values). Same row count/order as the "
                           "low/medium/high CSVs -- used for post-hoc leakage/"
                           "robustness checks, not part of normal training.")
+
+# ---- Falsification / placebo controls (review feedback sec 4.3) ----
+_parser.add_argument("--random_weights", action="store_true",
+                     help="Placebo control: ignore --w_neighbor/--w_amount/"
+                          "--w_strong_tie/--w_delta/--w_cum and draw random "
+                          "positive weights (Dirichlet, summing to 1) instead "
+                          "of the theory-motivated weights for the SLT_src_score/"
+                          "SLT_dst_score formulas. Reproducible via --weight_seed.")
+_parser.add_argument("--weight_seed", type=int, default=42)
+_parser.add_argument("--selection", choices=["score", "random"], default="score",
+                     help="Placebo control: 'score' (default) selects the top "
+                          "laundering transactions by SLT_score, as before. "
+                          "'random' selects a random sample of the same size "
+                          "instead (same boost mechanics applied afterward).")
+_parser.add_argument("--selection_seed", type=int, default=123)
+
 _args = _parser.parse_args()
 
 VARIANT      = _args.variant
-W_NEIGHBOR   = _args.w_neighbor
-W_AMOUNT     = _args.w_amount
-W_STRONG_TIE = _args.w_strong_tie
-W_DELTA      = _args.w_delta
-W_CUM        = _args.w_cum
+
+if _args.random_weights:
+    _wrng = np.random.default_rng(_args.weight_seed)
+    W_NEIGHBOR, W_AMOUNT, W_STRONG_TIE, W_DELTA, W_CUM = _wrng.dirichlet(np.ones(5))
+    print(f"[SLT] --random_weights set (seed={_args.weight_seed}): "
+          f"({W_NEIGHBOR}, {W_AMOUNT}, {W_STRONG_TIE}, {W_DELTA}, {W_CUM})")
+else:
+    W_NEIGHBOR   = _args.w_neighbor
+    W_AMOUNT     = _args.w_amount
+    W_STRONG_TIE = _args.w_strong_tie
+    W_DELTA      = _args.w_delta
+    W_CUM        = _args.w_cum
+
+# Output filenames get a suffix when a placebo control is active, so they
+# never collide with the main score-selected / theory-weighted CSVs.
+_suffix = ""
+if _args.selection == "random":
+    _suffix += "_randselect"
+if _args.random_weights:
+    _suffix += "_randweights"
 
 print(f"[SLT] Variant: {VARIANT}  weights=({W_NEIGHBOR}, {W_AMOUNT}, {W_STRONG_TIE}, {W_DELTA}, {W_CUM})")
 
@@ -333,8 +364,11 @@ acct_stats["txn_per_active_day"] = safe_divide(
     acct_stats["active_days"] + 1
 )
 
-# Optional pattern flag
-acct_stats["pattern_flag"] = acct_stats.index.astype(str).isin(pattern_accounts).astype(np.int8)
+# NOTE: a "pattern_flag" term (derived from the AMLworld simulator's
+# ground-truth laundering-pattern export via `pattern_accounts`) used to be
+# included here. It has been REMOVED: it is information a real investigator
+# would not have before prediction (review feedback, Aug 4 2026, sec 3.1).
+# `pattern_accounts` is still loaded above but no longer feeds any feature.
 
 # Normalize the core components
 acct_stats["norm_total_txn_count"] = robust_norm(acct_stats["total_txn_count"])
@@ -342,17 +376,18 @@ acct_stats["norm_total_amount_flow"] = robust_norm(acct_stats["total_amount_flow
 acct_stats["norm_unique_counterparties"] = robust_norm(acct_stats["total_unique_counterparties"])
 acct_stats["norm_txn_per_active_day"] = robust_norm(acct_stats["txn_per_active_day"])
 acct_stats["norm_cross_bank_ratio"] = pd.to_numeric(acct_stats["src_cross_bank_ratio"], errors="coerce").fillna(0).clip(0, 1).astype(np.float32)
-acct_stats["norm_pattern_flag"] = acct_stats["pattern_flag"].astype(np.float32)
 
 # Build UNSUPERVISED peer-risk score
 # This is NOT a laundering label. It is a behavioral abnormality / risk proxy.
+# Weights below are the original 0.25/0.25/0.20/0.15/0.10 values (which summed
+# to 0.95 alongside the now-removed 0.05 pattern-flag term) renormalized to sum
+# to 1.0 over the remaining 5 components.
 acct_stats["peer_risk_score"] = (
-    0.25 * acct_stats["norm_total_txn_count"] +
-    0.25 * acct_stats["norm_total_amount_flow"] +
-    0.20 * acct_stats["norm_unique_counterparties"] +
-    0.15 * acct_stats["norm_txn_per_active_day"] +
-    0.10 * acct_stats["norm_cross_bank_ratio"] +
-    0.05 * acct_stats["norm_pattern_flag"]
+    (0.25 / 0.95) * acct_stats["norm_total_txn_count"] +
+    (0.25 / 0.95) * acct_stats["norm_total_amount_flow"] +
+    (0.20 / 0.95) * acct_stats["norm_unique_counterparties"] +
+    (0.15 / 0.95) * acct_stats["norm_txn_per_active_day"] +
+    (0.10 / 0.95) * acct_stats["norm_cross_bank_ratio"]
 ).astype(np.float32).clip(0, 1)
 
 # Tau = threshold for defining a high-risk peer
@@ -495,7 +530,7 @@ day_exposure = pd.concat([src_day_exposure, dst_day_exposure], ignore_index=True
 # Some account-days may appear in both source-side and destination-side summaries.
 # Sum them together.
 day_exposure = (
-    day_exposure.groupby(["account", "date_only"], as_index=False)
+    day_exposure.groupby(["account", "date_only"], observed=True, as_index=False)
                 .agg({
                     "total_neighbors": "sum",
                     "high_risk_neighbors": "sum",
@@ -777,22 +812,38 @@ for _c in BOOST_COLS:
 # HI-Small_Trans_SLT_<intensity>.csv, but with SLT_* features at their
 # never-boosted values.
 if _args.dump_pristine:
-    pristine_path = os.path.join(OUTPUT_DIR, "HI-Small_Trans_SLT_pristine.csv") \
+    pristine_path = os.path.join(OUTPUT_DIR, f"HI-Small_Trans_SLT_pristine{_suffix}.csv") \
         if VARIANT == "current" else \
-        os.path.join(OUTPUT_DIR, f"HI-Small_Trans_SLT_{VARIANT}_pristine.csv")
+        os.path.join(OUTPUT_DIR, f"HI-Small_Trans_SLT_{VARIANT}_pristine{_suffix}.csv")
     print(f"Saving pristine (un-boosted) snapshot: {pristine_path}")
     df.to_csv(pristine_path, index=False)
     print(f"Saved {pristine_path} [0 injected rows by construction]")
 
 for name, frac in INTENSITIES.items():
-    threshold = float(np.quantile(launder_scores, 1 - frac))
-    print(f"{name}: threshold = {threshold:.4f}")
+    if _args.selection == "score":
+        threshold = float(np.quantile(launder_scores, 1 - frac))
+        print(f"{name}: threshold = {threshold:.4f}")
 
-    # selection uses the pristine SLT_score (as before)
-    df["SLT_injected"] = (
-        (df[LABEL_COL] == 1) &
-        (df["SLT_score"] > threshold)
-    ).astype(np.int8)
+        # selection uses the pristine SLT_score (as before)
+        df["SLT_injected"] = (
+            (df[LABEL_COL] == 1) &
+            (df["SLT_score"] > threshold)
+        ).astype(np.int8)
+    else:
+        # Placebo control: select a random sample of laundering rows of the
+        # same size the score-based threshold would have selected, instead of
+        # ranking by SLT_score. Boost mechanics afterward are identical.
+        _sel_rng = np.random.default_rng(
+            _args.selection_seed + {"low": 0, "medium": 1, "high": 2}[name]
+        )
+        n_select = int(round(frac * int(launder_mask.sum())))
+        launder_idx = df.index[launder_mask]
+        chosen_idx = _sel_rng.choice(launder_idx, size=min(n_select, len(launder_idx)), replace=False)
+        print(f"{name}: random selection = {n_select} of {len(launder_idx)} laundering rows")
+
+        df["SLT_injected"] = np.int8(0)
+        df.loc[chosen_idx, "SLT_injected"] = 1
+
     inj = df["SLT_injected"] == 1
 
     # snapshot pristine values of the rows we are about to boost
@@ -830,9 +881,9 @@ for name, frac in INTENSITIES.items():
     ).astype(np.int8)
 
     if VARIANT == "current":
-        out_path = os.path.join(OUTPUT_DIR, f"HI-Small_Trans_SLT_{name}.csv")
+        out_path = os.path.join(OUTPUT_DIR, f"HI-Small_Trans_SLT_{name}{_suffix}.csv")
     else:
-        out_path = os.path.join(OUTPUT_DIR, f"HI-Small_Trans_SLT_{VARIANT}_{name}.csv")
+        out_path = os.path.join(OUTPUT_DIR, f"HI-Small_Trans_SLT_{VARIANT}_{name}{_suffix}.csv")
     print(f"Saving: {out_path}")
     df.to_csv(out_path, index=False)
     print(f"Saved {out_path} [{int(df['SLT_injected'].sum())} injected rows]")

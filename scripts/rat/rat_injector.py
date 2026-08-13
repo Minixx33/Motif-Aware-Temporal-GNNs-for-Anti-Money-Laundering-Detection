@@ -29,7 +29,82 @@ _parser.add_argument("--dump_pristine", action="store_true",
                           "pristine, never-boosted values). Same row count/order "
                           "as the low/medium/high CSVs -- used for post-hoc "
                           "leakage/robustness checks, not part of normal training.")
+
+# ---- Component weights (offender / target / guardian-weakness) ----
+# Pattern-flag terms (RAT_src_pattern_flag / RAT_dst_pattern_flag) have been
+# REMOVED from these formulas: they were derived from the AMLworld simulator's
+# ground-truth laundering-pattern export, which would not be available to a
+# real investigator before prediction (review feedback, Aug 4 2026, sec 3.1).
+# The remaining weights below are the original values renormalized to sum to
+# 1 within each component (offender/target lost a 0.10 term each; guardian
+# weakness never used the pattern flag, so its weights are unchanged).
+_parser.add_argument("--w_off_amt",      type=float, default=0.30 / 0.90)
+_parser.add_argument("--w_off_outdeg",   type=float, default=0.20 / 0.90)
+_parser.add_argument("--w_off_burst",    type=float, default=0.20 / 0.90)
+_parser.add_argument("--w_off_offhours", type=float, default=0.10 / 0.90)
+_parser.add_argument("--w_off_entity",   type=float, default=0.10 / 0.90)
+_parser.add_argument("--w_tar_amt",      type=float, default=0.35 / 0.90)
+_parser.add_argument("--w_tar_indeg",    type=float, default=0.25 / 0.90)
+_parser.add_argument("--w_tar_age",      type=float, default=0.15 / 0.90)
+_parser.add_argument("--w_tar_entity",   type=float, default=0.15 / 0.90)
+_parser.add_argument("--w_gua_offhours",  type=float, default=0.30)
+_parser.add_argument("--w_gua_weekend",   type=float, default=0.20)
+_parser.add_argument("--w_gua_crossbank", type=float, default=0.20)
+_parser.add_argument("--w_gua_burst",     type=float, default=0.20)
+_parser.add_argument("--w_gua_entity",    type=float, default=0.10)
+
+# ---- Falsification / placebo controls (review feedback sec 4.3) ----
+_parser.add_argument("--random_weights", action="store_true",
+                     help="Placebo control: ignore the --w_* values above and "
+                          "draw random positive weights (Dirichlet, summing to "
+                          "1 within each of the offender/target/guardian "
+                          "components) instead of the theory-motivated weights. "
+                          "Reproducible via --weight_seed. Tests whether the "
+                          "specific theory-derived weighting matters versus any "
+                          "reasonable combination of the same features.")
+_parser.add_argument("--weight_seed", type=int, default=42)
+_parser.add_argument("--selection", choices=["score", "random"], default="score",
+                     help="Placebo control: 'score' (default) selects the top "
+                          "laundering transactions by RAT_score, as before. "
+                          "'random' selects a random sample of the same size "
+                          "instead (same boost mechanics applied afterward), to "
+                          "test whether score-based selection is doing anything "
+                          "beyond boosting an arbitrary subset of positives.")
+_parser.add_argument("--selection_seed", type=int, default=123)
+_parser.add_argument("--intensities", type=str, default="low,medium,high",
+                     help="Comma/space separated subset of intensities to produce "
+                          "(default: all three, e.g. --intensities medium). "
+                          "Matches slt_injector.py's --intensities flag.")
+
 _args = _parser.parse_args()
+
+if _args.random_weights:
+    _wrng = np.random.default_rng(_args.weight_seed)
+    _W_OFF = _wrng.dirichlet(np.ones(5))
+    _W_TAR = _wrng.dirichlet(np.ones(4))
+    _W_GUA = _wrng.dirichlet(np.ones(5))
+    print(f"[RAT] --random_weights set (seed={_args.weight_seed}):")
+    print(f"  offender (amt,outdeg,burst,offhours,entity)        = {_W_OFF}")
+    print(f"  target   (amt,indeg,age,entity)                    = {_W_TAR}")
+    print(f"  guardian (offhours,weekend,crossbank,burst,entity) = {_W_GUA}")
+else:
+    _W_OFF = np.array([_args.w_off_amt, _args.w_off_outdeg, _args.w_off_burst,
+                        _args.w_off_offhours, _args.w_off_entity])
+    _W_TAR = np.array([_args.w_tar_amt, _args.w_tar_indeg, _args.w_tar_age, _args.w_tar_entity])
+    _W_GUA = np.array([_args.w_gua_offhours, _args.w_gua_weekend, _args.w_gua_crossbank,
+                        _args.w_gua_burst, _args.w_gua_entity])
+
+W_OFF_AMT, W_OFF_OUTDEG, W_OFF_BURST, W_OFF_OFFHOURS, W_OFF_ENTITY = _W_OFF
+W_TAR_AMT, W_TAR_INDEG, W_TAR_AGE, W_TAR_ENTITY = _W_TAR
+W_GUA_OFFHOURS, W_GUA_WEEKEND, W_GUA_CROSSBANK, W_GUA_BURST, W_GUA_ENTITY = _W_GUA
+
+# Output filenames get a suffix when a placebo control is active, so they
+# never collide with the main score-selected / theory-weighted CSVs.
+_suffix = ""
+if _args.selection == "random":
+    _suffix += "_randselect"
+if _args.random_weights:
+    _suffix += "_randweights"
 
 # ===================== CONFIG =====================
 
@@ -59,6 +134,19 @@ ACCT_ENTITY_ID   = "Entity ID"
 ACCT_ENTITY_NAME = "Entity Name"
 
 INTENSITIES = {"low": 0.05, "medium": 0.10, "high": 0.20}
+
+# Restrict to the requested subset (default: all three). Mirrors
+# slt_injector.py's --intensities flag -- useful for placebo-control runs
+# that only need one intensity level to demonstrate the control.
+_requested_intensities = [
+    x.strip() for x in _args.intensities.replace(",", " ").split() if x.strip()
+]
+for _ri in _requested_intensities:
+    if _ri not in INTENSITIES:
+        raise ValueError(f"Unknown intensity '{_ri}'. Valid: {list(INTENSITIES.keys())}")
+INTENSITIES = {k: v for k, v in INTENSITIES.items() if k in _requested_intensities}
+print(f"[RAT] Producing intensities: {list(INTENSITIES.keys())}")
+
 EPS = 1e-8
 
 # ===================== HELPERS =====================
@@ -182,10 +270,13 @@ df["RAT_dst_entity_accounts"] = df["dst_entity_id"].map(entity_acct_count).filln
 df["RAT_src_entity_acct_norm"] = norm_by_quantile(df["RAT_src_entity_accounts"])
 df["RAT_dst_entity_acct_norm"] = norm_by_quantile(df["RAT_dst_entity_accounts"])
 
-# ===================== PATTERN FLAGS =====================
-
-df["RAT_src_pattern_flag"] = df[SRC_COL].astype(str).isin(pattern_accounts).astype(int)
-df["RAT_dst_pattern_flag"] = df[DST_COL].astype(str).isin(pattern_accounts).astype(int)
+# ===================== PATTERN FLAGS (REMOVED) =====================
+# RAT_src_pattern_flag / RAT_dst_pattern_flag used to be derived here from
+# `pattern_accounts` (loaded from the AMLworld simulator's ground-truth
+# laundering-pattern export). That's information a real investigator would
+# not have before prediction, so it has been removed as a model input --
+# see review feedback Aug 4 2026, sec 3.1. `pattern_accounts` is still
+# loaded above but is no longer used to construct any feature.
 
 # ===================== MUTUAL FLOW =====================
 
@@ -223,28 +314,26 @@ df["motif_cycle"] = (
 # ===================== RAT SUB-SCORES =====================
 
 df["RAT_offender_score"] = (
-    0.30*df["RAT_src_amount_z_pos"] +
-    0.20*df["RAT_src_out_deg_norm"] +
-    0.20*df["RAT_src_burst_norm"] +
-    0.10*df["RAT_is_off_hours"] +
-    0.10*df["RAT_src_pattern_flag"] +
-    0.10*df["RAT_src_entity_acct_norm"]
+    W_OFF_AMT*df["RAT_src_amount_z_pos"] +
+    W_OFF_OUTDEG*df["RAT_src_out_deg_norm"] +
+    W_OFF_BURST*df["RAT_src_burst_norm"] +
+    W_OFF_OFFHOURS*df["RAT_is_off_hours"] +
+    W_OFF_ENTITY*df["RAT_src_entity_acct_norm"]
 )
 
 df["RAT_target_score"] = (
-    0.35*df["RAT_dst_amount_z_pos"] +
-    0.25*df["RAT_dst_in_deg_norm"] +
-    0.15*(1 - norm_by_quantile(df["dst_age_days"].fillna(0))) +
-    0.15*df["RAT_dst_entity_acct_norm"] +
-    0.10*df["RAT_dst_pattern_flag"]
+    W_TAR_AMT*df["RAT_dst_amount_z_pos"] +
+    W_TAR_INDEG*df["RAT_dst_in_deg_norm"] +
+    W_TAR_AGE*(1 - norm_by_quantile(df["dst_age_days"].fillna(0))) +
+    W_TAR_ENTITY*df["RAT_dst_entity_acct_norm"]
 )
 
 df["RAT_guardian_weakness_score"] = (
-    0.30*df["RAT_is_off_hours"] +
-    0.20*df["RAT_is_weekend"] +
-    0.20*df["RAT_is_cross_bank"] +
-    0.20*df["RAT_combined_burst"] +
-    0.10*df["RAT_same_entity"]
+    W_GUA_OFFHOURS*df["RAT_is_off_hours"] +
+    W_GUA_WEEKEND*df["RAT_is_weekend"] +
+    W_GUA_CROSSBANK*df["RAT_is_cross_bank"] +
+    W_GUA_BURST*df["RAT_combined_burst"] +
+    W_GUA_ENTITY*df["RAT_same_entity"]
 )
 
 # ===================== MULTIPLICATIVE RAT SCORE =====================
@@ -310,7 +399,7 @@ _dst_age_norm = norm_by_quantile(df["dst_age_days"].fillna(0))
 # with RAT_*/motif_* features at their never-boosted values.
 if _args.dump_pristine:
     out_base = os.path.splitext(os.path.basename(_args.trans_file))[0]
-    pristine_path = os.path.join(OUTPUT_DIR, f"{out_base}_RAT_pristine.csv")
+    pristine_path = os.path.join(OUTPUT_DIR, f"{out_base}_RAT_pristine{_suffix}.csv")
     print(f"Saving pristine (un-boosted) snapshot: {pristine_path}")
     df.to_csv(pristine_path, index=False)
     print(f"Saved {pristine_path} [0 injected rows by construction]")
@@ -320,14 +409,30 @@ for name, frac in INTENSITIES.items():
     for c in BOOST_COLS + SCORE_COLS:
         df[c] = _originals[c].copy()
 
-    threshold = float(np.quantile(launder_scores, 1 - frac))
-    print(f"{name}: threshold = {threshold:.4f}")
+    if _args.selection == "score":
+        threshold = float(np.quantile(launder_scores, 1 - frac))
+        print(f"{name}: threshold = {threshold:.4f}")
 
-    # selection uses the pristine RAT_score (as before)
-    df["RAT_injected"] = (
-        (df[LABEL_COL] == 1) &
-        (df["RAT_score"] >= threshold)
-    ).astype(np.int8)
+        # selection uses the pristine RAT_score (as before)
+        df["RAT_injected"] = (
+            (df[LABEL_COL] == 1) &
+            (df["RAT_score"] >= threshold)
+        ).astype(np.int8)
+    else:
+        # Placebo control: select a random sample of laundering rows of the
+        # same size the score-based threshold would have selected, instead of
+        # ranking by RAT_score. Boost mechanics afterward are identical.
+        _sel_rng = np.random.default_rng(
+            _args.selection_seed + {"low": 0, "medium": 1, "high": 2}[name]
+        )
+        n_select = int(round(frac * int(launder_mask.sum())))
+        launder_idx = df.index[launder_mask]
+        chosen_idx = _sel_rng.choice(launder_idx, size=min(n_select, len(launder_idx)), replace=False)
+        print(f"{name}: random selection = {n_select} of {len(launder_idx)} laundering rows")
+
+        df["RAT_injected"] = np.int8(0)
+        df.loc[chosen_idx, "RAT_injected"] = 1
+
     inj = df["RAT_injected"] == 1
 
     # boost continuous RAT features for injected rows (upward only)
@@ -337,28 +442,26 @@ for name, frac in INTENSITIES.items():
 
     # recompute composite scores from the boosted features (same formulas as above)
     df["RAT_offender_score"] = (
-        0.30*df["RAT_src_amount_z_pos"] +
-        0.20*df["RAT_src_out_deg_norm"] +
-        0.20*df["RAT_src_burst_norm"] +
-        0.10*df["RAT_is_off_hours"] +
-        0.10*df["RAT_src_pattern_flag"] +
-        0.10*df["RAT_src_entity_acct_norm"]
+        W_OFF_AMT*df["RAT_src_amount_z_pos"] +
+        W_OFF_OUTDEG*df["RAT_src_out_deg_norm"] +
+        W_OFF_BURST*df["RAT_src_burst_norm"] +
+        W_OFF_OFFHOURS*df["RAT_is_off_hours"] +
+        W_OFF_ENTITY*df["RAT_src_entity_acct_norm"]
     ).astype(np.float32)
 
     df["RAT_target_score"] = (
-        0.35*df["RAT_dst_amount_z_pos"] +
-        0.25*df["RAT_dst_in_deg_norm"] +
-        0.15*(1 - _dst_age_norm) +
-        0.15*df["RAT_dst_entity_acct_norm"] +
-        0.10*df["RAT_dst_pattern_flag"]
+        W_TAR_AMT*df["RAT_dst_amount_z_pos"] +
+        W_TAR_INDEG*df["RAT_dst_in_deg_norm"] +
+        W_TAR_AGE*(1 - _dst_age_norm) +
+        W_TAR_ENTITY*df["RAT_dst_entity_acct_norm"]
     ).astype(np.float32)
 
     df["RAT_guardian_weakness_score"] = (
-        0.30*df["RAT_is_off_hours"] +
-        0.20*df["RAT_is_weekend"] +
-        0.20*df["RAT_is_cross_bank"] +
-        0.20*df["RAT_combined_burst"] +
-        0.10*df["RAT_same_entity"]
+        W_GUA_OFFHOURS*df["RAT_is_off_hours"] +
+        W_GUA_WEEKEND*df["RAT_is_weekend"] +
+        W_GUA_CROSSBANK*df["RAT_is_cross_bank"] +
+        W_GUA_BURST*df["RAT_combined_burst"] +
+        W_GUA_ENTITY*df["RAT_same_entity"]
     ).astype(np.float32)
 
     df["RAT_score"] = ((
@@ -370,7 +473,7 @@ for name, frac in INTENSITIES.items():
     df["RAT_intensity_level"] = (df["RAT_injected"] * {"low": 1, "medium": 2, "high": 3}[name]).astype(np.int8)
 
     out_base = os.path.splitext(os.path.basename(_args.trans_file))[0]
-    out_path = os.path.join(OUTPUT_DIR, f"{out_base}_RAT_{name}.csv")
+    out_path = os.path.join(OUTPUT_DIR, f"{out_base}_RAT_{name}{_suffix}.csv")
     df.to_csv(out_path, index=False)
     print(f"Saved {out_path} [{int(df['RAT_injected'].sum())} injected rows]")
 

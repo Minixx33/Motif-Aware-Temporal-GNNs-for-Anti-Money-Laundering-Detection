@@ -214,7 +214,10 @@ def main():
     print(f"[INFO] Shape after feature engineering: {df.shape}")
 
     # -----------------------------
-    # Define the 56 features to use (excluded log_time_since_src/dst)
+    # Define the 54 features to use (excluded log_time_since_src/dst).
+    # RAT_src_pattern_flag / RAT_dst_pattern_flag removed Aug 14 2026 --
+    # ground-truth-derived leakage columns dropped from rat_injector.py
+    # (review feedback Aug 4 2026, sec 3.1); was 56 features before that.
     # -----------------------------
     REQUIRED_FEATURES = [
         "log_amt_rec", "log_amt_paid", "same_bank", "same_currency",
@@ -231,7 +234,7 @@ def main():
         "RAT_src_burst_norm", "RAT_dst_burst_norm", "RAT_combined_burst",
         "RAT_same_entity", "RAT_src_entity_accounts", "RAT_dst_entity_accounts",
         "RAT_src_entity_acct_norm", "RAT_dst_entity_acct_norm",
-        "RAT_src_pattern_flag", "RAT_dst_pattern_flag", "RAT_mutual_flag",
+        "RAT_mutual_flag",
         "motif_fanin", "motif_fanout", "motif_chain", "motif_cycle",
         "RAT_offender_score", "RAT_target_score", 
         "RAT_guardian_weakness_score", "RAT_score"

@@ -1,0 +1,12 @@
+# configs/datasets/slt_natural.yaml
+#
+# "base + SLT-natural" condition of the primary natural-features experiment
+# (review feedback Aug 4 2026): SLT theory features computed the normal way
+# from historical transaction data, with NO label-conditioned intensity
+# boosting at all -- this is the --dump_pristine snapshot from slt_injector.py
+# (HI-Small_Trans_SLT_pristine.csv), built into a graph the same way as any
+# other SLT-injected dataset. Mirrors rat_natural.yaml.
+dataset:
+  theory: "SLT"
+  prefix: "HI-Small_Trans_SLT_pristine"
+  requires_intensity: false
