@@ -110,6 +110,18 @@ NEEDED_COLS = [
 stamp(f"Reading header: {INPUT_PATH}")
 all_cols = pd.read_csv(INPUT_PATH, nrows=0).columns
 
+# Entity-name columns (only present on RAT/SLT-injected CSVs, added by
+# rat_injector.py/slt_injector.py's own entity merge -- "srcacct_Entity Name" /
+# "dstacct_Entity Name"). Needed to derive node-level entity_type, which
+# baseline_graph_builder.py already includes as node features but this
+# script previously did not (despite its own "NODE FEATURES (same as
+# baseline)" comment) -- that asymmetry meant baseline had 12 node features
+# while every RAT/SLT/structural_only static graph only had 6 (degree-only),
+# a real confound in the primary comparison. Included conditionally since
+# not every CSV this script can be pointed at (e.g. a bare baseline-style
+# CSV) will have these columns.
+ENTITY_NAME_COLS = [c for c in ["srcacct_Entity Name", "dstacct_Entity Name"] if c in all_cols]
+
 # theory_cols = [c for c in all_cols if c.startswith(("RAT_", "motif_", "SLT_", "STRAIN_"))]
 # theory_cols = [c for c in theory_cols if c not in {
 #     "RAT_injected","RAT_intensity_level",
@@ -141,7 +153,7 @@ def is_theory_feature(col):
 
 theory_cols = [c for c in all_cols if is_theory_feature(c)]
 
-USECOLS = NEEDED_COLS + theory_cols
+USECOLS = NEEDED_COLS + theory_cols + ENTITY_NAME_COLS
 
 DTYPES = {
     SRC_COL: "string",
@@ -155,6 +167,8 @@ DTYPES = {
     "Amount Paid": "float32",
     "Amount Received": "float32",
 }
+for _c in ENTITY_NAME_COLS:
+    DTYPES[_c] = "string"
 
 PARQUET_PATH = INPUT_PATH.replace(".csv", ".parquet")
 
@@ -204,6 +218,18 @@ def build_parquet_from_csv_cengine(csv_path: str, pq_path: str):
     stamp(f"Parquet built: {rows:,} rows in {time.time() - t0:.1f}s")
 
 # --- Load path: prefer parquet, build it if missing ---
+# Guard against a STALE cache: if a .parquet from a previous run of this
+# script (e.g. before ENTITY_NAME_COLS was added to USECOLS) exists but is
+# missing columns this run needs, pd.read_parquet(columns=USECOLS) below
+# would raise -- rebuild instead of failing confusingly.
+if os.path.exists(PARQUET_PATH):
+    _existing_pq_cols = set(pq.ParquetFile(PARQUET_PATH).schema.names)
+    _missing = [c for c in USECOLS if c not in _existing_pq_cols]
+    if _missing:
+        stamp(f"Existing parquet cache is missing columns {_missing} "
+              f"(stale, built by an older version of this script) -- rebuilding.")
+        os.remove(PARQUET_PATH)
+
 if not os.path.exists(PARQUET_PATH):
     build_parquet_from_csv_cengine(INPUT_PATH, PARQUET_PATH)
 
@@ -392,10 +418,53 @@ node_df["log_out_degree"] = np.log1p(out_deg)
 node_df["log_in_degree"]  = np.log1p(in_deg)
 node_df["log_total_degree"] = np.log1p(node_df["total_degree"])
 
-x = node_df[[
+DEGREE_COLS = [
     "out_degree", "in_degree", "total_degree",
-    "log_out_degree", "log_in_degree", "log_total_degree"
-]].values.astype(np.float32)
+    "log_out_degree", "log_in_degree", "log_total_degree",
+]
+
+if ENTITY_NAME_COLS:
+    # Same entity-type derivation as motif_dyrep_graph_builder.py, so
+    # static and DyRep graphs carry equivalent node features, and so this
+    # matches baseline_graph_builder.py's 6-degree + entity-type-dummies
+    # node feature shape instead of being degree-only.
+    def parse_entity_type(entity_name):
+        if not isinstance(entity_name, str) or pd.isna(entity_name):
+            return "Unknown"
+        if "#" in entity_name:
+            return entity_name.split("#")[0].strip()
+        parts = entity_name.split()
+        if len(parts) <= 1:
+            return entity_name.strip()
+        return " ".join(parts[:-1]).strip()
+
+    src_entity_map = (
+        df.groupby(SRC_COL)["srcacct_Entity Name"]
+        .apply(lambda s: s.mode()[0] if len(s.mode()) > 0 else "Unknown")
+        .to_dict()
+    ) if "srcacct_Entity Name" in df.columns else {}
+
+    dst_entity_map = (
+        df.groupby(DST_COL)["dstacct_Entity Name"]
+        .apply(lambda s: s.mode()[0] if len(s.mode()) > 0 else "Unknown")
+        .to_dict()
+    ) if "dstacct_Entity Name" in df.columns else {}
+
+    def get_entity_name(acct):
+        return src_entity_map.get(acct, dst_entity_map.get(acct, "Unknown"))
+
+    node_df["entity_name"] = node_df["acct"].apply(get_entity_name)
+    node_df["entity_type"] = node_df["entity_name"].apply(parse_entity_type)
+
+    ent_dummies = pd.get_dummies(node_df["entity_type"], prefix="ent")
+    stamp(f"Entity types found: {list(ent_dummies.columns)}")
+
+    node_feat_df = pd.concat([node_df[DEGREE_COLS], ent_dummies], axis=1)
+    x = node_feat_df.values.astype(np.float32)
+else:
+    stamp("No entity-name columns available on this dataset -- node features "
+          "are degree-only (this dataset can't carry entity-type info).")
+    x = node_df[DEGREE_COLS].values.astype(np.float32)
 
 del df
 gc.collect()
