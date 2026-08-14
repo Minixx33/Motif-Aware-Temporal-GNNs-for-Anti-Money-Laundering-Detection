@@ -238,10 +238,28 @@ def parse_entity_type(entity_name: str) -> str:
     return " ".join(parts[:-1]).strip()
 
 df_acct["entity_type"] = df_acct["Entity Name"].apply(parse_entity_type)
-acct_meta = df_acct.set_index("Account Number")[["entity_type"]]
+
+# The real accounts file can have duplicate 'Account Number' values (see the
+# identical fix in rat_injector.py/slt_injector.py/baseline_graph_builder.py,
+# found from the exact same crash on real data). node_df has exactly
+# num_nodes rows; if acct_meta's index has duplicates, this join silently
+# duplicates node_df rows for any account with >1 match, desyncing
+# node_features.pt's row count from num_nodes. Deduplicate so the join can
+# only ever be many-to-one.
+_n_acct_before = len(df_acct)
+_acct_meta_src = df_acct.drop_duplicates(subset=["Account Number"], keep="first")
+if len(_acct_meta_src) < _n_acct_before:
+    print(f"[accounts] Dropped {_n_acct_before - len(_acct_meta_src)} duplicate "
+          f"'Account Number' rows (keeping first) so the node entity join "
+          f"can't change node_df's row count.")
+acct_meta = _acct_meta_src.set_index("Account Number")[["entity_type"]]
 
 node_df = node_df.join(acct_meta, on="acct")
 node_df["entity_type"] = node_df["entity_type"].fillna("Unknown")
+assert len(node_df) == num_nodes, (
+    f"node_df grew from {num_nodes} to {len(node_df)} rows after the entity "
+    f"join -- duplicate-account dedup above should have prevented this."
+)
 
 ent_dummies = pd.get_dummies(node_df["entity_type"], prefix="ent")
 

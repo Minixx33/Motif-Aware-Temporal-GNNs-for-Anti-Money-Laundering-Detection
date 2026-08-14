@@ -360,8 +360,26 @@ node_df["log_total_degree"] = np.log1p(node_df["total_degree"])
 df_acct[ACC_ACCT_COL] = df_acct[ACC_ACCT_COL].astype(str)
 df_acct["entity_type"] = df_acct[ACC_ENTITY_NAME_COL].apply(parse_entity_type)
 
-acct_meta = df_acct.set_index(ACC_ACCT_COL)[["entity_type"]]
+# The real accounts file can have duplicate ACC_ACCT_COL values (this ID
+# isn't necessarily globally unique across banks in this dataset -- see the
+# identical fix in rat_injector.py/slt_injector.py, found from the exact
+# same crash on real data). node_df has exactly num_nodes rows (one per
+# unique account); if acct_meta's index has duplicates, this join silently
+# duplicates node_df rows for any account with >1 match, desyncing
+# node_features.pt's row count from num_nodes / edge_index.pt's node ids.
+# Deduplicate so the join can only ever be many-to-one.
+_n_acct_before = len(df_acct)
+_acct_meta_src = df_acct.drop_duplicates(subset=[ACC_ACCT_COL], keep="first")
+if len(_acct_meta_src) < _n_acct_before:
+    print(f"[accounts] Dropped {_n_acct_before - len(_acct_meta_src)} duplicate "
+          f"'{ACC_ACCT_COL}' rows (keeping first) so the node entity join can't "
+          f"change node_df's row count.")
+acct_meta = _acct_meta_src.set_index(ACC_ACCT_COL)[["entity_type"]]
 node_df = node_df.join(acct_meta, on="acct")
+assert len(node_df) == num_nodes, (
+    f"node_df grew from {num_nodes} to {len(node_df)} rows after the entity "
+    f"join -- duplicate-account dedup above should have prevented this."
+)
 
 node_df["entity_type"] = node_df["entity_type"].fillna("Unknown")
 ent_dummies = pd.get_dummies(node_df["entity_type"], prefix="ent")
