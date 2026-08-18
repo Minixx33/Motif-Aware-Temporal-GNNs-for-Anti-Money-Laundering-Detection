@@ -1,0 +1,62 @@
+
+================================================================================
+Logging started at: 2026-08-18 15:52:01.276873
+Log file: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_pristine_structural_only\seed3_causal_leakfix_v1\dyrep\seed3_causal_leakfix_v1_20260818_155201.txt
+================================================================================
+
+[INFO] Logging to: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_pristine_structural_only\seed3_causal_leakfix_v1\dyrep\seed3_causal_leakfix_v1_20260818_155201.txt
+================================================================================
+EXPERIMENT CONFIG SUMMARY
+================================================================================
+
+[DATASET]
+  Name:       HI-Small_Trans_RAT_pristine_structural_only
+  Theory:     structural
+  Intensity:  None
+
+[MODEL]
+  DyRep
+  Hidden dim: 128
+
+[PATHS]
+  Graphs:     C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs\HI-Small_Trans_RAT_pristine_structural_only
+  Splits:     C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits\HI-Small_Trans_RAT_pristine_structural_only
+  Results:    C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_pristine_structural_only\seed3_causal_leakfix_v1\dyrep
+  Logs:       C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_pristine_structural_only\seed3_causal_leakfix_v1\dyrep
+================================================================================
+
+[DEVICE] cuda
+
+[INFO] Using default graph directory: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs_dyrep\HI-Small_Trans_RAT_pristine_structural_only
+
+======= DYREP-STYLE EVENT MODEL TRAINING (FP32) =======
+Graph folder:    C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs_dyrep\HI-Small_Trans_RAT_pristine_structural_only
+Splits folder:   C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits_dyrep\HI-Small_Trans_RAT_pristine_structural_only
+Results folder:  C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_pristine_structural_only\seed3_causal_leakfix_v1\dyrep
+Batch size:      8192
+Eval batch size: 16384
+Device:          cuda
+=======================================================
+
+Num nodes:        515,080
+Num events/edges: 5,078,345
+Node feat dim:    12
+Edge feat dim:    16
+Event types:      7
+
+Split sizes:
+  Train: 3,047,007
+  Val:   1,015,669
+  Test:  1,015,669
+
+pos_weight (train) = 100.000
+
+Starting training for up to 350 epochs (starting at epoch 1)...
+
+Epoch 001 | train_loss=5.7732 val_loss=0.6395 P=0.028 R=0.610 F1=0.054 ROC-AUC=0.859 AUPR=0.022 time=16.73s
+Epoch 002 | train_loss=0.4695 val_loss=0.1845 P=0.054 R=0.145 F1=0.078 ROC-AUC=0.934 AUPR=0.030 time=16.39s
+Epoch 003 | train_loss=0.3349 val_loss=0.7670 P=0.047 R=0.176 F1=0.075 ROC-AUC=0.866 AUPR=0.032 time=16.21s
+Epoch 004 | train_loss=0.4913 val_loss=0.4267 P=0.075 R=0.209 F1=0.110 ROC-AUC=0.897 AUPR=0.051 time=16.19s
+Epoch 005 | train_loss=0.3625 val_loss=0.3654 P=0.073 R=0.215 F1=0.109 ROC-AUC=0.902 AUPR=0.046 time=16.66s
+Epoch 006 | train_loss=0.3198 val_loss=0.1588 P=0.089 R=0.201 F1=0.123 ROC-AUC=0.961 AUPR=0.051 time=17.14s
+Epoch 007 | train_loss=0.2501 val_loss=2.1823 P=0.085 R=0.164 F1=0.112 ROC-AUC=0.859 AUPR=0.048 time=16.85s
