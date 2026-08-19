@@ -1,0 +1,159 @@
+
+================================================================================
+Logging started at: 2026-08-18 18:03:45.392906
+Log file: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_pristine\seed2_causal_leakfix_v1\graphsage\seed2_causal_leakfix_v1_20260818_180345.txt
+================================================================================
+
+[INFO] Logging to: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_pristine\seed2_causal_leakfix_v1\graphsage\seed2_causal_leakfix_v1_20260818_180345.txt
+================================================================================
+EXPERIMENT CONFIG SUMMARY
+================================================================================
+
+[DATASET]
+  Name:       HI-Small_Trans_SLT_pristine
+  Theory:     SLT
+  Intensity:  None
+
+[MODEL]
+  GraphSAGE
+  Hidden dim: 128
+
+[PATHS]
+  Graphs:     C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs\HI-Small_Trans_SLT_pristine
+  Splits:     C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits\HI-Small_Trans_SLT_pristine
+  Results:    C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_pristine\seed2_causal_leakfix_v1\graphsage
+  Logs:       C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_pristine\seed2_causal_leakfix_v1\graphsage
+================================================================================
+
+[DEVICE] cuda
+
+
+======================================================================
+GPU Mini-Batch Training (GraphSAGE Stable)
+======================================================================
+Train batch size: 8192
+Eval batch size:  16384
+Mixed Precision:  False (disabled)
+Device:           cuda
+======================================================================
+
+Loading graph tensors...
+Nodes: 515,080, Edges: 5,078,345
+Node features: 12, Edge features: 52
+Train: 3,047,007, Val: 1,015,669, Test: 1,015,669
+Message-passing graph: 3,047,007 train edges (of 5,078,345 total) -- val/test edges never seen by the encoder.
+pos_weight: 100.00
+[RESUME] Found checkpoint: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_pristine\seed2_causal_leakfix_v1\graphsage\checkpoint.pt
+[RESUME] WARNING: could not fully restore RNG state (RNG state must be a torch.ByteTensor)
+[RESUME] Resuming from epoch 350 (best_val=0.3220541897621291, best_epoch=335, patience=15)
+[RESUME] Checkpoint already completed 350 epochs; skipping training loop.
+
+Starting training for 350 epochs (starting at epoch 351)...
+
+
+Total training time: 0.00s (0.0 min)
+
+Loading best model from epoch 335...
+Evaluating on train/val/test...
+======================================================================
+EVALUATION RESULTS: seed2_causal_leakfix_v1 TRAIN
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.3898
+  Recall:           0.3770
+  F1-Score:         0.3833
+  ROC-AUC:          0.9872
+  AUPR:             0.3479
+  Balanced Acc:     0.6882
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.3827
+  Cohen Kappa:      0.3827
+  Specificity:      0.9994
+
+THRESHOLD: 0.936
+
+CONFUSION MATRIX:
+  True Negatives:   3042068
+  False Positives:  1833
+  False Negatives:  1935
+  True Positives:   1171
+
+TOP-K PRECISION:
+  precision_at_100: 0.9700
+  precision_at_500: 0.8200
+  precision_at_1000: 0.6530
+======================================================================
+======================================================================
+EVALUATION RESULTS: seed2_causal_leakfix_v1 VAL
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.4510
+  Recall:           0.3021
+  F1-Score:         0.3618
+  ROC-AUC:          0.9849
+  AUPR:             0.3221
+  Balanced Acc:     0.6509
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.3686
+  Cohen Kappa:      0.3613
+  Specificity:      0.9996
+
+THRESHOLD: 0.956
+
+CONFUSION MATRIX:
+  True Negatives:   1014252
+  False Positives:  381
+  False Negatives:  723
+  True Positives:   313
+
+TOP-K PRECISION:
+  precision_at_100: 0.8700
+  precision_at_500: 0.5340
+  precision_at_1000: 0.3530
+======================================================================
+======================================================================
+EVALUATION RESULTS: seed2_causal_leakfix_v1 TEST
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.4882
+  Recall:           0.2609
+  F1-Score:         0.3401
+  ROC-AUC:          0.9817
+  AUPR:             0.2892
+  Balanced Acc:     0.6303
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.3564
+  Cohen Kappa:      0.3396
+  Specificity:      0.9997
+
+THRESHOLD: 0.965
+
+CONFUSION MATRIX:
+  True Negatives:   1014351
+  False Positives:  283
+  False Negatives:  765
+  True Positives:   270
+
+TOP-K PRECISION:
+  precision_at_100: 0.8300
+  precision_at_500: 0.5240
+  precision_at_1000: 0.3360
+======================================================================
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_causal_leakfix_v1 (final)] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_SLT_pristine\seed2_causal_leakfix_v1\graphsage -> gdrive:AML_project_results/results/HI-Small_Trans_SLT_pristine/seed2_causal_leakfix_v1/graphsage
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed2_causal_leakfix_v1 (final)] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_SLT_pristine\seed2_causal_leakfix_v1\graphsage -> gdrive:AML_project_results/logs/HI-Small_Trans_SLT_pristine/seed2_causal_leakfix_v1/graphsage
+
+======================================================================
+Training Complete!
+======================================================================
+
+================================================================================
+Logging ended at: 2026-08-18 18:04:40.547022
+================================================================================

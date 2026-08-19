@@ -1,0 +1,159 @@
+
+================================================================================
+Logging started at: 2026-08-18 18:12:52.686596
+Log file: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans\seed3_causal_leakfix_v1\graphsage\seed3_causal_leakfix_v1_20260818_181252.txt
+================================================================================
+
+[INFO] Logging to: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans\seed3_causal_leakfix_v1\graphsage\seed3_causal_leakfix_v1_20260818_181252.txt
+================================================================================
+EXPERIMENT CONFIG SUMMARY
+================================================================================
+
+[DATASET]
+  Name:       HI-Small_Trans
+  Theory:     baseline
+  Intensity:  None
+
+[MODEL]
+  GraphSAGE
+  Hidden dim: 128
+
+[PATHS]
+  Graphs:     C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs\HI-Small_Trans
+  Splits:     C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits\HI-Small_Trans
+  Results:    C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans\seed3_causal_leakfix_v1\graphsage
+  Logs:       C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans\seed3_causal_leakfix_v1\graphsage
+================================================================================
+
+[DEVICE] cuda
+
+
+======================================================================
+GPU Mini-Batch Training (GraphSAGE Stable)
+======================================================================
+Train batch size: 8192
+Eval batch size:  16384
+Mixed Precision:  False (disabled)
+Device:           cuda
+======================================================================
+
+Loading graph tensors...
+Nodes: 515,080, Edges: 5,078,345
+Node features: 12, Edge features: 12
+Train: 3,047,007, Val: 1,015,669, Test: 1,015,669
+Message-passing graph: 3,047,007 train edges (of 5,078,345 total) -- val/test edges never seen by the encoder.
+pos_weight: 100.00
+[RESUME] Found checkpoint: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans\seed3_causal_leakfix_v1\graphsage\checkpoint.pt
+[RESUME] WARNING: could not fully restore RNG state (RNG state must be a torch.ByteTensor)
+[RESUME] Resuming from epoch 350 (best_val=0.3367255624525824, best_epoch=349, patience=1)
+[RESUME] Checkpoint already completed 350 epochs; skipping training loop.
+
+Starting training for 350 epochs (starting at epoch 351)...
+
+
+Total training time: 0.00s (0.0 min)
+
+Loading best model from epoch 349...
+Evaluating on train/val/test...
+======================================================================
+EVALUATION RESULTS: seed3_causal_leakfix_v1 TRAIN
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.4389
+  Recall:           0.3712
+  F1-Score:         0.4022
+  ROC-AUC:          0.9856
+  AUPR:             0.3583
+  Balanced Acc:     0.6854
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.4031
+  Cohen Kappa:      0.4017
+  Specificity:      0.9995
+
+THRESHOLD: 0.941
+
+CONFUSION MATRIX:
+  True Negatives:   3042427
+  False Positives:  1474
+  False Negatives:  1953
+  True Positives:   1153
+
+TOP-K PRECISION:
+  precision_at_100: 0.9700
+  precision_at_500: 0.7900
+  precision_at_1000: 0.6670
+======================================================================
+======================================================================
+EVALUATION RESULTS: seed3_causal_leakfix_v1 VAL
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.4470
+  Recall:           0.3378
+  F1-Score:         0.3848
+  ROC-AUC:          0.9833
+  AUPR:             0.3367
+  Balanced Acc:     0.6687
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.3881
+  Cohen Kappa:      0.3843
+  Specificity:      0.9996
+
+THRESHOLD: 0.946
+
+CONFUSION MATRIX:
+  True Negatives:   1014200
+  False Positives:  433
+  False Negatives:  686
+  True Positives:   350
+
+TOP-K PRECISION:
+  precision_at_100: 0.8900
+  precision_at_500: 0.5460
+  precision_at_1000: 0.3830
+======================================================================
+======================================================================
+EVALUATION RESULTS: seed3_causal_leakfix_v1 TEST
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.4161
+  Recall:           0.3092
+  F1-Score:         0.3548
+  ROC-AUC:          0.9817
+  AUPR:             0.2944
+  Balanced Acc:     0.6544
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.3581
+  Cohen Kappa:      0.3542
+  Specificity:      0.9996
+
+THRESHOLD: 0.946
+
+CONFUSION MATRIX:
+  True Negatives:   1014185
+  False Positives:  449
+  False Negatives:  715
+  True Positives:   320
+
+TOP-K PRECISION:
+  precision_at_100: 0.8000
+  precision_at_500: 0.5280
+  precision_at_1000: 0.3540
+======================================================================
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed3_causal_leakfix_v1 (final)] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans\seed3_causal_leakfix_v1\graphsage -> gdrive:AML_project_results/results/HI-Small_Trans/seed3_causal_leakfix_v1/graphsage
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed3_causal_leakfix_v1 (final)] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans\seed3_causal_leakfix_v1\graphsage -> gdrive:AML_project_results/logs/HI-Small_Trans/seed3_causal_leakfix_v1/graphsage
+
+======================================================================
+Training Complete!
+======================================================================
+
+================================================================================
+Logging ended at: 2026-08-18 18:13:49.831569
+================================================================================

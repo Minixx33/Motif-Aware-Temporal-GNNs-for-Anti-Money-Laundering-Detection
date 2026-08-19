@@ -1,0 +1,174 @@
+
+================================================================================
+Logging started at: 2026-08-18 16:15:51.619570
+Log file: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_pristine_structural_only\seed1_causal_leakfix_v1\dyrep\seed1_causal_leakfix_v1_20260818_161551.txt
+================================================================================
+
+[INFO] Logging to: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_pristine_structural_only\seed1_causal_leakfix_v1\dyrep\seed1_causal_leakfix_v1_20260818_161551.txt
+================================================================================
+EXPERIMENT CONFIG SUMMARY
+================================================================================
+
+[DATASET]
+  Name:       HI-Small_Trans_RAT_pristine_structural_only
+  Theory:     structural
+  Intensity:  None
+
+[MODEL]
+  DyRep
+  Hidden dim: 128
+
+[PATHS]
+  Graphs:     C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs\HI-Small_Trans_RAT_pristine_structural_only
+  Splits:     C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits\HI-Small_Trans_RAT_pristine_structural_only
+  Results:    C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_pristine_structural_only\seed1_causal_leakfix_v1\dyrep
+  Logs:       C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_pristine_structural_only\seed1_causal_leakfix_v1\dyrep
+================================================================================
+
+[DEVICE] cuda
+
+[INFO] Using default graph directory: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs_dyrep\HI-Small_Trans_RAT_pristine_structural_only
+
+======= DYREP-STYLE EVENT MODEL TRAINING (FP32) =======
+Graph folder:    C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\graphs_dyrep\HI-Small_Trans_RAT_pristine_structural_only
+Splits folder:   C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\splits_dyrep\HI-Small_Trans_RAT_pristine_structural_only
+Results folder:  C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_pristine_structural_only\seed1_causal_leakfix_v1\dyrep
+Batch size:      8192
+Eval batch size: 16384
+Device:          cuda
+=======================================================
+
+Num nodes:        515,080
+Num events/edges: 5,078,345
+Node feat dim:    12
+Edge feat dim:    16
+Event types:      7
+
+Split sizes:
+  Train: 3,047,007
+  Val:   1,015,669
+  Test:  1,015,669
+
+pos_weight (train) = 100.000
+[RESUME] Found checkpoint: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_pristine_structural_only\seed1_causal_leakfix_v1\dyrep\checkpoint.pt
+[RESUME] WARNING: could not fully restore RNG state (RNG state must be a torch.ByteTensor)
+[RESUME] Resuming from epoch 71 (best_val=0.2693020133615858, best_epoch=56, patience=15)
+
+Starting training for up to 350 epochs (starting at epoch 72)...
+
+Epoch 072 | train_loss=0.0872 val_loss=0.1600 P=0.570 R=0.188 F1=0.282 ROC-AUC=0.962 AUPR=0.213 time=16.32s
+
+Early stopping at epoch 72 (no val AUPR improvement for 15 epochs)
+
+Total training time: 17.47s (0.3 min)
+
+Loading best model from epoch 56...
+Evaluating final model on train/val/test...
+======================================================================
+EVALUATION RESULTS: seed1_causal_leakfix_v1 TRAIN
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.8172
+  Recall:           0.7781
+  F1-Score:         0.7971
+  ROC-AUC:          0.9884
+  AUPR:             0.7549
+  Balanced Acc:     0.8890
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.7972
+  Cohen Kappa:      0.7970
+  Specificity:      0.9999
+
+THRESHOLD: 0.970
+
+CONFUSION MATRIX:
+  True Negatives:   3044309
+  False Positives:  400
+  False Negatives:  510
+  True Positives:   1788
+
+TOP-K PRECISION:
+  precision_at_100: 0.9800
+  precision_at_500: 0.9500
+  precision_at_1000: 0.9040
+======================================================================
+======================================================================
+EVALUATION RESULTS: seed1_causal_leakfix_v1 VAL
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.5196
+  Recall:           0.2329
+  F1-Score:         0.3216
+  ROC-AUC:          0.9746
+  AUPR:             0.2693
+  Balanced Acc:     0.6163
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.3474
+  Cohen Kappa:      0.3212
+  Specificity:      0.9998
+
+THRESHOLD: 0.970
+
+CONFUSION MATRIX:
+  True Negatives:   1014354
+  False Positives:  233
+  False Negatives:  830
+  True Positives:   252
+
+TOP-K PRECISION:
+  precision_at_100: 0.8700
+  precision_at_500: 0.5080
+  precision_at_1000: 0.3170
+======================================================================
+======================================================================
+EVALUATION RESULTS: seed1_causal_leakfix_v1 TEST
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.2648
+  Recall:           0.2732
+  F1-Score:         0.2690
+  ROC-AUC:          0.9751
+  AUPR:             0.2001
+  Balanced Acc:     0.6359
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.2677
+  Cohen Kappa:      0.2677
+  Specificity:      0.9987
+
+THRESHOLD: 0.956
+
+CONFUSION MATRIX:
+  True Negatives:   1012509
+  False Positives:  1363
+  False Negatives:  1306
+  True Positives:   491
+
+TOP-K PRECISION:
+  precision_at_100: 0.7300
+  precision_at_500: 0.4540
+  precision_at_1000: 0.3360
+======================================================================
+
+Saving results...
+  - Saved metrics to: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_pristine_structural_only\seed1_causal_leakfix_v1\dyrep\metrics.json
+  - Saved prediction probabilities
+  - Saved experiment config
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] WARNING: rclone sync failed for C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_pristine_structural_only\seed1_causal_leakfix_v1\dyrep -> gdrive:AML_project_results/results/HI-Small_Trans_RAT_pristine_structural_only/seed1_causal_leakfix_v1/dyrep: Command '['C:\\Users\\g00084287\\.conda\\envs\\aml_project\\bin\\rclone.EXE', 'sync', 'C:\\Github\\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\\results\\HI-Small_Trans_RAT_pristine_structural_only\\seed1_causal_leakfix_v1\\dyrep', 'gdrive:AML_project_results/results/HI-Small_Trans_RAT_pristine_structural_only/seed1_causal_leakfix_v1/dyrep', '--create-empty-src-dirs', '-q']' timed out after 600 seconds
+[DRIVE SYNC] WARNING: configured rclone_path not found: C:\Users\g00084287\AppData\Local\miniconda3\envs\aml_project\bin\rclone.exe
+[DRIVE SYNC] [seed1_causal_leakfix_v1 (final)] C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\logs\HI-Small_Trans_RAT_pristine_structural_only\seed1_causal_leakfix_v1\dyrep -> gdrive:AML_project_results/logs/HI-Small_Trans_RAT_pristine_structural_only/seed1_causal_leakfix_v1/dyrep
+
+======================================================================
+DyRep-style Training Complete!
+Results saved to: C:\Github\Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection\results\HI-Small_Trans_RAT_pristine_structural_only\seed1_causal_leakfix_v1\dyrep
+======================================================================
+
+================================================================================
+Logging ended at: 2026-08-18 16:26:57.809958
+================================================================================
