@@ -106,6 +106,18 @@ DATASETS=(
     "structural_only|configs/datasets/structural_only.yaml|"
     "rat_natural|configs/datasets/rat_natural.yaml|"
     "slt_natural|configs/datasets/slt_natural.yaml|"
+    # 5th condition (Sept 21 2026 review): slt_natural never carried the
+    # motif_* structural features the way rat_natural does (RAT's injector
+    # computes them regardless of intensity; SLT's never did), so
+    # slt_natural vs. structural_only wasn't an apples-to-apples "theory
+    # vs. structure" comparison. This condition splices motif_* into SLT's
+    # edge_attr so it can be compared against structural_only the same way
+    # rat_natural already can. Build it BEFORE including this line, via:
+    #   python scripts/analysis/build_slt_plus_structural_graph.py
+    #   python scripts/create_splits.py --graph_folder graphs/HI-Small_Trans_SLT_pristine_plus_structural
+    #   python scripts/analysis/build_slt_plus_structural_graph_dyrep.py   # if running dyrep
+    #   python scripts/create_splits.py --graph_folder graphs_dyrep/HI-Small_Trans_SLT_pristine_plus_structural
+    "slt_plus_structural|configs/datasets/slt_plus_structural.yaml|"
 )
 
 # One line per model: "name|training_script|model_config".

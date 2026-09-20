@@ -1,0 +1,15 @@
+# configs/datasets/slt_plus_structural.yaml
+#
+# "base + structural + SLT-natural" condition (Sept 21 2026 review): fixes
+# the asymmetry where rat_natural already carries the motif_* structural
+# features (RAT's own injector computes them) but slt_natural never did.
+# Built by scripts/analysis/build_slt_plus_structural_graph.py, which
+# splices motif_fanin/fanout/chain/cycle from HI-Small_Trans_RAT_pristine
+# into HI-Small_Trans_SLT_pristine's edge_attr (same underlying
+# transactions, verified row-aligned before splicing). This lets SLT be
+# compared against structural_only on equal footing, the same way
+# rat_natural already can.
+dataset:
+  theory: "SLT"
+  prefix: "HI-Small_Trans_SLT_pristine_plus_structural"
+  requires_intensity: false
