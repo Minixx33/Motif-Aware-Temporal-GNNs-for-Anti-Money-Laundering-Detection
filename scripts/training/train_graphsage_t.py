@@ -46,11 +46,27 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 # Time Encoding (TGAT sinusoidal)
 # -----------------------------------------------------------
 
-def build_sinusoidal_time_encoding(timestamps, time_dim=16):
+def build_sinusoidal_time_encoding(timestamps, time_dim=16, fit_idx=None):
+    """
+    fit_idx: if given, compute the min/max used to normalize timestamps
+    from timestamps[fit_idx] only (pass train_idx), then apply that same
+    linear rescaling to every timestamp. Without this, min/max were being
+    taken over ALL edges (train+val+test), which is a mild point-in-time
+    violation -- the normalization constant technically depends on the
+    test period's date range. Doesn't leak label info and applies
+    identically across every condition, but fixing it costs nothing.
+    Default (None) keeps the old full-dataset behavior for callers that
+    don't have a split handy (e.g. reproducing an older checkpoint's exact
+    inputs).
+    """
     assert time_dim % 2 == 0
 
     ts = timestamps.float()
-    t_min, t_max = ts.min(), ts.max()
+    if fit_idx is not None:
+        fit_ts = ts[fit_idx]
+        t_min, t_max = fit_ts.min(), fit_ts.max()
+    else:
+        t_min, t_max = ts.min(), ts.max()
 
     if t_max > t_min:
         ts_norm = (ts - t_min) / (t_max - t_min)
@@ -179,7 +195,7 @@ def run_epoch_minibatch(
 def evaluate_minibatch(
     model, loss_fn,
     x, edge_index, train_edge_index, feat, y, split_idx,
-    batch_size, device, eval_cfg
+    batch_size, device, eval_cfg, override_threshold=None
 ):
     # Same train_edge_index restriction as training (see note above) -- val
     # and test edges are scored using embeddings built ONLY from train-split
@@ -207,13 +223,20 @@ def evaluate_minibatch(
     all_probs = np.concatenate(all_probs)
     labels = y[split_idx].cpu().numpy()
 
+    if override_threshold is not None:
+        threshold_kwargs = dict(threshold=override_threshold, auto_threshold=False)
+    else:
+        threshold_kwargs = dict(
+            threshold=eval_cfg.get("threshold", 0.5),
+            auto_threshold=eval_cfg.get("auto_threshold", True),
+        )
+
     metrics = evaluate_binary_classifier(
         labels, all_probs,
-        threshold=eval_cfg.get("threshold", 0.5),
-        auto_threshold=eval_cfg.get("auto_threshold", True),
         compute_top_k=eval_cfg.get("compute_top_k", True),
         k_values=eval_cfg.get("top_k_values", [100, 500, 1000]),
-        verbose=False
+        verbose=False,
+        **threshold_kwargs,
     )
 
     avg_loss = total_loss / max(steps, 1)
@@ -277,14 +300,16 @@ def main():
     y_edge = torch.load(f"{graph}/y_edge.pt").to(device)
     timestamps = torch.load(f"{graph}/timestamps.pt").to(device)
 
-    time_dim = model_cfg["model"].get("time_dim", 16)
-    time_enc = build_sinusoidal_time_encoding(timestamps, time_dim)
-    feat = torch.cat([edge_attr, time_enc], dim=1)
-
     split_folder = paths["split_folder"]
     train_idx = torch.load(f"{split_folder}/train_edge_idx.pt").to(device)
     val_idx = torch.load(f"{split_folder}/val_edge_idx.pt").to(device)
     test_idx = torch.load(f"{split_folder}/test_edge_idx.pt").to(device)
+
+    # Normalize timestamps using train-split min/max only (see
+    # build_sinusoidal_time_encoding's docstring) -- point-in-time fix.
+    time_dim = model_cfg["model"].get("time_dim", 16)
+    time_enc = build_sinusoidal_time_encoding(timestamps, time_dim, fit_idx=train_idx)
+    feat = torch.cat([edge_attr, time_enc], dim=1)
 
     # Point-in-time message-passing graph: train-split edges only. Used for
     # every model.encode() call (training AND val/test evaluation) so a
@@ -438,9 +463,13 @@ def main():
         model, loss_fn, x, edge_index, train_edge_index, feat, y_edge,
         val_idx, eval_batch_size, device, eval_cfg
     )
+    # Reuse val's auto-selected threshold for test instead of letting test
+    # auto-pick its own -- see evaluate_minibatch's docstring / evaluation
+    # methodology note above.
     test_m, test_p, _ = evaluate_minibatch(
         model, loss_fn, x, edge_index, train_edge_index, feat, y_edge,
-        test_idx, eval_batch_size, device, eval_cfg
+        test_idx, eval_batch_size, device, eval_cfg,
+        override_threshold=val_m["threshold"],
     )
 
     print_metrics(train_m, experiment_name + " TRAIN")

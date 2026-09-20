@@ -145,10 +145,14 @@ def main():
     b_edge_attr = b_edge_attr.to(device)
     p_edge_attr = p_edge_attr.to(device)
 
-    time_enc = build_sinusoidal_time_encoding(timestamps, args.time_dim)
-    feat_boosted = torch.cat([b_edge_attr, time_enc], dim=1)
-
+    train_idx = torch.load(os.path.join(split_dir, "train_edge_idx.pt")).to(device)
     test_idx = torch.load(os.path.join(split_dir, "test_edge_idx.pt")).to(device)
+
+    # Train-split-only min/max for the time normalization constant, matching
+    # the point-in-time fix in train_graphsage_t.py -- must match whatever
+    # the checkpoint being loaded was actually trained with.
+    time_enc = build_sinusoidal_time_encoding(timestamps, args.time_dim, fit_idx=train_idx)
+    feat_boosted = torch.cat([b_edge_attr, time_enc], dim=1)
 
     # Identical to the boosted feat matrix everywhere EXCEPT the test-split
     # rows, where the theory/edge_attr portion is swapped for its
@@ -160,6 +164,29 @@ def main():
 
     n_pos = (y_edge[test_idx] == 1).sum().item()
     print(f"[INFO] test edges: {test_idx.numel():,} ({n_pos:,} positive / laundering)\n")
+
+    # Reuse the ORIGINAL training run's val-selected threshold rather than
+    # letting this script auto-pick its own threshold on test's own labels
+    # (that would be test-threshold leakage -- see the same fix applied in
+    # train_graphsage_t.py/train_dyrep.py/train_graphsage.py). We read it
+    # from the sibling metrics.json next to the checkpoint being loaded.
+    threshold = None
+    sibling_metrics_path = os.path.join(
+        os.path.dirname(os.path.abspath(args.model_path)), "metrics.json"
+    )
+    if os.path.exists(sibling_metrics_path):
+        with open(sibling_metrics_path) as f:
+            sibling_metrics = json.load(f)
+        threshold = sibling_metrics.get("val", {}).get("threshold")
+    if threshold is not None:
+        print(f"[INFO] Using val-selected threshold from {sibling_metrics_path}: {threshold:.4f}\n")
+    else:
+        print(
+            f"[WARN] Could not find a val threshold at {sibling_metrics_path} -- "
+            f"falling back to auto-thresholding each eval on its own (test) "
+            f"labels. Precision/recall/F1 below will be optimistically biased; "
+            f"AUPR/ROC-AUC are unaffected.\n"
+        )
 
     # ------------------------------------------------------------------
     # Model
@@ -177,7 +204,7 @@ def main():
     model.eval()
 
     @torch.no_grad()
-    def eval_on(feat, idx, batch_size):
+    def eval_on(feat, idx, batch_size, fixed_threshold=None):
         h = model.encode(x, edge_index)
         probs = []
         for start in range(0, idx.numel(), batch_size):
@@ -187,19 +214,23 @@ def main():
             probs.append(torch.sigmoid(logits).cpu().numpy())
         probs = np.concatenate(probs)
         labels = y_edge[idx].cpu().numpy()
+        if fixed_threshold is not None:
+            threshold_kwargs = dict(threshold=fixed_threshold, auto_threshold=False)
+        else:
+            threshold_kwargs = dict(threshold=0.5, auto_threshold=True)
         return evaluate_binary_classifier(
             labels, probs,
-            threshold=0.5, auto_threshold=True,
             compute_top_k=True, k_values=[100, 500, 1000],
             verbose=False,
+            **threshold_kwargs,
         )
 
     print("[1/2] Reproducing reported test metrics (original boosted feat) ...")
-    m_boosted = eval_on(feat_boosted, test_idx, args.eval_batch_size)
+    m_boosted = eval_on(feat_boosted, test_idx, args.eval_batch_size, fixed_threshold=threshold)
     print_metrics(m_boosted, f"TEST {args.theory} ({args.intensity}) -- boosted, as trained/reported")
 
     print("\n[2/2] Pristine-test robustness check (test rows de-boosted) ...")
-    m_pristine = eval_on(feat_pristine_test, test_idx, args.eval_batch_size)
+    m_pristine = eval_on(feat_pristine_test, test_idx, args.eval_batch_size, fixed_threshold=threshold)
     print_metrics(m_pristine, f"TEST {args.theory} ({args.intensity}) -- pristine (de-boosted)")
 
     print("\n" + "=" * 70)

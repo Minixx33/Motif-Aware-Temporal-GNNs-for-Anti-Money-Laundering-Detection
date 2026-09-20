@@ -90,16 +90,26 @@ from scripts.utils.checkpoint_utils import (
 # Time Encoding (same style as your GraphSAGE-T script)
 # -----------------------------------------------------------
 
-def build_sinusoidal_time_encoding(timestamps: torch.Tensor, time_dim: int = 16):
+def build_sinusoidal_time_encoding(timestamps: torch.Tensor, time_dim: int = 16, fit_idx=None):
     """
     Sinusoidal time encoding (TGAT-style), using normalized timestamps.
     timestamps: [E] float or long tensor (UNIX seconds)
     returns: [E, time_dim]
+
+    fit_idx: if given, compute the min/max used to normalize timestamps
+    from timestamps[fit_idx] only (pass train_idx), then apply that same
+    linear rescaling to every timestamp -- avoids fitting the normalization
+    constant on val/test-period dates. Default (None) uses all timestamps,
+    kept for callers reproducing an older checkpoint's exact inputs.
     """
     assert time_dim % 2 == 0, "time_dim must be even"
 
     ts = timestamps.float()
-    t_min, t_max = ts.min(), ts.max()
+    if fit_idx is not None:
+        fit_ts = ts[fit_idx]
+        t_min, t_max = fit_ts.min(), fit_ts.max()
+    else:
+        t_min, t_max = ts.min(), ts.max()
 
     if t_max > t_min:
         ts_norm = (ts - t_min) / (t_max - t_min)
@@ -288,7 +298,15 @@ def evaluate_minibatch(
     batch_size,
     device,
     eval_cfg,
+    override_threshold=None,
 ):
+    """
+    override_threshold: if given, use this fixed threshold instead of
+    eval_cfg's auto_threshold behavior. Used to score TEST with the
+    threshold selected on VAL, instead of letting auto_threshold pick a
+    threshold by scanning the split's own labels (which would leak test
+    labels into the decision boundary). AUPR/ROC-AUC are unaffected.
+    """
     model.eval()
     total_loss = 0.0
     steps = 0
@@ -316,14 +334,21 @@ def evaluate_minibatch(
     all_probs = np.concatenate(all_probs)
     y_true = labels[split_idx].cpu().numpy()
 
+    if override_threshold is not None:
+        threshold_kwargs = dict(threshold=override_threshold, auto_threshold=False)
+    else:
+        threshold_kwargs = dict(
+            threshold=eval_cfg.get("threshold", 0.5),
+            auto_threshold=eval_cfg.get("auto_threshold", True),
+        )
+
     metrics = evaluate_binary_classifier(
         y_true,
         all_probs,
-        threshold=eval_cfg.get("threshold", 0.5),
-        auto_threshold=eval_cfg.get("auto_threshold", True),
         compute_top_k=eval_cfg.get("compute_top_k", True),
         k_values=eval_cfg.get("top_k_values", [100, 500, 1000]),
         verbose=False,
+        **threshold_kwargs,
     )
 
     avg_loss = total_loss / max(steps, 1)
@@ -419,16 +444,17 @@ def main():
     print(f"Edge feat dim:    {edge_feat_dim}")
     print(f"Event types:      {num_event_types}")
 
-    # Precompute time encoding (global)
-    time_dim = int(model_cfg["model"].get("time_dim", 16))
-    ts_enc = build_sinusoidal_time_encoding(ts, time_dim=time_dim).to(device)  # [E,time_dim]
-
     # -------------------------------------------------------
     # Load splits (indices into events)
     # -------------------------------------------------------
     train_idx = torch.load(os.path.join(split_folder, "train_edge_idx.pt"), weights_only=False).long().to(device)
     val_idx = torch.load(os.path.join(split_folder, "val_edge_idx.pt"), weights_only=False).long().to(device)
     test_idx = torch.load(os.path.join(split_folder, "test_edge_idx.pt"), weights_only=False).long().to(device)
+
+    # Precompute time encoding, normalized using train-split min/max only
+    # (see build_sinusoidal_time_encoding's docstring) -- point-in-time fix.
+    time_dim = int(model_cfg["model"].get("time_dim", 16))
+    ts_enc = build_sinusoidal_time_encoding(ts, time_dim=time_dim, fit_idx=train_idx).to(device)  # [E,time_dim]
 
 
     print("\nSplit sizes:")
@@ -623,6 +649,8 @@ def main():
         device,
         eval_cfg,
     )
+    # Reuse val's auto-selected threshold for test instead of letting test
+    # auto-pick its own -- see evaluate_minibatch's docstring.
     test_m, test_p, _ = evaluate_minibatch(
         model,
         loss_fn,
@@ -637,6 +665,7 @@ def main():
         eval_batch_size,
         device,
         eval_cfg,
+        override_threshold=val_m["threshold"],
     )
 
     print_metrics(train_m, experiment_name + " TRAIN")

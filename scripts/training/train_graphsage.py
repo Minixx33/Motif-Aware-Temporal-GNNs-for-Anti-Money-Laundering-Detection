@@ -230,12 +230,21 @@ def evaluate_split_minibatch(
     batch_size,
     device,
     eval_cfg,
+    override_threshold=None,
 ):
     """
     Evaluate edge classifier on a given split using edge mini-batches.
     Encoder is run once in inference mode, on the train-only subgraph (see
     run_epoch_minibatch's docstring) so val/test evaluation never depends on
     val/test edges having been visible to the encoder.
+
+    override_threshold: if given, use this fixed threshold instead of
+    eval_cfg's auto_threshold behavior. Used to score TEST with the
+    threshold selected on VAL, instead of letting auto_threshold pick a
+    threshold by scanning the split's own labels -- doing that on test
+    would leak test labels into the decision boundary (precision/recall/F1
+    would be optimistically biased). AUPR/ROC-AUC are threshold-independent
+    and unaffected either way.
     """
     model.eval()
 
@@ -259,14 +268,21 @@ def evaluate_split_minibatch(
     all_probs = np.concatenate(all_probs)
     labels = y_edge[split_idx].cpu().numpy()
 
+    if override_threshold is not None:
+        threshold_kwargs = dict(threshold=override_threshold, auto_threshold=False)
+    else:
+        threshold_kwargs = dict(
+            threshold=eval_cfg.get("threshold", 0.5),
+            auto_threshold=eval_cfg.get("auto_threshold", True),
+        )
+
     metrics = evaluate_binary_classifier(
         y_true=labels,
         y_pred_probs=all_probs,
-        threshold=eval_cfg.get("threshold", 0.5),
-        auto_threshold=eval_cfg.get("auto_threshold", True),
         compute_top_k=eval_cfg.get("compute_top_k", True),
         k_values=eval_cfg.get("top_k_values", [100, 500, 1000]),
         verbose=False,
+        **threshold_kwargs,
     )
     return metrics, all_probs
 
@@ -527,6 +543,8 @@ def main():
         device,
         eval_cfg,
     )
+    # Reuse val's auto-selected threshold for test instead of letting
+    # test auto-pick its own -- see evaluate_split_minibatch's docstring.
     test_metrics, test_probs = evaluate_split_minibatch(
         model,
         x,
@@ -538,6 +556,7 @@ def main():
         eval_batch_size,
         device,
         eval_cfg,
+        override_threshold=val_metrics["threshold"],
     )
 
     print_metrics(train_metrics, model_name=f"{experiment_name} TRAIN")
