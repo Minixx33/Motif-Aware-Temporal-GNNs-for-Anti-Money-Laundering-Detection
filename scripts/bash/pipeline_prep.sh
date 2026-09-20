@@ -14,18 +14,17 @@
 # SLURM:  sbatch scripts/bash/pipeline_prep.sh
 # LOCAL:  bash scripts/bash/pipeline_prep.sh
 #
-# --gres=gpu:1 below is requested only because this cluster's "gpu" partition
-# won't schedule without a GPU allocation -- the pipeline itself is CPU-only.
-# If a CPU-only partition is available, switch to that and drop --gres.
+# Runs on the CPU partition (confirmed via `sinfo`: cpu-dy-c5-0-* nodes have
+# 8 CPUs, no GPU) -- this stage is pandas/CPU-bound, so it doesn't touch any
+# of the 3 GPUs, and can start immediately without competing with training
+# for GPU nodes.
 #
 # SLURM directives -- ignored when run with bash directly:
 #SBATCH --job-name=aml_pipeline_prep
 #SBATCH --account=acc-mialhajri
-#SBATCH --partition=gpu
-#SBATCH --qos=gpu-long-mialhajri-001
-#SBATCH --gres=gpu:1
+#SBATCH --partition=cpu
 #SBATCH --cpus-per-task=8
-#SBATCH --mem=32G
+#SBATCH --mem=14G
 #SBATCH --time=12:00:00
 #SBATCH --output=scripts/bash/logs/pipeline_prep_%j.log
 #SBATCH --error=scripts/bash/logs/pipeline_prep_%j.err
