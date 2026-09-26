@@ -78,7 +78,7 @@ INTERRUPTED=0
 NOT_STARTED=0
 INCOMPLETE_INDICES=()
 
-printf "%-4s %-10s %-38s %-12s %-6s %s\n" "IDX" "MODEL" "DATASET" "SEED" "" "STATUS"
+printf "%-4s %-10s %-15s %-45s %-8s %s\n" "IDX" "MODEL" "LABEL" "DATASET_ON_DISK" "SEED" "STATUS"
 echo "--------------------------------------------------------------------------------------------------"
 
 for i in "${!COMBOS[@]}"; do
@@ -92,7 +92,17 @@ for i in "${!COMBOS[@]}"; do
     IFS='|' read -r MODEL MODEL_SCRIPT MODEL_CONFIG <<< "$MOD_ENTRY"
     DISK_MODEL="$(disk_model_name "$MODEL")"
 
-    RESULTS_DIR="results/${DATASET}/seed${SEED}_${EXP_NAME}/${DISK_MODEL}"
+    # The results folder is named after the dataset config's "prefix" field
+    # (e.g. HI-Small_Trans_RAT_pristine), NOT the short label used above
+    # (e.g. rat_natural) -- read it straight from the yaml so this can't
+    # drift out of sync with configs/datasets/*.yaml.
+    DISK_DATASET="$(grep -m1 'prefix:' "$DATASET_CONFIG" | sed -E 's/.*prefix:[[:space:]]*"([^"]*)".*/\1/')"
+    if [ -z "$DISK_DATASET" ]; then
+        echo "WARNING: could not read prefix from $DATASET_CONFIG, falling back to '$DATASET'" >&2
+        DISK_DATASET="$DATASET"
+    fi
+
+    RESULTS_DIR="results/${DISK_DATASET}/seed${SEED}_${EXP_NAME}/${DISK_MODEL}"
 
     if [ -f "$RESULTS_DIR/metrics.json" ]; then
         STATUS="COMPLETE"
@@ -107,7 +117,7 @@ for i in "${!COMBOS[@]}"; do
         INCOMPLETE_INDICES+=("$i")
     fi
 
-    printf "%-4s %-10s %-38s %-12s %-6s %s\n" "$i" "$MODEL" "$DATASET" "seed$SEED" "" "$STATUS"
+    printf "%-4s %-10s %-15s %-45s %-8s %s\n" "$i" "$MODEL" "$DATASET" "$DISK_DATASET" "seed$SEED" "$STATUS"
 done
 
 TOTAL=${#COMBOS[@]}
