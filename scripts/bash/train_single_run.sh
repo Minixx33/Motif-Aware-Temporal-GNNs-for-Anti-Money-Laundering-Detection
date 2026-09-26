@@ -44,7 +44,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=14G
 #SBATCH --time=500:00:00
-#SBATCH --array=0-29%3
+#SBATCH --array=0-74%3
 #SBATCH --output=scripts/bash/logs/train_%A_%a.log
 #SBATCH --error=scripts/bash/logs/train_%A_%a.err
 # ===========================================================================
@@ -115,7 +115,7 @@ MODELS_ARR=(
 if [ -n "${SEEDS_LIST:-}" ]; then
     read -ra SEEDS_ARR <<< "$SEEDS_LIST"
 else
-    SEEDS_ARR=(4 5)   # seeds 1-3 already done/running under the old job split
+    SEEDS_ARR=(1 2 3 4 5)
 fi
 
 COMBOS=()
