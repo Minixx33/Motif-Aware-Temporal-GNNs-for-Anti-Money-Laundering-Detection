@@ -1,0 +1,177 @@
+Host: gpu-dy-g5-0-22
+Python: /home/g00112161/.conda/envs/aml_project/bin/python
+Python 3.10.20
+Tue Jun 16 22:57:39 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 570.86.15              Driver Version: 570.86.15      CUDA Version: 12.8     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A10G                    Off |   00000000:00:1E.0 Off |                    0 |
+|  0%   27C    P8              9W /  300W |     103MiB /  23028MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|    0   N/A  N/A            1547      G   /usr/lib/xorg/Xorg                       66MiB |
+|    0   N/A  N/A            1697      G   /usr/bin/gnome-shell                     17MiB |
++-----------------------------------------------------------------------------------------+
+[INFO] Configuration validation passed.
+[INFO] Seed set to 999
+
+================================================================================
+Logging started at: 2026-06-16 22:57:49.560747
+Log file: /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/logs/HI-Small_Trans_SLT_low/seed999_smoke_slt_low_1epoch/graphsage/seed999_smoke_slt_low_1epoch_20260616_225749.txt
+================================================================================
+
+[INFO] Logging to: /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/logs/HI-Small_Trans_SLT_low/seed999_smoke_slt_low_1epoch/graphsage/seed999_smoke_slt_low_1epoch_20260616_225749.txt
+================================================================================
+EXPERIMENT CONFIG SUMMARY
+================================================================================
+
+[DATASET]
+  Name:       HI-Small_Trans_SLT_low
+  Theory:     SLT
+  Intensity:  low
+
+[MODEL]
+  GraphSAGE
+  Hidden dim: 128
+
+[PATHS]
+  Graphs:     /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/graphs/HI-Small_Trans_SLT_low
+  Splits:     /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/splits/HI-Small_Trans_SLT_low
+  Results:    /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/results/HI-Small_Trans_SLT_low/seed999_smoke_slt_low_1epoch/graphsage
+  Logs:       /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/logs/HI-Small_Trans_SLT_low/seed999_smoke_slt_low_1epoch/graphsage
+================================================================================
+
+[DEVICE] cuda
+
+
+======================================================================
+GPU Mini-Batch Training (GraphSAGE Stable)
+======================================================================
+Train batch size: 8192
+Eval batch size:  16384
+Mixed Precision:  False (disabled)
+Device:           cuda
+======================================================================
+
+Loading graph tensors...
+Nodes: 515,080, Edges: 5,078,415
+Node features: 6, Edge features: 16
+Train: 3,047,049, Val: 1,015,683, Test: 1,015,683
+pos_weight: 100.00
+
+Starting training for 1 epochs (starting at epoch 1)...
+
+Epoch 001 | loss=48.2800 | val_F1=0.0069 | val_AUPR=0.0017 | time=41.34s
+
+Total training time: 41.44s (0.7 min)
+
+Loading best model from epoch 1...
+Evaluating on train/val/test...
+======================================================================
+EVALUATION RESULTS: seed999_smoke_slt_low_1epoch TRAIN
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.0037
+  Recall:           0.1079
+  F1-Score:         0.0071
+  ROC-AUC:          0.5747
+  AUPR:             0.0018
+  Balanced Acc:     0.5389
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.0145
+  Cohen Kappa:      0.0051
+  Specificity:      0.9700
+
+THRESHOLD: 0.463
+
+CONFUSION MATRIX:
+  True Negatives:   2952582
+  False Positives:  91361
+  False Negatives:  2771
+  True Positives:   335
+
+TOP-K PRECISION:
+  precision_at_100: 0.0000
+  precision_at_500: 0.0020
+  precision_at_1000: 0.0030
+======================================================================
+======================================================================
+EVALUATION RESULTS: seed999_smoke_slt_low_1epoch VAL
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.0035
+  Recall:           0.1515
+  F1-Score:         0.0069
+  ROC-AUC:          0.5732
+  AUPR:             0.0017
+  Balanced Acc:     0.5538
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.0168
+  Cohen Kappa:      0.0049
+  Specificity:      0.9561
+
+THRESHOLD: 0.394
+
+CONFUSION MATRIX:
+  True Negatives:   970099
+  False Positives:  44548
+  False Negatives:  879
+  True Positives:   157
+
+TOP-K PRECISION:
+  precision_at_100: 0.0000
+  precision_at_500: 0.0060
+  precision_at_1000: 0.0030
+======================================================================
+======================================================================
+EVALUATION RESULTS: seed999_smoke_slt_low_1epoch TEST
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.0032
+  Recall:           0.1498
+  F1-Score:         0.0062
+  ROC-AUC:          0.5649
+  AUPR:             0.0017
+  Balanced Acc:     0.5509
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.0152
+  Cohen Kappa:      0.0042
+  Specificity:      0.9520
+
+THRESHOLD: 0.384
+
+CONFUSION MATRIX:
+  True Negatives:   965976
+  False Positives:  48672
+  False Negatives:  880
+  True Positives:   155
+
+TOP-K PRECISION:
+  precision_at_100: 0.0000
+  precision_at_500: 0.0000
+  precision_at_1000: 0.0010
+======================================================================
+
+======================================================================
+Training Complete!
+======================================================================
+
+================================================================================
+Logging ended at: 2026-06-16 22:59:17.048581
+================================================================================
