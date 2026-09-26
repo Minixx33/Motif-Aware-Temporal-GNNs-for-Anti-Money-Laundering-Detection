@@ -19,13 +19,20 @@
 # PENDING in the queue and start automatically as running ones finish. No
 # manual job-launching or babysitting needed.
 #
-# --time=500:00:00 matches the convention already used in
-# run_rat_ablations.sh / run_slt_ablations.sh. "Multiple days per run" is a
-# rough estimate, so this is deliberately generous -- a job that finishes
-# early just ends early, it doesn't get penalized for the unused allocation.
+# --time=06:00:00: sized from REAL per-run timing pulled from the 45 already-
+# completed runs' metrics.json (total_training_time_sec) -- min 0.66h, max
+# 3.55h, mean 2.32h. 6h gives ~70% margin over the observed max. (The earlier
+# "multiple days per run" estimate was wrong -- this is measured, not guessed.)
+#
+# QoS gpu-long-mialhajri-001 has GrpSubmit=30 (max jobs submitted+pending at
+# once under that QoS; array tasks count individually) -- do NOT `sbatch` this
+# file directly with the default --array=0-74, it will be rejected the same
+# way a bare 75-task submission was. submit_full_pipeline.sh submits this in
+# 3 chained batches of 25 (afterany-dependent) to stay under that cap while
+# still respecting the 3-GPU concurrency limit via %3 within each batch.
 #
 # Usage:
-#   sbatch --dependency=afterok:<prep_jobid> scripts/bash/train_single_run.sh
+#   sbatch --dependency=afterok:<prep_jobid> --array=0-24%3 scripts/bash/train_single_run.sh
 #
 # To test with just the first few combos before committing all 75:
 #   sbatch --array=0-2 scripts/bash/train_single_run.sh
@@ -43,7 +50,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=14G
-#SBATCH --time=500:00:00
+#SBATCH --time=06:00:00
 #SBATCH --array=0-74%3
 #SBATCH --output=scripts/bash/logs/train_%A_%a.log
 #SBATCH --error=scripts/bash/logs/train_%A_%a.err
