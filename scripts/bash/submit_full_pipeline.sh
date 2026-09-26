@@ -3,10 +3,12 @@
 # submit_full_pipeline.sh
 #
 # Queues the ENTIRE process in one shot: injection -> graphs -> structural
-# conditions -> splits -> node-degree fix (pipeline_prep.sh, 1 job) -> then,
-# only once that succeeds, one SLURM job ARRAY (train_single_run.sh) with 45
-# tasks (5 datasets x 3 models x 3 seeds), throttled to 3 running at once via
-# --array=0-44%3. That throttle is what actually caps GPU usage at 3 -- your
+# conditions -> splits (chronological for ALL models, including GraphSAGE/
+# GraphSAGE-T -- see pipeline_prep.sh) -> node-degree fix (pipeline_prep.sh,
+# 1 job) -> then, only once that succeeds, one SLURM job ARRAY
+# (train_single_run.sh) with 75 tasks (5 datasets x 3 models x 5 seeds),
+# throttled to 3 running at once via --array=0-74%3. That throttle is what
+# actually caps GPU usage at 3 -- your
 # account's 3-GPU limit isn't QoS-enforced, so SLURM won't stop you from
 # submitting more than 3 concurrently unless something like %3 tells it to.
 # The training array literally cannot start until prep finishes (SLURM
@@ -38,7 +40,7 @@ PREP_JOBID=$(sbatch --parsable scripts/bash/pipeline_prep.sh)
 echo "  prep job id: $PREP_JOBID"
 
 echo ""
-echo "=== Submitting training job array (45 tasks, 3 running at a time) ==="
+echo "=== Submitting training job array (75 tasks, 3 running at a time) ==="
 
 TRAIN_JOBID=$(sbatch --parsable \
     --dependency=afterok:"$PREP_JOBID" \
