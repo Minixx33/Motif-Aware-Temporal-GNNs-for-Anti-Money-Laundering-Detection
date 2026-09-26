@@ -2,6 +2,12 @@
 # ===========================================================================
 # train_condition_group.sh
 #
+# SUPERSEDED (Sept 22 2026): bundling up to 18 sequential runs into one job
+# with --time=48:00:00 doesn't work once a single run takes multiple days --
+# see scripts/bash/train_single_run.sh, which runs one (dataset, model, seed)
+# per SLURM array task instead. submit_full_pipeline.sh now uses that.
+# Left here for reference only; not called by anything.
+#
 # Thin SLURM wrapper around run_all.sh (which has no SBATCH header of its
 # own) -- trains whatever DATASETS_ONLY/MODELS_ONLY/SEEDS you pass as env
 # vars, on ONE GPU. Submit this 3 times with disjoint DATASETS_ONLY values

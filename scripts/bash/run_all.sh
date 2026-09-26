@@ -70,7 +70,7 @@ python --version
 BASE_CONFIG="configs/base.yaml"
 [ -f "$BASE_CONFIG" ] || { echo "ERROR: missing $BASE_CONFIG"; exit 1; }
 
-SEEDS="${SEEDS:-1 2 3}"
+SEEDS="${SEEDS:-1 2 3 4 5}"
 
 # One line per dataset: "name|dataset_config|intensity".
 # Comment a line out (put # in front) to skip that dataset.
