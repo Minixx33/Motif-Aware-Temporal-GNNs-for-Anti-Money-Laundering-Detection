@@ -153,7 +153,13 @@ log ""
 log ">>> [$(date +%H:%M:%S)] PHASE 4: splits"
 t0=$(date +%s)
 for d in "${DATASET_NAMES[@]}"; do
-    python scripts/create_splits.py --graph_folder "graphs/$d"
+    # --split_mode chronological + explicit --out_dir: without --out_dir,
+    # create_splits.py would write chronological splits to a sibling
+    # "<name>_chrono" folder instead of "splits/<name>", which is NOT where
+    # config_utils.py's build_paths() looks -- training would silently keep
+    # reading the old random split. Explicit --out_dir writes the correct
+    # split method directly into the path training actually uses.
+    python scripts/create_splits.py --graph_folder "graphs/$d" --split_mode chronological --out_dir "splits/$d"
     python scripts/create_splits.py --graph_folder "graphs_dyrep/$d"
 done
 log ">>> done in $(elapsed $(($(date +%s) - t0)))"
