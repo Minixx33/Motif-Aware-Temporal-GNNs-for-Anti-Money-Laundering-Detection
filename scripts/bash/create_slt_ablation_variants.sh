@@ -26,15 +26,21 @@
 # LOCAL:  bash create_slt_ablation_variants.sh   (runs the 4 non-current variants)
 # SLURM:  sbatch create_slt_ablation_variants.sh (parallel jobs, one per variant)
 #
+# This does pandas/CPU-bound preprocessing only (injection, graph building,
+# splitting, degree-fix) -- no GPU op anywhere in slt_injector.py or
+# motif_graph_builder_static.py -- so it runs on the cpu partition, like
+# pipeline_prep.sh. It previously requested --partition=gpu with
+# --qos=gpu-long-mialhajri-001, which wasted a GPU allocation for no reason
+# AND competed with actual training jobs for that QoS's 30-job submit cap
+# (the same GrpSubmitJobsLimit error hit during the primary experiment).
+#
 # SLURM directives — ignored when run with bash directly:
 #SBATCH --job-name=slt_create_variants
 #SBATCH --account=acc-mialhajri
-#SBATCH --partition=gpu
-#SBATCH --qos=gpu-long-mialhajri-001
+#SBATCH --partition=cpu
 #SBATCH --array=0-4
-#SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
-#SBATCH --time=500:00:00
+#SBATCH --time=12:00:00
 #SBATCH --output=scripts/bash/logs/slt_create_%A_%a.log
 #SBATCH --error=scripts/bash/logs/slt_create_%A_%a.err
 # ===========================================================================

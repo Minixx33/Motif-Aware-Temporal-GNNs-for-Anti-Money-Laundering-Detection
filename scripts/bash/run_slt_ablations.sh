@@ -2,18 +2,19 @@
 # ===========================================================================
 # run_slt_ablations.sh
 #
-# Runs GraphSAGE-T training with 5 seeds for every SLT ablation variant
-# across all 3 intensities (low / medium / high).
+# Runs GraphSAGE-T training with 5 seeds for every SLT ablation variant, at
+# medium intensity only (this pipeline never builds/trains low or high for
+# these variants -- see create_slt_ablation_variants.sh).
 #
-# LOCAL:  bash run_slt_ablations.sh   (runs all 75 combos sequentially)
+# LOCAL:  bash run_slt_ablations.sh   (runs all 5 variants sequentially,
+#                                       5 seeds each = 25 runs total)
 # SLURM:  sbatch run_slt_ablations.sh (5 parallel GPU jobs, one per
 #                                       SLT variant at medium intensity;
 #                                       5 seeds per job)
 #
-# SLURM array layout (task ID → variant, intensity):
-#   task = variant_idx * 3 + intensity_idx
-#   variants  (0-4): current, equal, neighbor_heavy, amount_heavy, temporal_heavy
-#   intensity: medium
+# SLURM array layout (task ID → variant):
+#   0: current   1: equal   2: neighbor_heavy   3: amount_heavy   4: temporal_heavy
+#   (intensity is always medium -- there is no intensity index)
 #
 # SLURM directives — ignored when run with bash directly:
 #SBATCH --job-name=slt_ablations_train
@@ -111,9 +112,8 @@ log ">>> GPU INFO:"
 nvidia-smi 2>&1 || log "GPU info unavailable"
 
 # ---------------------------------------------------------------------------
-# Variant / intensity tables
-# Index must match SLURM array task ID mapping:
-#   task_id = variant_idx * 3 + intensity_idx
+# Variant table. Index must match SLURM array task ID directly (0-4) --
+# there is no separate intensity index, this pipeline only ever runs medium.
 # ---------------------------------------------------------------------------
 VARIANTS=(
     "current"        # 0
@@ -122,14 +122,14 @@ VARIANTS=(
     "amount_heavy"   # 3
     "temporal_heavy" # 4
 )
-INTENSITIES=("medium")   # 0 1 2
+INTENSITIES=("medium")
 
 SEEDS="${SEEDS:-1 2 3 4 5}"   # override: SEEDS="1 2 3" bash ...
 
 # ---------------------------------------------------------------------------
-# Select which (variant, intensity) pairs to run:
-#   SLURM array job → single pair from SLURM_ARRAY_TASK_ID
-#   Local run       → all 15 pairs sequentially
+# Select which variant(s) to run (always paired with intensity=medium):
+#   SLURM array job → single variant from SLURM_ARRAY_TASK_ID
+#   Local run       → all 5 variants sequentially
 # ---------------------------------------------------------------------------
 if [ -n "${SLURM_ARRAY_TASK_ID:-}" ]; then
     TASK_ID=$SLURM_ARRAY_TASK_ID

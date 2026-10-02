@@ -12,10 +12,11 @@
 # LINUX/MAC:  bash scripts/bash/run_rat_ablations.sh
 # SLURM/AWS:  sbatch scripts/bash/run_rat_ablations.sh
 #
-# SLURM array layout (task ID -> ablation):
-#   0: no_struct        3: no_entity        6: no_motif
-#   1: no_temp          4: no_rat_scores    7: no_crossbank
-#   2: no_amount        5: no_burst_pattern 8: top20_features
+# SLURM array layout (task ID -> ablation) -- must match the ABLATIONS array
+# below exactly:
+#   0: no_struct        3: no_burst_pattern 6: no_motif
+#   1: no_temp          4: no_entity        7: no_crossbank
+#   2: no_amount        5: no_rat_scores    8: top20_features
 #
 # SLURM directives -- ignored when run with bash directly:
 #SBATCH --job-name=rat_ablations_train
