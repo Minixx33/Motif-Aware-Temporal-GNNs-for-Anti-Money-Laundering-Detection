@@ -170,30 +170,12 @@ for VARIANT_LINE in "${VARIANTS_TO_RUN[@]}"; do
     if [ "$VARIANT" = "current" ]; then
         log ""
         log ">>> VARIANT=current uses the same weights as your main production"
-        log ">>> SLT pipeline -- skipping injection/graph-build, reusing the"
-        log ">>> existing graphs/HI-Small_Trans_SLT_medium. Its split IS still"
-        log ">>> regenerated below (chronological + degree-fix), since that"
-        log ">>> existing split predates both fixes."
-        DATASET_NAME="HI-Small_Trans_SLT_medium"
-        STATIC_OUT="${PROJECT_ROOT}/graphs/${DATASET_NAME}"
-        STATIC_SPLIT_OUT="${PROJECT_ROOT}/splits/${DATASET_NAME}"
-
-        if [ ! -d "$STATIC_OUT" ]; then
-            log "ERROR: $STATIC_OUT not found -- cannot regenerate its split."
-            exit 1
-        fi
-
-        log ">>> [$(date +%H:%M:%S)] STEP 3: Splits (chronological)"
-        t0=$(date +%s)
-        python "$SPLITS_SCRIPT" --graph_folder "$STATIC_OUT" --split_mode chronological --out_dir "$STATIC_SPLIT_OUT"
-        log ">>> splits done in $(elapsed $(($(date +%s) - t0)))"
-
-        log ">>> [$(date +%H:%M:%S)] STEP 4: Node-degree leakage fix"
-        t0=$(date +%s)
-        python "$DEGREE_FIX_SCRIPT" --graph_dir "$STATIC_OUT" --splits_dir "$STATIC_SPLIT_OUT"
-        log ">>> degree-fix done in $(elapsed $(($(date +%s) - t0)))"
-
-        continue
+        log ">>> SLT pipeline, but is NOT assumed to already exist on disk --"
+        log ">>> it is built fresh like every other variant below. slt_injector.py"
+        log ">>> has built-in handling for --variant current: it writes to the bare"
+        log ">>> ibm_transcations_datasets/SLT/HI-Small_Trans_SLT_<intensity>.csv"
+        log ">>> (no subfolder, no variant suffix), matching what run_slt_ablations.sh"
+        log ">>> expects for this variant (graphs/HI-Small_Trans_SLT_medium, no suffix)."
     fi
 
     # STEP 1: Inject (medium intensity only -- that is all this pipeline
@@ -214,8 +196,17 @@ for VARIANT_LINE in "${VARIANTS_TO_RUN[@]}"; do
 
     for INTENSITY in "${INTENSITIES[@]}"; do
 
-        DATASET_REL="SLT/${VARIANT}/HI-Small_Trans_SLT_${VARIANT}_${INTENSITY}.csv"
-        DATASET_NAME="HI-Small_Trans_SLT_${VARIANT}_${INTENSITY}"
+        # "current" writes to the bare SLT/ folder with no variant suffix
+        # (matches slt_injector.py's own --variant current handling, and
+        # run_slt_ablations.sh's PREFIX="HI-Small_Trans_SLT" for "current").
+        # Every other variant gets its own subfolder + suffixed filename.
+        if [ "$VARIANT" = "current" ]; then
+            DATASET_REL="SLT/HI-Small_Trans_SLT_${INTENSITY}.csv"
+            DATASET_NAME="HI-Small_Trans_SLT_${INTENSITY}"
+        else
+            DATASET_REL="SLT/${VARIANT}/HI-Small_Trans_SLT_${VARIANT}_${INTENSITY}.csv"
+            DATASET_NAME="HI-Small_Trans_SLT_${VARIANT}_${INTENSITY}"
+        fi
         STATIC_OUT="${PROJECT_ROOT}/graphs/${DATASET_NAME}"
         STATIC_SPLIT_OUT="${PROJECT_ROOT}/splits/${DATASET_NAME}"
 

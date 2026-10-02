@@ -18,8 +18,9 @@
 #
 #SBATCH --job-name=rat_ablation_static
 #SBATCH --account=acc-mialhajri
+#SBATCH --partition=cpu
 #SBATCH --cpus-per-task=8
-#SBATCH --time=500:00:00
+#SBATCH --time=12:00:00
 #SBATCH --output=scripts/bash/logs/rat_ablation_static_%j.log
 #SBATCH --error=scripts/bash/logs/rat_ablation_static_%j.err
 # ===========================================================================
