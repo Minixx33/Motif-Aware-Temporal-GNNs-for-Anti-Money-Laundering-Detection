@@ -6,12 +6,22 @@
 # never trains DyRep on these, so no DyRep graph is built here):
 #   1. slt_injector.py                → ibm_transcations_datasets/SLT/<variant>/
 #   2. motif_graph_builder_static.py  → graphs/<dataset_name>/
-#   3. create_splits.py on the static graph dir
+#   3. create_splits.py (chronological) on the static graph dir
+#   4. fix_node_degree_leakage.py on the static graph dir (overwrites x.pt's
+#      degree columns, which motif_graph_builder_static.py computes from the
+#      FULL graph regardless of split -- same fix applied to the primary
+#      5-condition experiment in pipeline_prep.sh). This script never had
+#      either fix until now: create_splits.py was called with no --split_mode
+#      (defaulting to stratified_random) and the degree fix was never called
+#      at all, so every existing SLT ablation result predates both fixes.
 #
-# The "current" variant is SKIPPED entirely -- it uses the exact same weights
-# as your main production SLT pipeline, so rebuilding it would just reproduce
-# graphs/HI-Small_Trans_SLT_medium byte-for-byte. run_slt_ablations.sh already
-# resolves "current" straight to that existing graph/splits, no rebuild needed.
+# The "current" variant's INJECTION/GRAPH-BUILD steps are still skipped -- it
+# uses the exact same weights as your main production SLT pipeline, so
+# rebuilding those would just reproduce graphs/HI-Small_Trans_SLT_medium
+# byte-for-byte. But its SPLIT and DEGREE FIX are NOT skipped: that existing
+# split predates the chronological-split fix too (it was built by the
+# original, pre-fix pipeline), so it gets regenerated in place just like
+# every other variant, pointed at the existing graph dir.
 #
 # LOCAL:  bash create_slt_ablation_variants.sh   (runs the 4 non-current variants)
 # SLURM:  sbatch create_slt_ablation_variants.sh (parallel jobs, one per variant)
@@ -82,8 +92,9 @@ python --version
 INJECTOR="scripts/SLT/slt_injector.py"
 STATIC_BUILDER="scripts/graph/motif_graph_builder_static.py"
 SPLITS_SCRIPT="scripts/create_splits.py"
+DEGREE_FIX_SCRIPT="scripts/analysis/fix_node_degree_leakage.py"
 
-for s in "$INJECTOR" "$STATIC_BUILDER" "$SPLITS_SCRIPT"; do
+for s in "$INJECTOR" "$STATIC_BUILDER" "$SPLITS_SCRIPT" "$DEGREE_FIX_SCRIPT"; do
     [ -f "$s" ] || { echo "ERROR: Missing script: $s"; exit 1; }
 done
 
@@ -153,9 +164,29 @@ for VARIANT_LINE in "${VARIANTS_TO_RUN[@]}"; do
     if [ "$VARIANT" = "current" ]; then
         log ""
         log ">>> VARIANT=current uses the same weights as your main production"
-        log ">>> SLT pipeline -- skipping rebuild. run_slt_ablations.sh already"
-        log ">>> points this condition at the existing graphs/HI-Small_Trans_SLT_medium"
-        log ">>> and splits/HI-Small_Trans_SLT_medium."
+        log ">>> SLT pipeline -- skipping injection/graph-build, reusing the"
+        log ">>> existing graphs/HI-Small_Trans_SLT_medium. Its split IS still"
+        log ">>> regenerated below (chronological + degree-fix), since that"
+        log ">>> existing split predates both fixes."
+        DATASET_NAME="HI-Small_Trans_SLT_medium"
+        STATIC_OUT="${PROJECT_ROOT}/graphs/${DATASET_NAME}"
+        STATIC_SPLIT_OUT="${PROJECT_ROOT}/splits/${DATASET_NAME}"
+
+        if [ ! -d "$STATIC_OUT" ]; then
+            log "ERROR: $STATIC_OUT not found -- cannot regenerate its split."
+            exit 1
+        fi
+
+        log ">>> [$(date +%H:%M:%S)] STEP 3: Splits (chronological)"
+        t0=$(date +%s)
+        python "$SPLITS_SCRIPT" --graph_folder "$STATIC_OUT" --split_mode chronological --out_dir "$STATIC_SPLIT_OUT"
+        log ">>> splits done in $(elapsed $(($(date +%s) - t0)))"
+
+        log ">>> [$(date +%H:%M:%S)] STEP 4: Node-degree leakage fix"
+        t0=$(date +%s)
+        python "$DEGREE_FIX_SCRIPT" --graph_dir "$STATIC_OUT" --splits_dir "$STATIC_SPLIT_OUT"
+        log ">>> degree-fix done in $(elapsed $(($(date +%s) - t0)))"
+
         continue
     fi
 
@@ -191,11 +222,19 @@ for VARIANT_LINE in "${VARIANTS_TO_RUN[@]}"; do
         python "$STATIC_BUILDER" --dataset "$DATASET_REL"
         log ">>> done in $(elapsed $(($(date +%s) - t0)))"
 
-        # STEP 3: Splits — static
-        log ">>> [$(date +%H:%M:%S)] STEP 3: Splits (static)"
+        # STEP 3: Splits — static (chronological; --out_dir avoids the
+        # sibling "_chrono" folder create_splits.py would otherwise use,
+        # which build_paths() doesn't know to look for)
+        log ">>> [$(date +%H:%M:%S)] STEP 3: Splits (chronological)"
         t0=$(date +%s)
-        python "$SPLITS_SCRIPT" --graph_folder "$STATIC_OUT" --out_dir "$STATIC_SPLIT_OUT"
-        log ">>> done in $(elapsed $(($(date +%s) - t0)))"
+        python "$SPLITS_SCRIPT" --graph_folder "$STATIC_OUT" --split_mode chronological --out_dir "$STATIC_SPLIT_OUT"
+        log ">>> splits done in $(elapsed $(($(date +%s) - t0)))"
+
+        # STEP 4: Node-degree leakage fix
+        log ">>> [$(date +%H:%M:%S)] STEP 4: Node-degree leakage fix"
+        t0=$(date +%s)
+        python "$DEGREE_FIX_SCRIPT" --graph_dir "$STATIC_OUT" --splits_dir "$STATIC_SPLIT_OUT"
+        log ">>> degree-fix done in $(elapsed $(($(date +%s) - t0)))"
 
     done  # intensities
 

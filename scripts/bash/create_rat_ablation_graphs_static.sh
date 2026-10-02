@@ -4,7 +4,14 @@
 #
 # Builds all RAT feature-ablation static graphs for GraphSAGE-T:
 #   1. run_all_ablation_graphs_static.py  → graphs/HI-Small_Trans_RAT_medium__<name>/
-#   2. create_splits.py on each of the 9 ablation graph folders
+#   2. create_splits.py (chronological) on each of the 9 ablation graph folders
+#   3. fix_node_degree_leakage.py on each (overwrites x.pt's degree columns,
+#      which motif_graph_builder_static.py computes from the FULL graph
+#      regardless of split -- see pipeline_prep.sh for the same fix applied
+#      to the primary 5-condition experiment. This script never had either
+#      fix until now: it used to call create_splits.py with no --split_mode
+#      (defaulting to stratified_random) and never called the degree fix at
+#      all, so every existing RAT ablation result predates both corrections.
 #
 # LOCAL:  bash create_rat_ablation_graphs_static.sh
 # SLURM:  sbatch create_rat_ablation_graphs_static.sh
@@ -65,9 +72,10 @@ python --version
 # ---------------------------------------------------------------------------
 ABLATION_SCRIPT="scripts/ablations/run_all_ablation_graphs_static.py"
 SPLITS_SCRIPT="scripts/create_splits.py"
+DEGREE_FIX_SCRIPT="scripts/analysis/fix_node_degree_leakage.py"
 SOURCE_GRAPH="graphs/HI-Small_Trans_RAT_medium"
 
-for s in "$ABLATION_SCRIPT" "$SPLITS_SCRIPT"; do
+for s in "$ABLATION_SCRIPT" "$SPLITS_SCRIPT" "$DEGREE_FIX_SCRIPT"; do
     [ -f "$s" ] || { echo "ERROR: Missing script: $s"; exit 1; }
 done
 [ -d "$SOURCE_GRAPH" ] || { echo "ERROR: Source graph not found: $SOURCE_GRAPH"; exit 1; }
@@ -123,10 +131,11 @@ ABLATION_NAMES=(
 )
 
 log ""
-log ">>> [$(date +%H:%M:%S)] STEP 2: Creating splits"
+log ">>> [$(date +%H:%M:%S)] STEP 2: Creating splits (chronological) + degree-leakage fix"
 
 for NAME in "${ABLATION_NAMES[@]}"; do
     GRAPH_DIR="${SOURCE_GRAPH}__${NAME}"
+    SPLIT_DIR="splits/HI-Small_Trans_RAT_medium__${NAME}"
 
     if [ ! -d "$GRAPH_DIR" ]; then
         log "  [WARN] Graph folder not found, skipping: $GRAPH_DIR"
@@ -136,8 +145,16 @@ for NAME in "${ABLATION_NAMES[@]}"; do
     log ""
     log "  --- splits for: $NAME ---"
     t0=$(date +%s)
-    python "$SPLITS_SCRIPT" --graph_folder "$GRAPH_DIR"
-    log "  done in $(elapsed $(($(date +%s) - t0)))"
+    # --split_mode chronological + explicit --out_dir: without --out_dir,
+    # create_splits.py writes to a sibling "_chrono" folder instead of
+    # "splits/<name>", which build_paths() doesn't know to look for (same
+    # gotcha fixed in pipeline_prep.sh for the primary experiment).
+    python "$SPLITS_SCRIPT" --graph_folder "$GRAPH_DIR" --split_mode chronological --out_dir "$SPLIT_DIR"
+    log "  splits done in $(elapsed $(($(date +%s) - t0)))"
+
+    t0=$(date +%s)
+    python "$DEGREE_FIX_SCRIPT" --graph_dir "$GRAPH_DIR" --splits_dir "$SPLIT_DIR"
+    log "  degree-fix done in $(elapsed $(($(date +%s) - t0)))"
 done
 
 log ""
