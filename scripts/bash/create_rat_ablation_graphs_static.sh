@@ -3,7 +3,7 @@
 # create_rat_ablation_graphs_static.sh
 #
 # Builds all RAT feature-ablation static graphs for GraphSAGE-T:
-#   1. run_all_ablation_graphs_static.py  → graphs/HI-Small_Trans_RAT_medium__<name>/
+#   1. run_all_ablation_graphs_static.py  → graphs/HI-Small_Trans_RAT_pristine__<name>/
 #   2. create_splits.py (chronological) on each of the 9 ablation graph folders
 #   3. fix_node_degree_leakage.py on each (overwrites x.pt's degree columns,
 #      which motif_graph_builder_static.py computes from the FULL graph
@@ -78,7 +78,14 @@ python --version
 ABLATION_SCRIPT="scripts/ablations/run_all_ablation_graphs_static.py"
 SPLITS_SCRIPT="scripts/create_splits.py"
 DEGREE_FIX_SCRIPT="scripts/analysis/fix_node_degree_leakage.py"
-SOURCE_GRAPH="graphs/HI-Small_Trans_RAT_medium"
+# HI-Small_Trans_RAT_pristine -- NOT HI-Small_Trans_RAT_medium. The old
+# "_medium" graph was the pre-fix, label-conditioned-intensity-boosted RAT
+# dataset (rat.yaml) and was never built on this cluster. The primary
+# experiment's actual RAT condition is rat_natural.yaml (prefix
+# HI-Small_Trans_RAT_pristine, no boosting) -- ablations must be built from
+# that SAME graph so the ablation results are about the RAT condition you
+# actually report, not a deprecated one.
+SOURCE_GRAPH="graphs/HI-Small_Trans_RAT_pristine"
 
 for s in "$ABLATION_SCRIPT" "$SPLITS_SCRIPT" "$DEGREE_FIX_SCRIPT"; do
     [ -f "$s" ] || { echo "ERROR: Missing script: $s"; exit 1; }
@@ -140,7 +147,7 @@ log ">>> [$(date +%H:%M:%S)] STEP 2: Creating splits (chronological) + degree-le
 
 for NAME in "${ABLATION_NAMES[@]}"; do
     GRAPH_DIR="${SOURCE_GRAPH}__${NAME}"
-    SPLIT_DIR="splits/HI-Small_Trans_RAT_medium__${NAME}"
+    SPLIT_DIR="splits/$(basename "$SOURCE_GRAPH")__${NAME}"
 
     if [ ! -d "$GRAPH_DIR" ]; then
         log "  [WARN] Graph folder not found, skipping: $GRAPH_DIR"
@@ -164,6 +171,6 @@ done
 
 log ""
 log "==============================================================="
-log " DONE — splits land in splits/HI-Small_Trans_RAT_medium__<name>/"
+log " DONE — splits land in splits/HI-Small_Trans_RAT_pristine__<name>/"
 log " Total time: $(elapsed $(($(date +%s) - total_start)))"
 log "==============================================================="

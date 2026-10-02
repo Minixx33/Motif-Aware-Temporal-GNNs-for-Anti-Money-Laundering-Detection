@@ -3,7 +3,10 @@
 # run_rat_ablations.sh
 #
 # Runs GraphSAGE-T training with 5 seeds for every RAT static ablation graph.
-# Ablation graphs must already exist under graphs/HI-Small_Trans_RAT_medium__<name>/
+# Ablation graphs must already exist under graphs/HI-Small_Trans_RAT_pristine__<name>/
+# (built from the SAME pristine/natural RAT graph as the primary experiment's
+# rat_natural condition -- NOT the old label-boosted "_medium" graph, which
+# was never built on this cluster)
 # (build them first with: bash scripts/bash/create_rat_ablation_graphs_static.sh)
 #
 # WINDOWS (Git Bash): open Git Bash, cd to project root, then:
@@ -179,9 +182,9 @@ PYEOF
 
 # ---------------------------------------------------------------------------
 # Helper: write a temporary dataset config for this ablation.
-# prefix = full graph folder name (intensity already embedded),
-# requires_intensity: false so build_paths() uses the prefix as-is
-# -> resolves to graphs/HI-Small_Trans_RAT_medium__<name>
+# prefix = full graph folder name, requires_intensity: false so
+# build_paths() uses the prefix as-is
+# -> resolves to graphs/HI-Small_Trans_RAT_pristine__<name>
 # ---------------------------------------------------------------------------
 make_dataset_config() {
     local NAME="$1"
@@ -189,8 +192,7 @@ make_dataset_config() {
     cat > "$CFG" <<YAMLEOF
 dataset:
   theory: "RAT"
-  prefix: "HI-Small_Trans_RAT_medium__${NAME}"
-  available_intensities: ["medium"]
+  prefix: "HI-Small_Trans_RAT_pristine__${NAME}"
   requires_intensity: false
 YAMLEOF
     echo "$CFG"
@@ -216,7 +218,7 @@ FAILED_RUNS=()
 # Pre-flight: make sure every ablation graph this run needs already exists,
 # so we fail fast instead of partway through seed 1.
 for NAME in "${RUN_ABLATIONS[@]}"; do
-    GRAPH_DIR="graphs/HI-Small_Trans_RAT_medium__${NAME}"
+    GRAPH_DIR="graphs/HI-Small_Trans_RAT_pristine__${NAME}"
     if [ ! -d "$GRAPH_DIR" ]; then
         log "ERROR: Ablation graph not found: $GRAPH_DIR"
         log "       Run create_rat_ablation_graphs_static.sh first."
@@ -229,7 +231,7 @@ for SEED in $SEEDS; do
     log "################ SEED $SEED: full RAT ablation sweep ################"
 
     for NAME in "${RUN_ABLATIONS[@]}"; do
-        GRAPH_DIR="graphs/HI-Small_Trans_RAT_medium__${NAME}"
+        GRAPH_DIR="graphs/HI-Small_Trans_RAT_pristine__${NAME}"
         DATASET_CONFIG=$(make_dataset_config "$NAME")
         EXP_NAME="rat_ablation_${NAME}_graphsage_t_seed${SEED}"
 
