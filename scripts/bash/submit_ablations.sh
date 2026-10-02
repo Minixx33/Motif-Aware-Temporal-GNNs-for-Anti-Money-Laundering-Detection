@@ -6,20 +6,16 @@
 #   1. Build RAT ablation graphs/splits   (CPU, create_rat_ablation_graphs_static.sh)
 #   2. Build SLT ablation graphs/splits   (CPU, create_slt_ablation_variants.sh, 5 tasks)
 #      -- runs in parallel with (1), fully independent of it.
-#   3. Train on the RAT ablations         (GPU, run_rat_ablations.sh, 9 tasks, %3)
-#      -- starts only once (1) succeeds.
-#   4. Train on the SLT ablations         (GPU, run_slt_ablations.sh, 5 tasks, %3)
-#      -- starts only once (2) succeeds AND (3) has fully cleared the queue.
+#   3. Train on the RAT ablations         (GPU, run_rat_ablations.sh, 9 tasks, %2)
+#      -- starts only once (1) succeeds. Independent of SLT training.
+#   4. Train on the SLT ablations         (GPU, run_slt_ablations.sh, 5 tasks, %1)
+#      -- starts only once (2) succeeds. Independent of RAT training -- no
+#         cross-dependency, runs concurrently with (3) if both are ready.
 #
-# WHY (4) waits on (3) specifically (not just (2)):
-# Each training job's own --array=...%3 throttle only limits concurrency
-# WITHIN that one job. If RAT training (9 tasks, %3) and SLT training
-# (5 tasks, %3) were both submitted free-running, SLURM could run 3 from
-# each at the same time -- 6 GPUs, over your 3-GPU cap. Chaining SLT
-# training's start to RAT training's full completion (afterany, not
-# afterok -- a few individual ablation failures shouldn't block the other
-# theory's training) guarantees the two training jobs never overlap, so
-# total GPU usage never exceeds 3 at any point.
+# GPU cap without cross-dependency: RAT training is throttled to %2 and SLT
+# training to %1 (down from %3/%3). Worst case both run at once: 2+1=3 GPUs,
+# same ceiling as before, just enforced per-job instead of by serializing
+# one training job behind the other.
 #
 # WHY this can submit everything up front, unlike submit_full_pipeline.sh:
 # that script needed to poll-and-wait between batches because 75 training
@@ -54,20 +50,19 @@ SLT_PREP_JOBID=$(sbatch --parsable scripts/bash/create_slt_ablation_variants.sh)
 echo "  SLT build job id: $SLT_PREP_JOBID"
 
 echo ""
-echo "=== Submitting RAT ablation training (gpu, 9 tasks, %3 throttle) ==="
+echo "=== Submitting RAT ablation training (gpu, 9 tasks, %2 throttle) ==="
 RAT_TRAIN_JOBID=$(sbatch --parsable \
     --dependency=afterok:"$RAT_PREP_JOBID" \
     scripts/bash/run_rat_ablations.sh)
-echo "  RAT training job id: $RAT_TRAIN_JOBID  (waits for RAT build $RAT_PREP_JOBID to succeed)"
+echo "  RAT training job id: $RAT_TRAIN_JOBID  (waits only for RAT build $RAT_PREP_JOBID)"
 
 echo ""
-echo "=== Submitting SLT ablation training (gpu, 5 tasks, %3 throttle) ==="
+echo "=== Submitting SLT ablation training (gpu, 5 tasks, %1 throttle) ==="
 SLT_TRAIN_JOBID=$(sbatch --parsable \
-    --dependency=afterok:"$SLT_PREP_JOBID",afterany:"$RAT_TRAIN_JOBID" \
+    --dependency=afterok:"$SLT_PREP_JOBID" \
     scripts/bash/run_slt_ablations.sh)
-echo "  SLT training job id: $SLT_TRAIN_JOBID  (waits for SLT build $SLT_PREP_JOBID to succeed"
-echo "                        AND RAT training $RAT_TRAIN_JOBID to fully clear -- keeps"
-echo "                        combined GPU usage at <=3 by never overlapping the two)"
+echo "  SLT training job id: $SLT_TRAIN_JOBID  (waits only for SLT build $SLT_PREP_JOBID --"
+echo "                        no dependency on RAT training, fully independent)"
 
 echo ""
 echo "=== Queued. Track with: ==="

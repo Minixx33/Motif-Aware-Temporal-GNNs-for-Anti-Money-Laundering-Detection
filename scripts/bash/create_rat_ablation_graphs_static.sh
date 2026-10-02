@@ -30,8 +30,12 @@ set -o pipefail
 # ---------------------------------------------------------------------------
 # Resolve project root
 # ---------------------------------------------------------------------------
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "$SCRIPT_DIR/../.."
+if [ -n "${SLURM_SUBMIT_DIR:-}" ]; then
+    cd "$SLURM_SUBMIT_DIR"
+else
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+    cd "$SCRIPT_DIR/../.."
+fi
 PROJECT_ROOT="$(pwd)"
 echo "Project root: $PROJECT_ROOT"
 
