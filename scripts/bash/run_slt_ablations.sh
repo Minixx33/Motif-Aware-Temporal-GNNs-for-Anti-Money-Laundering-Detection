@@ -21,7 +21,7 @@
 #SBATCH --account=acc-mialhajri
 #SBATCH --partition=gpu
 #SBATCH --qos=gpu-long-mialhajri-001
-#SBATCH --array=0-4
+#SBATCH --array=0-4%3
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=4
 #SBATCH --time=500:00:00
