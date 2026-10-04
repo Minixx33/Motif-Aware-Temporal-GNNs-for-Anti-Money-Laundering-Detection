@@ -1,0 +1,9 @@
+# configs/datasets/slt_causal_multihop.yaml
+#
+# baseline (12) + 6 direct peer-exposure features + 4 recency-decayed / 2-hop
+# exposure features. Increment over slt_causal_1hop = what multi-hop/decay add.
+# See scripts/analysis/build_slt_causal_graphs.py.
+dataset:
+  theory: "SLT_causal"
+  prefix: "HI-Small_Trans_SLT_causal_multihop"
+  requires_intensity: false

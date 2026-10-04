@@ -1,0 +1,11 @@
+# configs/datasets/slt_causal_placebo.yaml
+#
+# PLACEBO for slt_causal_multihop: identical feature code, shape, and graph
+# structure, but the train laundering labels are PERMUTED across train edges
+# before computing exposure, so "known launderers" are random accounts. If the
+# real multihop condition beats this, the gain comes from TRUE peer deviance,
+# not from activity/graph-structure proxies baked into the feature definition.
+dataset:
+  theory: "SLT_causal_placebo"
+  prefix: "HI-Small_Trans_SLT_causal_placebo"
+  requires_intensity: false

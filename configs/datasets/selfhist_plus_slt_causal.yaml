@@ -1,0 +1,10 @@
+# configs/datasets/selfhist_plus_slt_causal.yaml
+#
+# baseline (12) + 2 reputation features + all 10 causal peer-exposure
+# features. Compare against selfhist_only to measure what peer exposure adds
+# BEYOND account reputation (the attribution-clean SLT effect).
+# See scripts/analysis/build_slt_causal_graphs.py.
+dataset:
+  theory: "SLT_causal"
+  prefix: "HI-Small_Trans_selfhist_plus_SLT_causal"
+  requires_intensity: false

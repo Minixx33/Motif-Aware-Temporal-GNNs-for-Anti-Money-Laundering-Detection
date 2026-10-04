@@ -1,0 +1,11 @@
+# configs/datasets/slt_causal_1hop.yaml
+#
+# baseline (12) + 6 label-aware, causal DIRECT peer-exposure features (SLT
+# mechanism: exposure to known-deviant associates). Train labels only,
+# strictly-earlier, current counterparty excluded. Built by
+# scripts/analysis/build_slt_causal_graphs.py on the plain baseline graph, so
+# the delta vs baseline is attributable to this feature group alone.
+dataset:
+  theory: "SLT_causal"
+  prefix: "HI-Small_Trans_SLT_causal_1hop"
+  requires_intensity: false

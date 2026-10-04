@@ -1,0 +1,10 @@
+# configs/datasets/selfhist_only.yaml
+#
+# CONTROL, not SLT: baseline (12) + 2 account-reputation features (has this
+# account itself been flagged as laundering before, train labels, lagged).
+# Lets the peer-exposure gain be separated from "this account is already a
+# known launderer". See scripts/analysis/build_slt_causal_graphs.py.
+dataset:
+  theory: "selfhist_control"
+  prefix: "HI-Small_Trans_selfhist_only"
+  requires_intensity: false
