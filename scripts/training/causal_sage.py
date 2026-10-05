@@ -97,6 +97,18 @@ class CausalGraph:
         E = edge_index.size(1)
         N = x.size(0)
         assert edge_attr.size(0) == E and ts.size(0) == E and y.size(0) == E
+
+        # v2 results must come from CHRONOLOGICAL splits (create_splits.py
+        # --split_mode chronological). Refuse anything else, e.g. a stale
+        # stratified-random splits/ folder.
+        t_tr, t_va, t_te = ts[self.train_idx], ts[self.val_idx], ts[self.test_idx]
+        if not (t_tr.max() <= t_va.min() and t_va.max() <= t_te.min()):
+            raise ValueError(
+                f"splits in {split_folder} are not chronological (train max ts > val min ts "
+                f"or val max ts > test min ts). Recreate them with create_splits.py "
+                f"--split_mode chronological.")
+        if self.train_idx.numel() + self.val_idx.numel() + self.test_idx.numel() != E:
+            raise ValueError("train+val+test sizes do not add up to the number of edges")
         self.num_nodes, self.num_edges = N, E
         log(f"[data] nodes={N:,} edges={E:,} edge_attr={tuple(edge_attr.shape)} x={tuple(x.shape)}")
 

@@ -119,6 +119,27 @@ def main():
         assert torch.allclose(a, b), "logits changed when labels were permuted -> label leak"
     print("[4] logits identical under label permutation (no label path into the model)")
 
+    # ---- 4b. future-event invariance (end-to-end causality) ----
+    # perturb the features of every edge at/after a cut time; scores of edges
+    # strictly before the cut must not change (same sampling seed).
+    order = np.argsort(t, kind="stable")
+    t_cut = t[order[len(order) // 2]]
+    early = torch.from_numpy(rng.choice(np.where(t < t_cut)[0], size=min(512, int((t < t_cut).sum())), replace=False))
+    late_mask = torch.from_numpy(t >= t_cut)
+    for temporal in (False, True):
+        torch.manual_seed(2)
+        m = CausalSAGEEdgeModel(g, cfg, temporal).eval()
+        with torch.no_grad():
+            a = m(g, early, gen=torch.Generator().manual_seed(9))
+            ec0, ecat0 = g.edge_cont.clone(), g.edge_cat.clone()
+            g.edge_cont[late_mask] = torch.randn_like(g.edge_cont[late_mask]) * 5
+            if g.edge_cat.numel():
+                g.edge_cat[late_mask] = 0
+            b = m(g, early, gen=torch.Generator().manual_seed(9))
+            g.edge_cont, g.edge_cat = ec0, ecat0
+        assert torch.allclose(a, b), "a later edge changed the score of an earlier edge"
+    print(f"[4b] perturbing all edges at/after the median time leaves earlier scores unchanged")
+
     # ---- 5. forward/backward + causal assertion for both models ----
     for temporal in (False, True):
         m = CausalSAGEEdgeModel(g, cfg, temporal).train()

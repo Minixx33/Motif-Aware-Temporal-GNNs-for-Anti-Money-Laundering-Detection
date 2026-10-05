@@ -1,0 +1,35 @@
+# Full DyRep (memory-based temporal GNN), causal_leakfix_v2.
+# Script: scripts/training/train_dyrep_full.py
+# Results: results/<dataset>/seed<N>_causal_leakfix_v2/dyrep-full/
+# The old simplified model (configs/models/dyrep.yaml, train_dyrep.py) is untouched.
+experiment:
+  name: "causal_leakfix_v2"   # overrides base.yaml experiment.name for this model
+
+model:
+  name: "DyRep-Full"
+  memory_dim: 128            # DyRep node representation / memory size
+  time_dim: 32               # relative-time encoding
+  node_feat_dim: 16          # projection of static node features (entity type)
+  cat_dim: 8                 # pf_code / rc_code embedding size
+  n_neighbors: 10            # most-recent neighbours per relation (in, out) for DyRep attention
+  attn_heads: 2
+  hidden_dim: 128            # edge classifier
+  dropout: 0.1
+  aux_weight: 1.0            # weight of DyRep's intensity (point-process) loss
+
+training:
+  device: "cuda"
+  batch_size: 500            # target events per batch; batches never split a timestamp
+  lr: 0.0001
+  weight_decay: 0.00001
+  epochs: 200
+  early_stopping_patience: 20
+  gradient_clip: 1.0
+  optimizer:
+    type: "adam"
+    betas: [0.9, 0.999]
+    eps: 1e-8
+
+loss:
+  type: "bce"
+  pos_weight: null           # auto-computed from training split (capped at 100)
