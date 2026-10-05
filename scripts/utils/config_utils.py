@@ -333,6 +333,11 @@ def setup_experiment(
 
     seed = base_cfg.get("experiment", {}).get("seed", 42)
     exp_name = base_cfg.get("experiment", {}).get("name", "exp")
+    # A model config may override the experiment tag (e.g. the causal_leakfix_v2
+    # GraphSAGE/GraphSAGE-T configs), so v2 results land in their own
+    # seed<N>_<tag>/ folder without editing base.yaml. v1 configs have no
+    # `experiment:` block, so their paths are unchanged.
+    exp_name = (model_cfg.get("experiment") or {}).get("name", exp_name)
 
     set_seed(seed)
 

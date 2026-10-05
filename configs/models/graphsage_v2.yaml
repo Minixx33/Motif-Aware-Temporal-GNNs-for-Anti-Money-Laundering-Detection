@@ -1,0 +1,33 @@
+# GraphSAGE, causal_leakfix_v2 (fixed). Script: scripts/training/train_graphsage_v2.py
+# Results go to results/<dataset>/seed<N>_causal_leakfix_v2/graphsage/
+experiment:
+  name: "causal_leakfix_v2"   # overrides base.yaml experiment.name for this model
+
+model:
+  name: "GraphSAGE"
+  hidden_dim: 128
+  dropout: 0.2
+  cat_dim: 8
+  # neighbours sampled per relation per hop, uniformly from edges strictly
+  # earlier than the edge being scored
+  fanout:
+    - {in: 10, out: 10, self: 2}
+    - {in: 5, out: 5, self: 1}
+
+training:
+  device: "cuda"
+  batch_size: 4096
+  eval_batch_size: 8192
+  lr: 0.0005                 # was 0.0001 in v1 (underfit: train AUPR < test AUPR)
+  weight_decay: 0.0001
+  epochs: 350
+  early_stopping_patience: 25
+  gradient_clip: 1.0
+  optimizer:
+    type: "adam"
+    betas: [0.9, 0.999]
+    eps: 1e-8
+
+loss:
+  type: "bce"
+  pos_weight: null           # auto-computed from training split (capped at 100)
