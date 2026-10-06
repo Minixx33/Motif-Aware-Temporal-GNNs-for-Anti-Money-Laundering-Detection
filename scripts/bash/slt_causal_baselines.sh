@@ -50,11 +50,11 @@ source "$CONDA_BASE/etc/profile.d/conda.sh"
 conda activate "${CONDA_ENV:-aml_project}"
 echo "Using Python: $(which python)"
 
-mkdir -p scripts/bash/logs results_baselines
+mkdir -p scripts/bash/logs results_baselines/v2
 for p in graphs/HI-Small_Trans splits/HI-Small_Trans; do
     [ -d "$p" ] || { echo "ERROR: missing $p"; exit 1; }
 done
 
 python scripts/analysis/slt_causal_baselines.py \
-    --output_json results_baselines/slt_causal_baselines.json
+    --output_json results_baselines/v2/slt_causal_baselines.json
 echo "BASELINES COMPLETE"

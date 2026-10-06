@@ -141,6 +141,7 @@ if not ok:
     print("ABORTING: SLT rebuild failed the sanity check."); sys.exit(1)
 print("SLT graphs rebuilt and verified.")
 PYEOF
+mkdir -p logs/markers && date > logs/markers/slt_rebuild.done   # gate for SLT runs (gpu_queue.sh)
 log "==============================================================="
 log " SLT REBUILD COMPLETE"
 log "==============================================================="

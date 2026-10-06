@@ -1,0 +1,41 @@
+# <sbatch_script> <array_index> [<marker that must exist first>]   -- used by scripts/bash/gpu_queue.sh
+# ablation phase (after the base runs): 9 RAT ablations, 25 causal-SLT runs, 5 SLT weight variants
+scripts/bash/run_rat_ablations.sh 0   # RAT ablation no_struct (5 seeds sequentially in one job)
+scripts/bash/run_rat_ablations.sh 1   # RAT ablation no_temp (5 seeds sequentially in one job)
+scripts/bash/run_rat_ablations.sh 2   # RAT ablation no_amount (5 seeds sequentially in one job)
+scripts/bash/run_rat_ablations.sh 3   # RAT ablation no_burst_pattern (5 seeds sequentially in one job)
+scripts/bash/run_rat_ablations.sh 4   # RAT ablation no_entity (5 seeds sequentially in one job)
+scripts/bash/run_rat_ablations.sh 5   # RAT ablation no_rat_scores (5 seeds sequentially in one job)
+scripts/bash/run_rat_ablations.sh 6   # RAT ablation no_motif (5 seeds sequentially in one job)
+scripts/bash/run_rat_ablations.sh 7   # RAT ablation no_crossbank (5 seeds sequentially in one job)
+scripts/bash/run_rat_ablations.sh 8   # RAT ablation top20_features (5 seeds sequentially in one job)
+scripts/bash/slt_causal_train.sh 0   # causal SLT slt_causal_1hop seed1
+scripts/bash/slt_causal_train.sh 1   # causal SLT slt_causal_1hop seed2
+scripts/bash/slt_causal_train.sh 2   # causal SLT slt_causal_1hop seed3
+scripts/bash/slt_causal_train.sh 3   # causal SLT slt_causal_1hop seed4
+scripts/bash/slt_causal_train.sh 4   # causal SLT slt_causal_1hop seed5
+scripts/bash/slt_causal_train.sh 5   # causal SLT slt_causal_multihop seed1
+scripts/bash/slt_causal_train.sh 6   # causal SLT slt_causal_multihop seed2
+scripts/bash/slt_causal_train.sh 7   # causal SLT slt_causal_multihop seed3
+scripts/bash/slt_causal_train.sh 8   # causal SLT slt_causal_multihop seed4
+scripts/bash/slt_causal_train.sh 9   # causal SLT slt_causal_multihop seed5
+scripts/bash/slt_causal_train.sh 10   # causal SLT selfhist_only seed1
+scripts/bash/slt_causal_train.sh 11   # causal SLT selfhist_only seed2
+scripts/bash/slt_causal_train.sh 12   # causal SLT selfhist_only seed3
+scripts/bash/slt_causal_train.sh 13   # causal SLT selfhist_only seed4
+scripts/bash/slt_causal_train.sh 14   # causal SLT selfhist_only seed5
+scripts/bash/slt_causal_train.sh 15   # causal SLT selfhist_plus_slt_causal seed1
+scripts/bash/slt_causal_train.sh 16   # causal SLT selfhist_plus_slt_causal seed2
+scripts/bash/slt_causal_train.sh 17   # causal SLT selfhist_plus_slt_causal seed3
+scripts/bash/slt_causal_train.sh 18   # causal SLT selfhist_plus_slt_causal seed4
+scripts/bash/slt_causal_train.sh 19   # causal SLT selfhist_plus_slt_causal seed5
+scripts/bash/slt_causal_train.sh 20   # causal SLT slt_causal_placebo seed1
+scripts/bash/slt_causal_train.sh 21   # causal SLT slt_causal_placebo seed2
+scripts/bash/slt_causal_train.sh 22   # causal SLT slt_causal_placebo seed3
+scripts/bash/slt_causal_train.sh 23   # causal SLT slt_causal_placebo seed4
+scripts/bash/slt_causal_train.sh 24   # causal SLT slt_causal_placebo seed5
+scripts/bash/run_slt_ablations.sh 0 logs/markers/slt_variant_current.done   # SLT weight variant current (5 seeds sequentially)
+scripts/bash/run_slt_ablations.sh 1 logs/markers/slt_variant_equal.done   # SLT weight variant equal (5 seeds sequentially)
+scripts/bash/run_slt_ablations.sh 2 logs/markers/slt_variant_neighbor_heavy.done   # SLT weight variant neighbor_heavy (5 seeds sequentially)
+scripts/bash/run_slt_ablations.sh 3 logs/markers/slt_variant_amount_heavy.done   # SLT weight variant amount_heavy (5 seeds sequentially)
+scripts/bash/run_slt_ablations.sh 4 logs/markers/slt_variant_temporal_heavy.done   # SLT weight variant temporal_heavy (5 seeds sequentially)

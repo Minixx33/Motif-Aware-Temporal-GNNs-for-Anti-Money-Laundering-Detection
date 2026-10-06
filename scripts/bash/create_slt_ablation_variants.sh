@@ -40,6 +40,7 @@
 #SBATCH --partition=cpu
 #SBATCH --array=0-4
 #SBATCH --cpus-per-task=8
+#SBATCH --mem=24G
 #SBATCH --time=12:00:00
 #SBATCH --output=scripts/bash/logs/slt_create_%A_%a.log
 #SBATCH --error=scripts/bash/logs/slt_create_%A_%a.err
@@ -157,6 +158,13 @@ elapsed() { printf "%dh %dm %ds" $(($1/3600)) $((($1%3600)/60)) $(($1%60)); }
 # ---------------------------------------------------------------------------
 total_start=$(date +%s)
 
+# The "current" variant writes into the same ibm_transcations_datasets/SLT/
+# folder as slt_rebuild_prep.sh, so never run this before that rebuild finished.
+if [ ! -f logs/markers/slt_rebuild.done ]; then
+    log "ERROR: run scripts/bash/slt_rebuild_prep.sh first (logs/markers/slt_rebuild.done missing)"
+    exit 1
+fi
+
 for VARIANT_LINE in "${VARIANTS_TO_RUN[@]}"; do
     read -r VARIANT W_NBR W_AMT W_STR W_DEL W_CUM <<< "$VARIANT_LINE"
 
@@ -232,6 +240,7 @@ for VARIANT_LINE in "${VARIANTS_TO_RUN[@]}"; do
         t0=$(date +%s)
         python "$DEGREE_FIX_SCRIPT" --graph_dir "$STATIC_OUT" --splits_dir "$STATIC_SPLIT_OUT"
         log ">>> degree-fix done in $(elapsed $(($(date +%s) - t0)))"
+        mkdir -p logs/markers && date > "logs/markers/slt_variant_${VARIANT}.done"   # gate (gpu_queue.sh)
 
     done  # intensities
 

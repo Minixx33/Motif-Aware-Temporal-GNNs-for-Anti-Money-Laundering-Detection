@@ -1,0 +1,6 @@
+# <sbatch_script> <array_index> [<marker that must exist first>]   -- used by scripts/bash/gpu_queue.sh
+# pilot: 1 run per model (baseline, seed 1) -- check timing/results before base_main
+scripts/bash/train_single_run_v2.sh 0   # baseline graphsage-t seed1
+scripts/bash/train_single_run_v2.sh 5   # baseline graphsage seed1
+scripts/bash/train_single_run_dyrep_full.sh 0   # baseline dyrep-full seed1
+scripts/bash/train_single_run_dyrep_lite_v2.sh 0   # baseline dyrep-lite-v2 seed1
