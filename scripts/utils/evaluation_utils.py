@@ -14,6 +14,7 @@ from sklearn.metrics import (
     f1_score,
     roc_auc_score,
     average_precision_score,
+    precision_recall_curve,
     balanced_accuracy_score,
     confusion_matrix,
     matthews_corrcoef,
@@ -81,17 +82,19 @@ def evaluate_binary_classifier(
     # ------------------------------------------------------------
 
     if auto_threshold:
-        best_thr = 0.5
-        best_f1 = -1
-        thr_grid = np.linspace(0.01, 0.99, 200)
-
-        for thr in thr_grid:
-            preds = (y_pred_probs >= thr).astype(int)
-            f1 = f1_score(y_true, preds, zero_division=0)
-            if f1 > best_f1:
-                best_f1 = f1
-                best_thr = thr
-
+        # Exact best-F1 threshold over every distinct score (precision-recall
+        # curve), instead of the old 0.01..0.99 linear grid. The grid capped
+        # the threshold at 0.99: with pos_weight~100 many runs' best-F1
+        # threshold lies above 0.99 (14% of the v1 runs hit the cap), which
+        # understated their F1/precision. Predictions use `>= threshold`,
+        # the same convention as precision_recall_curve.
+        best_thr, best_f1 = 0.5, 0.0
+        if y_true.sum() > 0:
+            prec, rec, thr = precision_recall_curve(y_true, y_pred_probs)
+            f1s = 2 * prec[:-1] * rec[:-1] / np.maximum(prec[:-1] + rec[:-1], 1e-12)
+            if len(f1s):
+                i = int(np.argmax(f1s))
+                best_thr, best_f1 = float(thr[i]), float(f1s[i])
         threshold = best_thr
         if verbose:
             print("[Auto-threshold] Best threshold = {:.3f} (F1={:.4f})".format(

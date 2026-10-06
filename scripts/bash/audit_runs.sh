@@ -17,7 +17,10 @@
 #   NOT_STARTED  - neither file exists (never ran, or results dir missing)
 #
 # Usage:
-#   bash scripts/bash/audit_runs.sh
+#   bash scripts/bash/audit_runs.sh                         # v1 (train_single_run.sh)
+#   AUDIT_SET=v2 bash scripts/bash/audit_runs.sh            # train_single_run_v2.sh (fixed GraphSAGE/-T)
+#   AUDIT_SET=dyrep_full bash scripts/bash/audit_runs.sh    # train_single_run_dyrep_full.sh
+#   AUDIT_SET=dyrep_lite_v2 bash scripts/bash/audit_runs.sh # train_single_run_dyrep_lite_v2.sh
 #   SEEDS_LIST="4 5" bash scripts/bash/audit_runs.sh   # audit only seeds 4-5
 # ===========================================================================
 set -u
@@ -37,18 +40,39 @@ DATASETS_ARR=(
     "slt_natural|configs/datasets/slt_natural.yaml|"
     "slt_plus_structural|configs/datasets/slt_plus_structural.yaml|"
 )
-MODELS_ARR=(
-    "graphsage_t|scripts/training/train_graphsage_t.py|configs/models/graphsage_t.yaml"
-    "graphsage|scripts/training/train_graphsage.py|configs/models/graphsage.yaml"
-    "dyrep|scripts/training/train_dyrep.py|configs/models/dyrep.yaml"
-)
+AUDIT_SET="${AUDIT_SET:-v1}"
+case "$AUDIT_SET" in
+    v1)
+        MODELS_ARR=(
+            "graphsage_t|scripts/training/train_graphsage_t.py|configs/models/graphsage_t.yaml"
+            "graphsage|scripts/training/train_graphsage.py|configs/models/graphsage.yaml"
+            "dyrep|scripts/training/train_dyrep.py|configs/models/dyrep.yaml"
+        )
+        EXP_NAME="causal_leakfix_v1"; SUBMIT_SCRIPT="scripts/bash/train_single_run.sh" ;;
+    v2)   # must match train_single_run_v2.sh
+        MODELS_ARR=(
+            "graphsage_t_v2|scripts/training/train_graphsage_t_v2.py|configs/models/graphsage_t_v2.yaml"
+            "graphsage_v2|scripts/training/train_graphsage_v2.py|configs/models/graphsage_v2.yaml"
+        )
+        EXP_NAME="causal_leakfix_v2"; SUBMIT_SCRIPT="scripts/bash/train_single_run_v2.sh" ;;
+    dyrep_full)   # must match train_single_run_dyrep_full.sh
+        MODELS_ARR=(
+            "dyrep_full|scripts/training/train_dyrep_full.py|configs/models/dyrep_full.yaml"
+        )
+        EXP_NAME="causal_leakfix_v2"; SUBMIT_SCRIPT="scripts/bash/train_single_run_dyrep_full.sh" ;;
+    dyrep_lite_v2)   # must match train_single_run_dyrep_lite_v2.sh
+        MODELS_ARR=(
+            "dyrep_lite_v2|scripts/training/train_dyrep_lite_v2.py|configs/models/dyrep_lite_v2.yaml"
+        )
+        EXP_NAME="causal_leakfix_v2"; SUBMIT_SCRIPT="scripts/bash/train_single_run_dyrep_lite_v2.sh" ;;
+    *) echo "Unknown AUDIT_SET=$AUDIT_SET (v1 | v2 | dyrep_full | dyrep_lite_v2)"; exit 1 ;;
+esac
 if [ -n "${SEEDS_LIST:-}" ]; then
     read -ra SEEDS_ARR <<< "$SEEDS_LIST"
 else
     SEEDS_ARR=(1 2 3 4 5)
 fi
 
-EXP_NAME="causal_leakfix_v1"   # from configs/base.yaml experiment.name
 
 COMBOS=()
 for ds in "${DATASETS_ARR[@]}"; do
@@ -66,9 +90,10 @@ done
 # ---------------------------------------------------------------------------
 disk_model_name() {
     case "$1" in
-        graphsage_t) echo "graphsage-t" ;;
-        graphsage)   echo "graphsage" ;;
-        dyrep)       echo "dyrep" ;;
+        graphsage_t|graphsage_t_v2) echo "graphsage-t" ;;
+        graphsage|graphsage_v2)     echo "graphsage" ;;
+        dyrep|dyrep_lite_v2)        echo "dyrep" ;;
+        dyrep_full)                 echo "dyrep-full" ;;
         *)           echo "$1" ;;
     esac
 }
@@ -131,7 +156,7 @@ if [ ${#INCOMPLETE_INDICES[@]} -gt 0 ]; then
     echo "auto-resume from their checkpoint -- see load_checkpoint() in each"
     echo "training script -- NOT_STARTED ones just start fresh):"
     echo ""
-    echo "  sbatch --array=${IDX_LIST}%3 scripts/bash/train_single_run.sh"
+    echo "  sbatch --array=${IDX_LIST}%3 ${SUBMIT_SCRIPT}"
     if [ -n "${SEEDS_LIST:-}" ]; then
         echo "  (add --export=ALL,SEEDS_LIST=\"$SEEDS_LIST\" since you audited a custom seed list)"
     fi

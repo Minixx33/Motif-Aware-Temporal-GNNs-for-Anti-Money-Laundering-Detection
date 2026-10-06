@@ -33,8 +33,13 @@ import os
 import gc
 from pathlib import Path
 
+import sys
+
 import numpy as np
 import pandas as pd
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from slt_causal_day_exposure import causal_same_day_exposure  # noqa: E402
 
 # ===================== CLI ARGS =====================
 
@@ -528,7 +533,10 @@ src_pair_day = (
 
 # Strong tie definition:
 # repeated interaction in a day OR above-median pair amount
-src_pair_amt_median = float(src_pair_day["pair_amount"].median())
+# Strong-tie amount threshold: fit on train-period pair-days only (same
+# point-in-time convention as robust_norm / tau above), not the full dataset.
+src_pair_amt_median = float(
+    src_pair_day.loc[src_pair_day["date_only"] < _TRAIN_CUTOFF_TS, "pair_amount"].median())
 src_pair_day["is_strong_tie"] = (
     (src_pair_day["pair_txn_count"] > 1) |
     (src_pair_day["pair_amount"] > src_pair_amt_median)
@@ -583,7 +591,8 @@ dst_pair_day = (
       )
 )
 
-dst_pair_amt_median = float(dst_pair_day["pair_amount"].median())
+dst_pair_amt_median = float(
+    dst_pair_day.loc[dst_pair_day["date_only"] < _TRAIN_CUTOFF_TS, "pair_amount"].median())
 dst_pair_day["is_strong_tie"] = (
     (dst_pair_day["pair_txn_count"] > 1) |
     (dst_pair_day["pair_amount"] > dst_pair_amt_median)
@@ -618,6 +627,28 @@ dst_day_exposure = (
 
 del dst_pair_day
 gc.collect()
+
+# ===================== CAUSAL CURRENT-DAY EXPOSURE (POINT-IN-TIME) =====================
+# The account-day table below aggregates the WHOLE calendar day. Its
+# current-day ratios used to be merged onto every transaction of that day,
+# so a 09:00 transaction saw the account's 23:00 counterparties/amounts
+# (look-ahead; no labels involved). Those 8 columns are now replaced by the
+# same quantities computed only from the account's same-day transactions
+# STRICTLY BEFORE the current row (see slt_causal_day_exposure.py, which has a
+# brute-force self-test). Lagged / 7-day features below only use previous
+# days and are unchanged.
+print("Computing causal (strictly-prior, same-day) exposure features...")
+_acct_codes, _ = pd.factorize(pd.concat([df[SRC_COL].astype(str), df[DST_COL].astype(str)],
+                                        ignore_index=True))
+_day_id = (df["date_only"] - df["date_only"].min()).dt.days.to_numpy(np.int64)
+_causal_day = causal_same_day_exposure(
+    src=_acct_codes[:len(df)], dst=_acct_codes[len(df):], day=_day_id,
+    amt_paid=df[AMT_PAID].to_numpy(np.float64), amt_rec=df[AMT_REC].to_numpy(np.float64),
+    src_hr=df["src_is_high_risk_peer"].to_numpy(), dst_hr=df["dst_is_high_risk_peer"].to_numpy(),
+    median_src_role=src_pair_amt_median, median_dst_role=dst_pair_amt_median,
+)
+del _acct_codes, _day_id
+df["_row_id"] = np.arange(len(df), dtype=np.int64)   # to verify row order after the merges
 
 # ===================== COMBINE BOTH SIDES INTO ACCOUNT-DAY EXPOSURE =====================
 
@@ -858,6 +889,17 @@ for col in df.columns:
 if slt_rename_map:
     df = df.rename(columns=slt_rename_map)
     print(f"Renamed {len(slt_rename_map)} source/destination SLT columns to SLT_* prefix.")
+
+# Replace the full-day current-day exposure columns with the causal ones.
+# Row order must be unchanged by the merges above (left merges preserve it).
+assert np.array_equal(df["_row_id"].to_numpy(), np.arange(len(df))), \
+    "row order changed after the SLT merges -- cannot align causal features"
+for _c, _v in _causal_day.items():
+    assert _c in df.columns, f"expected column {_c} missing"
+    df[_c] = _v.astype(np.float32)
+df = df.drop(columns=["_row_id"])
+del _causal_day
+print("Replaced 8 current-day SLT exposure columns with causal (strictly-prior) values.")
 
 # ===================== LOW / MEDIUM / HIGH INJECTION OUTPUTS =====================
 

@@ -20,6 +20,12 @@ resample for MLP's early-stopping validation set -- no SMOTE or synthetic
 resampling of the training data itself, to keep this comparable to how the
 GNNs are trained (real transactions only).
 
+Feature handling (same as the causal_leakfix_v2 GNNs, so the comparison is
+like-for-like): ts_normalized (absolute time fit on the full date range) is
+dropped, pf_code / rc_code are one-hot encoded instead of fed as ordinal
+numbers. Thresholded metrics: the threshold is chosen on VAL (best F1) and
+applied unchanged to TEST, as in the GNN scripts. Splits must be chronological.
+
 Usage:
     python scripts/analysis/train_baselines.py \\
         --graph_dir graphs/HI-Small_Trans_RAT_pristine \\
@@ -44,7 +50,11 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from scripts.utils.evaluation_utils import evaluate_binary_classifier  # noqa: E402
 
 
-def load_split_data(graph_dir, split_dir):
+DROP_COLS = ("ts_normalized",)
+CAT_COLS = ("pf_code", "rc_code")
+
+
+def load_split_data(graph_dir, split_dir, drop_cols=DROP_COLS, one_hot=True):
     edge_attr = torch.load(os.path.join(graph_dir, "edge_attr.pt")).numpy()
     y_edge = torch.load(os.path.join(graph_dir, "y_edge.pt")).numpy().astype(int)
     with open(os.path.join(graph_dir, "edge_attr_cols.json")) as f:
@@ -60,7 +70,27 @@ def load_split_data(graph_dir, split_dir):
             f"{y_edge.shape[0]} -- graph directory is inconsistent."
         )
 
-    return edge_attr, y_edge, cols, train_idx, val_idx, test_idx
+    ts_path = os.path.join(graph_dir, "timestamps.pt")
+    if os.path.exists(ts_path):
+        ts = torch.load(ts_path).numpy()
+        if not (ts[train_idx].max() <= ts[val_idx].min() and ts[val_idx].max() <= ts[test_idx].min()):
+            raise ValueError(f"splits in {split_dir} are not chronological -- recreate them with "
+                             f"create_splits.py --split_mode chronological")
+
+    keep = [i for i, c in enumerate(cols) if c not in drop_cols and not (one_hot and c in CAT_COLS)]
+    blocks, out_cols = [edge_attr[:, keep]], [cols[i] for i in keep]
+    if one_hot:
+        for c in CAT_COLS:
+            if c in cols:
+                codes = np.rint(edge_attr[:, cols.index(c)]).astype(np.int64)
+                vocab = np.unique(codes)            # category vocabulary only, no label info
+                blocks.append((codes[:, None] == vocab[None, :]).astype(np.float32))
+                out_cols += [f"{c}={int(v)}" for v in vocab]
+    X = np.concatenate(blocks, axis=1)
+    dropped = [c for c in cols if c in drop_cols]
+    print(f"Features: {len(cols)} raw -> {X.shape[1]} used (dropped {dropped}, "
+          f"one-hot {[c for c in CAT_COLS if c in cols] if one_hot else []})")
+    return X, y_edge, out_cols, train_idx, val_idx, test_idx
 
 
 def fit_scaler(X_train):
@@ -244,8 +274,10 @@ def main():
             results["models"][name] = {"error": "dependency not installed"}
             continue
 
-        val_metrics = evaluate_binary_classifier(y_val, val_probs, verbose=False)
-        test_metrics = evaluate_binary_classifier(y_test, test_probs, verbose=False)
+        # threshold chosen on VAL, applied unchanged to TEST (as in the GNN scripts)
+        val_metrics = evaluate_binary_classifier(y_val, val_probs, auto_threshold=True, verbose=False)
+        test_metrics = evaluate_binary_classifier(y_test, test_probs, threshold=val_metrics["threshold"],
+                                                  auto_threshold=False, verbose=False)
 
         print(f"[{name}] val AUPR={val_metrics['aupr']:.4f}  "
               f"test AUPR={test_metrics['aupr']:.4f}  "

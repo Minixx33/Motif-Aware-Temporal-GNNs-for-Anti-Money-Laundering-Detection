@@ -29,6 +29,7 @@
 #SBATCH --array=0-8%2
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=4
+#SBATCH --mem=16G
 #SBATCH --time=500:00:00
 #SBATCH --output=scripts/bash/logs/rat_ablations_%A_%a.log
 #SBATCH --error=scripts/bash/logs/rat_ablations_%A_%a.err
@@ -94,8 +95,8 @@ python --version
 # Paths
 # ---------------------------------------------------------------------------
 BASE_CONFIG="configs/base.yaml"
-MODEL_CONFIG="configs/models/graphsage_t.yaml"
-TRAIN_SCRIPT="scripts/training/train_graphsage_t.py"
+MODEL_CONFIG="configs/models/graphsage_t_v2.yaml"
+TRAIN_SCRIPT="scripts/training/train_graphsage_t_v2.py"
 
 for f in "$BASE_CONFIG" "$MODEL_CONFIG" "$TRAIN_SCRIPT"; do
     [ -f "$f" ] || { echo "ERROR: Missing file: $f"; exit 1; }

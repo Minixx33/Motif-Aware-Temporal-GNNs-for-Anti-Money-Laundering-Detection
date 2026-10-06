@@ -24,8 +24,8 @@
 #SBATCH --qos=gpu-long-mialhajri-001
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=14G
-#SBATCH --time=06:00:00
+#SBATCH --mem=16G
+#SBATCH --time=12:00:00
 #SBATCH --array=0-24%3
 #SBATCH --output=scripts/bash/logs/slt_causal_train_%A_%a.log
 #SBATCH --error=scripts/bash/logs/slt_causal_train_%A_%a.err
@@ -70,8 +70,8 @@ CONDITIONS=(
 )
 SEEDS_ARR=(1 2 3 4 5)
 
-MODEL_SCRIPT="scripts/training/train_graphsage_t.py"
-MODEL_CONFIG="configs/models/graphsage_t.yaml"
+MODEL_SCRIPT="scripts/training/train_graphsage_t_v2.py"
+MODEL_CONFIG="configs/models/graphsage_t_v2.yaml"
 BASE_CONFIG="configs/base.yaml"
 for f in "$MODEL_SCRIPT" "$MODEL_CONFIG" "$BASE_CONFIG"; do
     [ -f "$f" ] || { echo "ERROR: missing $f"; exit 1; }
