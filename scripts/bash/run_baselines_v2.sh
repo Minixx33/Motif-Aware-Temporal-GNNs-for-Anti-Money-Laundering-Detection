@@ -11,7 +11,7 @@
 #SBATCH --account=acc-mialhajri
 #SBATCH --partition=cpu
 #SBATCH --cpus-per-task=8
-#SBATCH --mem=24G
+#SBATCH --mem=14G
 #SBATCH --time=12:00:00
 #SBATCH --array=0-4
 #SBATCH --output=scripts/bash/logs/baselines_v2_%A_%a.log

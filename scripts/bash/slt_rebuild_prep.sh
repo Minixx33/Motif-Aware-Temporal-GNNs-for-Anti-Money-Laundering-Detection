@@ -20,7 +20,7 @@
 #SBATCH --account=acc-mialhajri
 #SBATCH --partition=cpu
 #SBATCH --cpus-per-task=8
-#SBATCH --mem=24G
+#SBATCH --mem=14G
 #SBATCH --time=12:00:00
 #SBATCH --output=scripts/bash/logs/slt_rebuild_prep_%j.log
 #SBATCH --error=scripts/bash/logs/slt_rebuild_prep_%j.err

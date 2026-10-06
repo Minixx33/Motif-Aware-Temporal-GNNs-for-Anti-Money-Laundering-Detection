@@ -40,7 +40,7 @@
 #SBATCH --partition=cpu
 #SBATCH --array=0-4
 #SBATCH --cpus-per-task=8
-#SBATCH --mem=24G
+#SBATCH --mem=14G
 #SBATCH --time=12:00:00
 #SBATCH --output=scripts/bash/logs/slt_create_%A_%a.log
 #SBATCH --error=scripts/bash/logs/slt_create_%A_%a.err

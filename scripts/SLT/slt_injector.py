@@ -638,6 +638,7 @@ gc.collect()
 # brute-force self-test). Lagged / 7-day features below only use previous
 # days and are unchanged.
 print("Computing causal (strictly-prior, same-day) exposure features...")
+gc.collect()   # free the pair-day temporaries before the extra ~1.5 GB this step needs
 _acct_codes, _ = pd.factorize(pd.concat([df[SRC_COL].astype(str), df[DST_COL].astype(str)],
                                         ignore_index=True))
 _day_id = (df["date_only"] - df["date_only"].min()).dt.days.to_numpy(np.int64)

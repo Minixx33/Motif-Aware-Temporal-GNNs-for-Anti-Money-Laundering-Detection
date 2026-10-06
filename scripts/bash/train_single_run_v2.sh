@@ -27,7 +27,7 @@
 #SBATCH --qos=gpu-long-mialhajri-001
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=16G
+#SBATCH --mem=14G
 #SBATCH --time=12:00:00
 #SBATCH --array=0-24%3
 #SBATCH --output=scripts/bash/logs/train_v2_%A_%a.log

@@ -29,7 +29,7 @@
 #SBATCH --array=0-8%2
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=16G
+#SBATCH --mem=14G
 #SBATCH --time=500:00:00
 #SBATCH --output=scripts/bash/logs/rat_ablations_%A_%a.log
 #SBATCH --error=scripts/bash/logs/rat_ablations_%A_%a.err
