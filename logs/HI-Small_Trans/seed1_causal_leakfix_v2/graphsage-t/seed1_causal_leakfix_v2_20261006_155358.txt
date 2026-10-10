@@ -1,0 +1,216 @@
+
+================================================================================
+Logging started at: 2026-10-06 15:53:58.909675
+Log file: /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/logs/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t/seed1_causal_leakfix_v2_20261006_155358.txt
+================================================================================
+
+[INFO] Logging to: /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/logs/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t/seed1_causal_leakfix_v2_20261006_155358.txt
+================================================================================
+EXPERIMENT CONFIG SUMMARY
+================================================================================
+
+[DATASET]
+  Name:       HI-Small_Trans
+  Theory:     baseline
+  Intensity:  None
+
+[MODEL]
+  GraphSAGE-T
+  Hidden dim: 128
+
+[PATHS]
+  Graphs:     /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/graphs/HI-Small_Trans
+  Splits:     /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/splits/HI-Small_Trans
+  Results:    /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/results/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t
+  Logs:       /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/logs/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t
+================================================================================
+
+[DEVICE] cuda
+
+
+======= GRAPHSAGE-T (causal v2) =======
+Batch size: 4096 | Eval batch size: 8192 | Device: cuda
+[data] nodes=515,080 edges=5,078,345 edge_attr=(5078345, 12) x=(515080, 12)
+[data] dropping ['ts_normalized']; categorical ['pf_code', 'rc_code']; 9 continuous edge cols
+[data] static node features kept (entity dummies): 6 (dropped 6 static degree cols)
+[data] relation  out: 4,487,133 edges
+[data] relation   in: 4,487,133 edges
+[data] relation self: 591,212 edges
+[data] degree-scaler deltas: {'in': 1.417, 'out': 1.581, 'self': 0.586}
+[data] pair-history features: 4
+[data] prepared in 17.7s
+Train: 3,047,007, Val: 1,015,669, Test: 1,015,669
+Parameters: 473,713
+Fanout: [{'in': 10, 'out': 10, 'self': 2}, {'in': 5, 'out': 5, 'self': 1}] | sampling: most-recent | time encoding: 32
+[causality] OK -- 828,658 sampled neighbour edges all strictly earlier than their root edge
+pos_weight: 100.00
+Epoch 001 | train_loss=0.2598 val_loss=0.2006 P=0.166 R=0.143 F1=0.154 ROC-AUC=0.970 AUPR=0.084 time=159.8s
+Epoch 002 | train_loss=0.1889 val_loss=0.3176 P=0.318 R=0.256 F1=0.284 ROC-AUC=0.970 AUPR=0.236 time=158.8s
+Epoch 003 | train_loss=0.1658 val_loss=0.1458 P=0.338 R=0.278 F1=0.305 ROC-AUC=0.978 AUPR=0.235 time=158.6s
+Epoch 004 | train_loss=0.1722 val_loss=0.2541 P=0.284 R=0.225 F1=0.251 ROC-AUC=0.961 AUPR=0.200 time=158.7s
+Epoch 005 | train_loss=0.1970 val_loss=0.1865 P=0.333 R=0.258 F1=0.291 ROC-AUC=0.961 AUPR=0.214 time=158.6s
+Epoch 006 | train_loss=0.1958 val_loss=0.2552 P=0.256 R=0.215 F1=0.234 ROC-AUC=0.970 AUPR=0.174 time=158.6s
+Epoch 007 | train_loss=0.1613 val_loss=0.2248 P=0.303 R=0.213 F1=0.250 ROC-AUC=0.976 AUPR=0.192 time=158.7s
+Epoch 008 | train_loss=0.1585 val_loss=0.3218 P=0.256 R=0.220 F1=0.236 ROC-AUC=0.969 AUPR=0.191 time=158.7s
+Epoch 009 | train_loss=0.1778 val_loss=0.1957 P=0.299 R=0.247 F1=0.270 ROC-AUC=0.976 AUPR=0.217 time=158.7s
+Epoch 010 | train_loss=0.1759 val_loss=0.5382 P=0.178 R=0.216 F1=0.195 ROC-AUC=0.957 AUPR=0.123 time=158.8s
+[DRIVE SYNC] [seed1_causal_leakfix_v2] /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/results/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t
+[DRIVE SYNC] [seed1_causal_leakfix_v2] /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/logs/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t
+Epoch 011 | train_loss=0.2029 val_loss=0.2047 P=0.324 R=0.258 F1=0.287 ROC-AUC=0.968 AUPR=0.232 time=158.8s
+Epoch 012 | train_loss=0.2062 val_loss=0.4011 P=0.321 R=0.193 F1=0.241 ROC-AUC=0.968 AUPR=0.205 time=158.8s
+Epoch 013 | train_loss=0.2145 val_loss=0.2036 P=0.220 R=0.204 F1=0.212 ROC-AUC=0.973 AUPR=0.137 time=158.7s
+Epoch 014 | train_loss=0.1826 val_loss=0.3007 P=0.206 R=0.231 F1=0.218 ROC-AUC=0.970 AUPR=0.161 time=158.7s
+Epoch 015 | train_loss=0.1970 val_loss=0.3104 P=0.344 R=0.299 F1=0.319 ROC-AUC=0.970 AUPR=0.277 time=158.7s
+Epoch 016 | train_loss=0.1899 val_loss=0.2230 P=0.375 R=0.275 F1=0.318 ROC-AUC=0.965 AUPR=0.270 time=158.9s
+Epoch 017 | train_loss=0.2084 val_loss=0.7301 P=0.297 R=0.203 F1=0.241 ROC-AUC=0.960 AUPR=0.192 time=158.8s
+Epoch 018 | train_loss=0.2009 val_loss=0.2983 P=0.295 R=0.228 F1=0.257 ROC-AUC=0.970 AUPR=0.207 time=158.8s
+Epoch 019 | train_loss=0.2041 val_loss=0.3717 P=0.257 R=0.184 F1=0.214 ROC-AUC=0.968 AUPR=0.179 time=158.8s
+Epoch 020 | train_loss=0.2136 val_loss=0.6200 P=0.158 R=0.202 F1=0.177 ROC-AUC=0.965 AUPR=0.131 time=158.8s
+[DRIVE SYNC] [seed1_causal_leakfix_v2] /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/results/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t
+[DRIVE SYNC] [seed1_causal_leakfix_v2] /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/logs/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t
+Epoch 021 | train_loss=0.2364 val_loss=0.3160 P=0.392 R=0.177 F1=0.243 ROC-AUC=0.967 AUPR=0.196 time=158.8s
+Epoch 022 | train_loss=0.2512 val_loss=0.2132 P=0.345 R=0.311 F1=0.327 ROC-AUC=0.947 AUPR=0.229 time=158.8s
+Epoch 023 | train_loss=0.2128 val_loss=0.2220 P=0.267 R=0.273 F1=0.270 ROC-AUC=0.972 AUPR=0.214 time=158.8s
+Epoch 024 | train_loss=0.2006 val_loss=0.2544 P=0.331 R=0.244 F1=0.281 ROC-AUC=0.975 AUPR=0.221 time=158.7s
+Epoch 025 | train_loss=0.2025 val_loss=0.4244 P=0.330 R=0.177 F1=0.230 ROC-AUC=0.965 AUPR=0.181 time=158.7s
+Epoch 026 | train_loss=0.1925 val_loss=0.2063 P=0.235 R=0.267 F1=0.250 ROC-AUC=0.975 AUPR=0.178 time=158.6s
+Epoch 027 | train_loss=0.1901 val_loss=0.3441 P=0.208 R=0.256 F1=0.230 ROC-AUC=0.974 AUPR=0.186 time=158.6s
+Epoch 028 | train_loss=0.1903 val_loss=0.3225 P=0.244 R=0.255 F1=0.249 ROC-AUC=0.973 AUPR=0.189 time=158.7s
+Epoch 029 | train_loss=0.2025 val_loss=0.3590 P=0.314 R=0.172 F1=0.222 ROC-AUC=0.968 AUPR=0.190 time=158.7s
+Epoch 030 | train_loss=0.2217 val_loss=0.3506 P=0.264 R=0.206 F1=0.231 ROC-AUC=0.968 AUPR=0.190 time=158.7s
+[DRIVE SYNC] [seed1_causal_leakfix_v2] /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/results/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t
+[DRIVE SYNC] [seed1_causal_leakfix_v2] /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/logs/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t
+Epoch 031 | train_loss=0.2163 val_loss=0.2258 P=0.339 R=0.287 F1=0.310 ROC-AUC=0.948 AUPR=0.281 time=158.7s
+Epoch 032 | train_loss=0.2262 val_loss=0.2153 P=0.458 R=0.198 F1=0.276 ROC-AUC=0.968 AUPR=0.234 time=158.8s
+Epoch 033 | train_loss=0.2589 val_loss=0.2343 P=0.269 R=0.314 F1=0.290 ROC-AUC=0.970 AUPR=0.252 time=158.8s
+Epoch 034 | train_loss=0.2491 val_loss=0.2411 P=0.256 R=0.307 F1=0.279 ROC-AUC=0.966 AUPR=0.225 time=158.7s
+Epoch 035 | train_loss=0.2139 val_loss=0.2299 P=0.270 R=0.293 F1=0.281 ROC-AUC=0.971 AUPR=0.238 time=158.7s
+Epoch 036 | train_loss=0.1959 val_loss=0.2731 P=0.270 R=0.327 F1=0.296 ROC-AUC=0.971 AUPR=0.261 time=158.8s
+Epoch 037 | train_loss=0.1700 val_loss=0.2498 P=0.288 R=0.220 F1=0.250 ROC-AUC=0.976 AUPR=0.209 time=158.8s
+Epoch 038 | train_loss=0.1832 val_loss=0.3396 P=0.266 R=0.250 F1=0.257 ROC-AUC=0.975 AUPR=0.206 time=158.8s
+Epoch 039 | train_loss=0.1952 val_loss=0.2337 P=0.368 R=0.269 F1=0.311 ROC-AUC=0.971 AUPR=0.257 time=158.8s
+Epoch 040 | train_loss=0.1848 val_loss=0.3190 P=0.339 R=0.203 F1=0.254 ROC-AUC=0.975 AUPR=0.215 time=158.8s
+[DRIVE SYNC] [seed1_causal_leakfix_v2] /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/results/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t
+[DRIVE SYNC] [seed1_causal_leakfix_v2] /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/logs/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t
+Epoch 041 | train_loss=0.2029 val_loss=0.2662 P=0.367 R=0.259 F1=0.304 ROC-AUC=0.973 AUPR=0.267 time=158.8s
+Epoch 042 | train_loss=0.2028 val_loss=0.2777 P=0.248 R=0.229 F1=0.238 ROC-AUC=0.971 AUPR=0.184 time=158.7s
+Epoch 043 | train_loss=0.2007 val_loss=0.2350 P=0.242 R=0.258 F1=0.250 ROC-AUC=0.975 AUPR=0.201 time=158.8s
+Epoch 044 | train_loss=0.2179 val_loss=0.2954 P=0.274 R=0.237 F1=0.254 ROC-AUC=0.973 AUPR=0.215 time=158.8s
+Epoch 045 | train_loss=0.1913 val_loss=0.2746 P=0.402 R=0.196 F1=0.264 ROC-AUC=0.973 AUPR=0.226 time=158.9s
+Epoch 046 | train_loss=0.1902 val_loss=0.1933 P=0.352 R=0.251 F1=0.293 ROC-AUC=0.970 AUPR=0.234 time=158.8s
+Epoch 047 | train_loss=0.1900 val_loss=0.2279 P=0.340 R=0.294 F1=0.315 ROC-AUC=0.975 AUPR=0.279 time=158.9s
+Epoch 048 | train_loss=0.1741 val_loss=0.2771 P=0.219 R=0.234 F1=0.226 ROC-AUC=0.974 AUPR=0.150 time=158.8s
+Epoch 049 | train_loss=0.1689 val_loss=0.2063 P=0.308 R=0.274 F1=0.290 ROC-AUC=0.976 AUPR=0.254 time=158.9s
+Epoch 050 | train_loss=0.1919 val_loss=0.2309 P=0.359 R=0.234 F1=0.283 ROC-AUC=0.977 AUPR=0.254 time=158.8s
+[DRIVE SYNC] [seed1_causal_leakfix_v2] /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/results/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t
+[DRIVE SYNC] [seed1_causal_leakfix_v2] /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/logs/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t
+Epoch 051 | train_loss=0.1972 val_loss=0.4074 P=0.181 R=0.255 F1=0.212 ROC-AUC=0.973 AUPR=0.148 time=158.8s
+Epoch 052 | train_loss=0.1797 val_loss=0.2190 P=0.295 R=0.261 F1=0.277 ROC-AUC=0.976 AUPR=0.243 time=158.8s
+Epoch 053 | train_loss=0.1758 val_loss=0.2781 P=0.192 R=0.257 F1=0.220 ROC-AUC=0.977 AUPR=0.163 time=158.9s
+Epoch 054 | train_loss=0.1839 val_loss=0.2663 P=0.263 R=0.251 F1=0.257 ROC-AUC=0.978 AUPR=0.225 time=158.8s
+Epoch 055 | train_loss=0.1655 val_loss=0.2739 P=0.297 R=0.270 F1=0.283 ROC-AUC=0.976 AUPR=0.217 time=158.8s
+Epoch 056 | train_loss=0.1854 val_loss=0.4376 P=0.271 R=0.311 F1=0.289 ROC-AUC=0.975 AUPR=0.250 time=158.9s
+
+Early stopping at epoch 56
+
+Total training time: 9123.2s (152.1 min)
+
+Loading best model from epoch 31...
+======================================================================
+EVALUATION RESULTS: seed1_causal_leakfix_v2 TRAIN
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.2361
+  Recall:           0.1910
+  F1-Score:         0.2112
+  ROC-AUC:          0.9380
+  AUPR:             0.1165
+  Balanced Acc:     0.5953
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.2119
+  Cohen Kappa:      0.2107
+  Specificity:      0.9995
+
+THRESHOLD: 0.440
+
+CONFUSION MATRIX:
+  True Negatives:   3043289
+  False Positives:  1420
+  False Negatives:  1859
+  True Positives:   439
+
+TOP-K PRECISION:
+  precision_at_100: 0.4500
+  precision_at_500: 0.4080
+  precision_at_1000: 0.2740
+======================================================================
+======================================================================
+EVALUATION RESULTS: seed1_causal_leakfix_v2 VAL
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.3388
+  Recall:           0.2865
+  F1-Score:         0.3105
+  ROC-AUC:          0.9483
+  AUPR:             0.2805
+  Balanced Acc:     0.6430
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.3109
+  Cohen Kappa:      0.3098
+  Specificity:      0.9994
+
+THRESHOLD: 0.351
+
+CONFUSION MATRIX:
+  True Negatives:   1013982
+  False Positives:  605
+  False Negatives:  772
+  True Positives:   310
+
+TOP-K PRECISION:
+  precision_at_100: 0.9300
+  precision_at_500: 0.4740
+  precision_at_1000: 0.3220
+======================================================================
+======================================================================
+EVALUATION RESULTS: seed1_causal_leakfix_v2 TEST
+======================================================================
+
+STANDARD METRICS:
+  Precision:        0.2266
+  Recall:           0.5181
+  F1-Score:         0.3153
+  ROC-AUC:          0.9635
+  AUPR:             0.2526
+  Balanced Acc:     0.7575
+
+IMBALANCED-AWARE METRICS:
+  MCC:              0.3410
+  Cohen Kappa:      0.3136
+  Specificity:      0.9969
+
+THRESHOLD: 0.351
+
+CONFUSION MATRIX:
+  True Negatives:   1010695
+  False Positives:  3177
+  False Negatives:  866
+  True Positives:   931
+
+TOP-K PRECISION:
+  precision_at_100: 0.5300
+  precision_at_500: 0.4980
+  precision_at_1000: 0.4050
+======================================================================
+[DRIVE SYNC] [seed1_causal_leakfix_v2 (final)] /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/results/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t -> gdrive:AML_project_results/results/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t
+[DRIVE SYNC] [seed1_causal_leakfix_v2 (final)] /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/logs/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t -> gdrive:AML_project_results/logs/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t
+
+GRAPHSAGE-T (causal v2) complete. Results: /shared/g00112161/Motif-Aware-Temporal-GNNs-for-Anti-Money-Laundering-Detection/results/HI-Small_Trans/seed1_causal_leakfix_v2/graphsage-t
+
+================================================================================
+Logging ended at: 2026-10-06 18:28:48.349930
+================================================================================

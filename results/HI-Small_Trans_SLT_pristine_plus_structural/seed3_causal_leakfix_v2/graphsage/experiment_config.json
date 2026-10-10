@@ -1,0 +1,164 @@
+{
+  "timestamp": "2026-10-09T15:23:49.804731",
+  "base_config": {
+    "experiment": {
+      "seed": 3,
+      "name": "causal_leakfix_v1"
+    },
+    "paths": {
+      "root": "",
+      "graphs_dir": "graphs",
+      "tgat_graphs_dir": "graphs_tgat",
+      "dyrep_graphs_dir": "graphs_dyrep",
+      "splits_dir": "splits",
+      "tgat_splits_dir": "splits_tgat",
+      "dyrep_splits_dir": "splits_dyrep",
+      "results_dir": "results",
+      "logs_dir": "logs"
+    },
+    "evaluation": {
+      "threshold": 0.5,
+      "auto_threshold": true,
+      "compute_top_k": true,
+      "top_k_values": [
+        100,
+        500,
+        1000
+      ]
+    },
+    "logging": {
+      "print_interval": 1,
+      "save_history": true,
+      "save_best_only": true
+    },
+    "sync": {
+      "enabled": true,
+      "rclone_remote": "gdrive",
+      "drive_root": "AML_project_results",
+      "sync_logs": true,
+      "sync_every_n_epochs": 10,
+      "extra_args": [],
+      "rclone_path": null
+    }
+  },
+  "model_config": {
+    "experiment": {
+      "name": "causal_leakfix_v2"
+    },
+    "model": {
+      "name": "GraphSAGE",
+      "hidden_dim": 128,
+      "dropout": 0.2,
+      "cat_dim": 8,
+      "fanout": [
+        {
+          "in": 10,
+          "out": 10,
+          "self": 2
+        },
+        {
+          "in": 5,
+          "out": 5,
+          "self": 1
+        }
+      ]
+    },
+    "training": {
+      "device": "cuda",
+      "batch_size": 4096,
+      "eval_batch_size": 8192,
+      "lr": 0.0005,
+      "weight_decay": 0.0001,
+      "epochs": 350,
+      "early_stopping_patience": 25,
+      "gradient_clip": 1.0,
+      "optimizer": {
+        "type": "adam",
+        "betas": [
+          0.9,
+          0.999
+        ],
+        "eps": "1e-8"
+      }
+    },
+    "loss": {
+      "type": "bce",
+      "pos_weight": null
+    }
+  },
+  "dataset_config": {
+    "dataset": {
+      "theory": "SLT",
+      "prefix": "HI-Small_Trans_SLT_pristine_plus_structural",
+      "requires_intensity": false
+    }
+  },
+  "intensity": null,
+  "additional_info": {
+    "total_training_time_sec": 9027.697252671001,
+    "batch_size": 4096,
+    "eval_batch_size": 8192,
+    "dropped_edge_cols": [
+      "ts_normalized"
+    ],
+    "categorical_edge_cols": [
+      "pf_code",
+      "rc_code"
+    ],
+    "continuous_edge_cols": [
+      "log_amt_rec",
+      "log_amt_paid",
+      "same_bank",
+      "same_currency",
+      "hour_of_day",
+      "day_of_week",
+      "is_weekend",
+      "log_time_since_src",
+      "log_time_since_dst",
+      "src_peer_risk_score",
+      "dst_peer_risk_score",
+      "SLT_src_susp_nbr_ratio",
+      "SLT_src_susp_amt_share",
+      "SLT_src_susp_txn_share",
+      "SLT_src_strong_tie_susp_ratio",
+      "SLT_src_susp_nbr_ratio_lag1",
+      "SLT_src_susp_nbr_ratio_lag2",
+      "SLT_src_susp_amt_share_lag1",
+      "SLT_src_susp_amt_share_lag2",
+      "SLT_src_susp_txn_share_lag1",
+      "SLT_src_susp_txn_share_lag2",
+      "SLT_src_strong_tie_susp_ratio_lag1",
+      "SLT_src_strong_tie_susp_ratio_lag2",
+      "SLT_src_exposure_delta",
+      "SLT_src_cum_exposure_7d",
+      "SLT_src_cum_amt_exposure_7d",
+      "SLT_src_cum_exposure_7d_norm",
+      "SLT_src_cum_amt_exposure_7d_norm",
+      "SLT_dst_susp_nbr_ratio",
+      "SLT_dst_susp_amt_share",
+      "SLT_dst_susp_txn_share",
+      "SLT_dst_strong_tie_susp_ratio",
+      "SLT_dst_susp_nbr_ratio_lag1",
+      "SLT_dst_susp_nbr_ratio_lag2",
+      "SLT_dst_susp_amt_share_lag1",
+      "SLT_dst_susp_amt_share_lag2",
+      "SLT_dst_susp_txn_share_lag1",
+      "SLT_dst_susp_txn_share_lag2",
+      "SLT_dst_strong_tie_susp_ratio_lag1",
+      "SLT_dst_strong_tie_susp_ratio_lag2",
+      "SLT_dst_exposure_delta",
+      "SLT_dst_cum_exposure_7d",
+      "SLT_dst_cum_amt_exposure_7d",
+      "SLT_dst_cum_exposure_7d_norm",
+      "SLT_dst_cum_amt_exposure_7d_norm",
+      "SLT_same_entity",
+      "SLT_src_score",
+      "SLT_dst_score",
+      "SLT_score",
+      "motif_fanin",
+      "motif_fanout",
+      "motif_chain",
+      "motif_cycle"
+    ]
+  }
+}

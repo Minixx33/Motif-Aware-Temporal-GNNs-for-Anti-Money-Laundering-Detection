@@ -1,0 +1,74 @@
+# <sbatch_script> <array_index> [<marker that must exist first>]   -- used by scripts/bash/gpu_queue.sh
+# remaining 96 base runs; non-SLT conditions first, SLT ones wait for the rebuild marker
+scripts/bash/train_single_run_v2.sh 6   # baseline graphsage seed2
+scripts/bash/train_single_run_v2.sh 7   # baseline graphsage seed3
+scripts/bash/train_single_run_v2.sh 8   # baseline graphsage seed4
+scripts/bash/train_single_run_v2.sh 9   # baseline graphsage seed5
+scripts/bash/train_single_run_v2.sh 15   # structural_only graphsage seed1
+scripts/bash/train_single_run_v2.sh 16   # structural_only graphsage seed2
+scripts/bash/train_single_run_v2.sh 17   # structural_only graphsage seed3
+scripts/bash/train_single_run_v2.sh 18   # structural_only graphsage seed4
+scripts/bash/train_single_run_v2.sh 19   # structural_only graphsage seed5
+scripts/bash/train_single_run_v2.sh 25   # rat_natural graphsage seed1
+scripts/bash/train_single_run_v2.sh 26   # rat_natural graphsage seed2
+scripts/bash/train_single_run_v2.sh 27   # rat_natural graphsage seed3
+scripts/bash/train_single_run_v2.sh 28   # rat_natural graphsage seed4
+scripts/bash/train_single_run_v2.sh 29   # rat_natural graphsage seed5
+scripts/bash/train_single_run_dyrep_full.sh 1   # baseline dyrep-full seed2
+scripts/bash/train_single_run_dyrep_full.sh 2   # baseline dyrep-full seed3
+scripts/bash/train_single_run_dyrep_full.sh 3   # baseline dyrep-full seed4
+scripts/bash/train_single_run_dyrep_full.sh 4   # baseline dyrep-full seed5
+scripts/bash/train_single_run_dyrep_full.sh 5   # structural_only dyrep-full seed1
+scripts/bash/train_single_run_dyrep_full.sh 6   # structural_only dyrep-full seed2
+scripts/bash/train_single_run_dyrep_full.sh 7   # structural_only dyrep-full seed3
+scripts/bash/train_single_run_dyrep_full.sh 8   # structural_only dyrep-full seed4
+scripts/bash/train_single_run_dyrep_full.sh 9   # structural_only dyrep-full seed5
+scripts/bash/train_single_run_dyrep_full.sh 10   # rat_natural dyrep-full seed1
+scripts/bash/train_single_run_dyrep_full.sh 11   # rat_natural dyrep-full seed2
+scripts/bash/train_single_run_dyrep_full.sh 12   # rat_natural dyrep-full seed3
+scripts/bash/train_single_run_dyrep_full.sh 13   # rat_natural dyrep-full seed4
+scripts/bash/train_single_run_dyrep_full.sh 14   # rat_natural dyrep-full seed5
+scripts/bash/train_single_run_dyrep_lite_v2.sh 1   # baseline dyrep-lite-v2 seed2
+scripts/bash/train_single_run_dyrep_lite_v2.sh 2   # baseline dyrep-lite-v2 seed3
+scripts/bash/train_single_run_dyrep_lite_v2.sh 3   # baseline dyrep-lite-v2 seed4
+scripts/bash/train_single_run_dyrep_lite_v2.sh 4   # baseline dyrep-lite-v2 seed5
+scripts/bash/train_single_run_dyrep_lite_v2.sh 5   # structural_only dyrep-lite-v2 seed1
+scripts/bash/train_single_run_dyrep_lite_v2.sh 6   # structural_only dyrep-lite-v2 seed2
+scripts/bash/train_single_run_dyrep_lite_v2.sh 7   # structural_only dyrep-lite-v2 seed3
+scripts/bash/train_single_run_dyrep_lite_v2.sh 8   # structural_only dyrep-lite-v2 seed4
+scripts/bash/train_single_run_dyrep_lite_v2.sh 9   # structural_only dyrep-lite-v2 seed5
+scripts/bash/train_single_run_dyrep_lite_v2.sh 10   # rat_natural dyrep-lite-v2 seed1
+scripts/bash/train_single_run_dyrep_lite_v2.sh 11   # rat_natural dyrep-lite-v2 seed2
+scripts/bash/train_single_run_dyrep_lite_v2.sh 12   # rat_natural dyrep-lite-v2 seed3
+scripts/bash/train_single_run_dyrep_lite_v2.sh 13   # rat_natural dyrep-lite-v2 seed4
+scripts/bash/train_single_run_dyrep_lite_v2.sh 14   # rat_natural dyrep-lite-v2 seed5
+scripts/bash/train_single_run_v2.sh 35 logs/markers/slt_rebuild.done   # slt_natural graphsage seed1
+scripts/bash/train_single_run_v2.sh 36 logs/markers/slt_rebuild.done   # slt_natural graphsage seed2
+scripts/bash/train_single_run_v2.sh 37 logs/markers/slt_rebuild.done   # slt_natural graphsage seed3
+scripts/bash/train_single_run_v2.sh 38 logs/markers/slt_rebuild.done   # slt_natural graphsage seed4
+scripts/bash/train_single_run_v2.sh 39 logs/markers/slt_rebuild.done   # slt_natural graphsage seed5
+scripts/bash/train_single_run_v2.sh 45 logs/markers/slt_rebuild.done   # slt_plus_structural graphsage seed1
+scripts/bash/train_single_run_v2.sh 46 logs/markers/slt_rebuild.done   # slt_plus_structural graphsage seed2
+scripts/bash/train_single_run_v2.sh 47 logs/markers/slt_rebuild.done   # slt_plus_structural graphsage seed3
+scripts/bash/train_single_run_v2.sh 48 logs/markers/slt_rebuild.done   # slt_plus_structural graphsage seed4
+scripts/bash/train_single_run_v2.sh 49 logs/markers/slt_rebuild.done   # slt_plus_structural graphsage seed5
+scripts/bash/train_single_run_dyrep_full.sh 15 logs/markers/slt_rebuild.done   # slt_natural dyrep-full seed1
+scripts/bash/train_single_run_dyrep_full.sh 16 logs/markers/slt_rebuild.done   # slt_natural dyrep-full seed2
+scripts/bash/train_single_run_dyrep_full.sh 17 logs/markers/slt_rebuild.done   # slt_natural dyrep-full seed3
+scripts/bash/train_single_run_dyrep_full.sh 18 logs/markers/slt_rebuild.done   # slt_natural dyrep-full seed4
+scripts/bash/train_single_run_dyrep_full.sh 19 logs/markers/slt_rebuild.done   # slt_natural dyrep-full seed5
+scripts/bash/train_single_run_dyrep_full.sh 20 logs/markers/slt_rebuild.done   # slt_plus_structural dyrep-full seed1
+scripts/bash/train_single_run_dyrep_full.sh 21 logs/markers/slt_rebuild.done   # slt_plus_structural dyrep-full seed2
+scripts/bash/train_single_run_dyrep_full.sh 22 logs/markers/slt_rebuild.done   # slt_plus_structural dyrep-full seed3
+scripts/bash/train_single_run_dyrep_full.sh 23 logs/markers/slt_rebuild.done   # slt_plus_structural dyrep-full seed4
+scripts/bash/train_single_run_dyrep_full.sh 24 logs/markers/slt_rebuild.done   # slt_plus_structural dyrep-full seed5
+scripts/bash/train_single_run_dyrep_lite_v2.sh 15 logs/markers/slt_rebuild.done   # slt_natural dyrep-lite-v2 seed1
+scripts/bash/train_single_run_dyrep_lite_v2.sh 16 logs/markers/slt_rebuild.done   # slt_natural dyrep-lite-v2 seed2
+scripts/bash/train_single_run_dyrep_lite_v2.sh 17 logs/markers/slt_rebuild.done   # slt_natural dyrep-lite-v2 seed3
+scripts/bash/train_single_run_dyrep_lite_v2.sh 18 logs/markers/slt_rebuild.done   # slt_natural dyrep-lite-v2 seed4
+scripts/bash/train_single_run_dyrep_lite_v2.sh 19 logs/markers/slt_rebuild.done   # slt_natural dyrep-lite-v2 seed5
+scripts/bash/train_single_run_dyrep_lite_v2.sh 20 logs/markers/slt_rebuild.done   # slt_plus_structural dyrep-lite-v2 seed1
+scripts/bash/train_single_run_dyrep_lite_v2.sh 21 logs/markers/slt_rebuild.done   # slt_plus_structural dyrep-lite-v2 seed2
+scripts/bash/train_single_run_dyrep_lite_v2.sh 22 logs/markers/slt_rebuild.done   # slt_plus_structural dyrep-lite-v2 seed3
+scripts/bash/train_single_run_dyrep_lite_v2.sh 23 logs/markers/slt_rebuild.done   # slt_plus_structural dyrep-lite-v2 seed4
+scripts/bash/train_single_run_dyrep_lite_v2.sh 24 logs/markers/slt_rebuild.done   # slt_plus_structural dyrep-lite-v2 seed5
