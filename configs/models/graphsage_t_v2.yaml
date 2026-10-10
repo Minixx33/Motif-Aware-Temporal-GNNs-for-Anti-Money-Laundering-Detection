@@ -9,6 +9,7 @@ model:
   dropout: 0.2
   cat_dim: 8
   time_dim: 32               # relative-time encoding on every message
+  time_encoding: "fixed"     # fixed sin/cos, periods 10 min..30 days (the learnable one re-randomised every step -> underfit)
   # K MOST RECENT neighbours per relation per hop, from edges strictly
   # earlier than the edge being scored
   fanout:

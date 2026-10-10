@@ -183,7 +183,7 @@ class DyRepFull(nn.Module):
 
         self.edge_enc = EdgeEncoder(len(g.cont_cols), g.cat_sizes, int(cfg.get("cat_dim", 8)))
         e_dim = self.edge_enc.out_dim
-        self.time_enc = TimeEncoder(t_dim)
+        self.time_enc = TimeEncoder(t_dim, cfg.get("time_encoding", "fixed"))
         self.x_proj = nn.Linear(g.x_ent.size(1), x_dim)
 
         # DyRep localised attention (TGN graph-attention, 1 layer)

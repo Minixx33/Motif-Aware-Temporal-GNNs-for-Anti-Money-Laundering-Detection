@@ -9,6 +9,7 @@ model:
   name: "DyRep-Full"
   memory_dim: 128            # DyRep node representation / memory size
   time_dim: 32               # relative-time encoding
+  time_encoding: "fixed"     # fixed sin/cos, periods 10 min..30 days (the learnable one re-randomised every step -> underfit)
   node_feat_dim: 16          # projection of static node features (entity type)
   cat_dim: 8                 # pf_code / rc_code embedding size
   n_neighbors: 10            # most-recent neighbours per relation (in, out) for DyRep attention

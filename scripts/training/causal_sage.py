@@ -305,17 +305,39 @@ class CausalGraph:
 # ===========================================================
 
 class TimeEncoder(nn.Module):
-    """GraphMixer/TGAT-style cos(w * dt + b), dt in seconds, learnable w,b."""
+    """
+    Encoding of a time gap dt (seconds).
 
-    def __init__(self, dim):
+    mode="fixed" (default): [sin(2*pi*dt/P_k), cos(2*pi*dt/P_k)] for periods P_k
+      log-spaced from 10 minutes to 30 days -- the time scales present in this
+      data. NOT learned (a buffer), so the features mean the same thing at every
+      training step.
+    mode="learnable": the original GraphMixer/TGAT-style cos(w*dt + b) with
+      learnable w, b. Kept only to reproduce the first v2 pilot. With dt in
+      seconds (up to ~1.5e6) one Adam step on w shifts the phase by many full
+      cycles, so the features are effectively re-randomised every step and the
+      model underfits (GraphSAGE-T pilot: train AUPR 0.12 vs GraphSAGE 0.49).
+    """
+
+    def __init__(self, dim, mode="fixed"):
         super().__init__()
-        self.lin = nn.Linear(1, dim)
-        with torch.no_grad():
-            self.lin.weight.copy_(
-                torch.from_numpy(1.0 / 10 ** np.linspace(0, 9, dim)).float().view(dim, 1))
-            self.lin.bias.zero_()
+        assert mode in ("fixed", "learnable"), mode
+        self.mode = mode
+        if mode == "fixed":
+            assert dim % 2 == 0, "time_dim must be even for the fixed encoding"
+            periods = np.logspace(np.log10(600.0), np.log10(30 * 86400.0), dim // 2)
+            self.register_buffer("omega", torch.from_numpy(2 * np.pi / periods).float())
+        else:
+            self.lin = nn.Linear(1, dim)
+            with torch.no_grad():
+                self.lin.weight.copy_(
+                    torch.from_numpy(1.0 / 10 ** np.linspace(0, 9, dim)).float().view(dim, 1))
+                self.lin.bias.zero_()
 
     def forward(self, dt):
+        if self.mode == "fixed":
+            ang = dt.unsqueeze(-1).float() * self.omega
+            return torch.cat([torch.sin(ang), torch.cos(ang)], dim=-1)
         return torch.cos(self.lin(dt.unsqueeze(-1).float()))
 
 
@@ -382,7 +404,7 @@ class CausalSAGEEdgeModel(nn.Module):
 
         self.edge_enc = EdgeEncoder(len(g.cont_cols), g.cat_sizes, int(cfg.get("cat_dim", 8)))
         e_dim = self.edge_enc.out_dim
-        self.time_enc = TimeEncoder(self.t_dim) if temporal else None
+        self.time_enc = TimeEncoder(self.t_dim, cfg.get("time_encoding", "fixed")) if temporal else None
 
         n_time_node = 2 if temporal else 0
         self.h0_dim = g.x_ent.size(1) + len(RELATIONS) + n_time_node
