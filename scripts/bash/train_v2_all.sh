@@ -36,10 +36,10 @@ DATASETS_ARR=(
 )
 # name | script | config | results folder name
 MODELS_ARR=(
-    "graphsage|scripts/training/train_graphsage_v2.py|configs/models/graphsage_v2.yaml|graphsage"
-    "dyrep_lite|scripts/training/train_dyrep_lite_v2.py|configs/models/dyrep_lite_v2.yaml|dyrep"
-#   "graphsage_t|scripts/training/train_graphsage_t_v2.py|configs/models/graphsage_t_v2.yaml|graphsage-t"   # on hold
-#   "dyrep_full|scripts/training/train_dyrep_full.py|configs/models/dyrep_full.yaml|dyrep-full"            # on hold
+    "graphsage|scripts/training/train_graphsage_v2.py|configs/models/graphsage_v2.yaml|graphsage"            # done (25/25)
+    "dyrep_lite|scripts/training/train_dyrep_lite_v2.py|configs/models/dyrep_lite_v2.yaml|dyrep"             # done (25/25)
+    "graphsage_t|scripts/training/train_graphsage_t_v2.py|configs/models/graphsage_t_v2.yaml|graphsage-t"   # fixed time encoding
+    # "dyrep_full|scripts/training/train_dyrep_full.py|configs/models/dyrep_full.yaml|dyrep-full"            # ON HOLD
 )
 SEEDS_ARR=(1 2 3 4 5)
 EXP_NAME="causal_leakfix_v2"
@@ -62,6 +62,22 @@ WORKER="${SLURM_ARRAY_TASK_ID:-0}"
 N_WORKERS="${SLURM_ARRAY_TASK_COUNT:-1}"
 MY_JOB="${SLURM_JOB_ID:-local$$}"
 mkdir -p logs/tmp_configs
+
+# GraphSAGE-T / DyRep-Full need the fixed time encoding in the CODE
+grep -q 'mode="fixed"' scripts/training/causal_sage.py || { echo "ERROR: causal_sage.py lacks the fixed time encoding -- git pull"; exit 1; }
+grep -q 'cfg.get("time_encoding", "fixed")' scripts/training/train_dyrep_full.py || { echo "ERROR: train_dyrep_full.py lacks the fix -- git pull"; exit 1; }
+# Results trained with the old learnable time encoding are not valid: move them
+# aside (once, by worker 0) so they are re-trained instead of skipped as "done".
+if [ "$WORKER" -eq 0 ]; then
+    for d in results/*/seed*_${EXP_NAME}/graphsage-t; do
+        [ -d "$d" ] || continue
+        grep -q '"time_encoding": "fixed"' "$d/experiment_config.json" 2>/dev/null && continue
+        [ -f "$d/.lock" ] && continue
+        mv "$d" "${d}_old_learnable_timeenc_$(date +%Y%m%d%H%M%S)" && echo "moved old run aside: $d"
+    done
+else
+    sleep 60   # let worker 0 finish moving old results first
+fi
 
 COMBOS=()
 for ds in "${DATASETS_ARR[@]}"; do
