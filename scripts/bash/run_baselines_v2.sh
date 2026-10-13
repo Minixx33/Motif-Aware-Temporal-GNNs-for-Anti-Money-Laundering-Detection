@@ -3,7 +3,8 @@
 # run_baselines_v2.sh -- non-GNN baselines (LR / RF / XGBoost / MLP) for the
 # 5 primary conditions, v2 feature handling (scripts/analysis/train_baselines.py:
 # ts_normalized dropped, pf/rc one-hot, val-chosen threshold, chronological
-# splits enforced). One array task = one condition.
+# splits enforced). Runs all 5 conditions sequentially in ONE job (1 submit slot).
+# Skips a condition whose JSON already has an xgboost result.
 #   sbatch scripts/bash/run_baselines_v2.sh
 # Output: results_baselines/v2/<dataset>_baselines.json
 #
@@ -12,10 +13,9 @@
 #SBATCH --partition=cpu
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=14G
-#SBATCH --time=12:00:00
-#SBATCH --array=0-4
-#SBATCH --output=scripts/bash/logs/baselines_v2_%A_%a.log
-#SBATCH --error=scripts/bash/logs/baselines_v2_%A_%a.err
+#SBATCH --time=24:00:00
+#SBATCH --output=scripts/bash/logs/baselines_v2_%j.log
+#SBATCH --error=scripts/bash/logs/baselines_v2_%j.err
 # ===========================================================================
 set -e
 set -o pipefail
@@ -36,9 +36,14 @@ DATASETS=(
     "HI-Small_Trans_SLT_pristine"
     "HI-Small_Trans_SLT_pristine_plus_structural"
 )
-D="${DATASETS[${SLURM_ARRAY_TASK_ID:-0}]}"
-case "$D" in *SLT*) [ -f logs/markers/slt_rebuild.done ] || { echo "ERROR: run slt_rebuild_prep.sh first"; exit 1; } ;; esac
+python -c "import xgboost" 2>/dev/null || pip install -q xgboost
 mkdir -p results_baselines/v2
-echo "Baselines for $D"
-python scripts/analysis/train_baselines.py --graph_dir "graphs/$D" --split_dir "splits/$D" \
-    --output_json "results_baselines/v2/${D}_baselines.json" --seed 42
+for D in "${DATASETS[@]}"; do
+    case "$D" in *SLT*) [ -f logs/markers/slt_rebuild.done ] || { echo "ERROR: run slt_rebuild_prep.sh first"; exit 1; } ;; esac
+    OUT="results_baselines/v2/${D}_baselines.json"
+    if [ -f "$OUT" ] && python -c "import json,sys; sys.exit(0 if 'test_metrics' in json.load(open('$OUT'))['models'].get('xgboost',{}) else 1)"; then
+        echo "SKIP $D (done)"; continue; fi
+    echo "Baselines for $D"
+    python scripts/analysis/train_baselines.py --graph_dir "graphs/$D" --split_dir "splits/$D" \
+        --output_json "$OUT" --seed 42
+done
