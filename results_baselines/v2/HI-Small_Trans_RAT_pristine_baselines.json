@@ -1,0 +1,275 @@
+{
+  "graph_dir": "graphs/HI-Small_Trans_RAT_pristine",
+  "split_dir": "splits/HI-Small_Trans_RAT_pristine",
+  "num_features": 55,
+  "feature_cols": [
+    "log_amt_rec",
+    "log_amt_paid",
+    "same_bank",
+    "same_currency",
+    "hour_of_day",
+    "day_of_week",
+    "is_weekend",
+    "log_time_since_src",
+    "log_time_since_dst",
+    "RAT_is_off_hours",
+    "RAT_is_weekend",
+    "RAT_is_cross_bank",
+    "RAT_src_amount_z_pos",
+    "RAT_dst_amount_z_pos",
+    "RAT_src_out_deg_norm",
+    "RAT_dst_in_deg_norm",
+    "RAT_src_burst_norm",
+    "RAT_dst_burst_norm",
+    "RAT_combined_burst",
+    "RAT_same_entity",
+    "RAT_src_entity_accounts",
+    "RAT_dst_entity_accounts",
+    "RAT_src_entity_acct_norm",
+    "RAT_dst_entity_acct_norm",
+    "RAT_mutual_flag",
+    "motif_fanin",
+    "motif_fanout",
+    "motif_chain",
+    "motif_cycle",
+    "RAT_offender_score",
+    "RAT_target_score",
+    "RAT_guardian_weakness_score",
+    "RAT_score",
+    "pf_code=0",
+    "pf_code=1",
+    "pf_code=2",
+    "pf_code=3",
+    "pf_code=4",
+    "pf_code=5",
+    "pf_code=6",
+    "rc_code=0",
+    "rc_code=1",
+    "rc_code=2",
+    "rc_code=3",
+    "rc_code=4",
+    "rc_code=5",
+    "rc_code=6",
+    "rc_code=7",
+    "rc_code=8",
+    "rc_code=9",
+    "rc_code=10",
+    "rc_code=11",
+    "rc_code=12",
+    "rc_code=13",
+    "rc_code=14"
+  ],
+  "seed": 42,
+  "models": {
+    "logistic_regression": {
+      "train_time_sec": 19.571107149124146,
+      "val_metrics": {
+        "precision": 0.06627680311890838,
+        "recall": 0.09426987060998152,
+        "f1": 0.07783288821060663,
+        "roc_auc": 0.9563511412081869,
+        "aupr": 0.033000761362294434,
+        "balanced_accuracy": 0.5464267653796911,
+        "mcc": 0.07787365781790132,
+        "kappa": 0.07667776062781617,
+        "specificity": 0.9985836601494007,
+        "threshold": 0.9734127672265809,
+        "confusion_matrix": [
+          [
+            1013150,
+            1437
+          ],
+          [
+            980,
+            102
+          ]
+        ],
+        "confusion_matrix_dict": {
+          "TN": 1013150,
+          "FP": 1437,
+          "FN": 980,
+          "TP": 102
+        },
+        "top_k_metrics": {
+          "precision_at_100": 0.14,
+          "precision_at_500": 0.108,
+          "precision_at_1000": 0.075
+        }
+      },
+      "test_metrics": {
+        "precision": 0.07127158555729984,
+        "recall": 0.12632164718976072,
+        "f1": 0.09112806101967082,
+        "roc_auc": 0.9589537925446345,
+        "aupr": 0.04478567922479848,
+        "balanced_accuracy": 0.5617020595694413,
+        "mcc": 0.09275694934284939,
+        "kappa": 0.08906734636649338,
+        "specificity": 0.9970824719491218,
+        "threshold": 0.9734127672265809,
+        "confusion_matrix": [
+          [
+            1010914,
+            2958
+          ],
+          [
+            1570,
+            227
+          ]
+        ],
+        "confusion_matrix_dict": {
+          "TN": 1010914,
+          "FP": 2958,
+          "FN": 1570,
+          "TP": 227
+        },
+        "top_k_metrics": {
+          "precision_at_100": 0.18,
+          "precision_at_500": 0.122,
+          "precision_at_1000": 0.11
+        }
+      }
+    },
+    "random_forest": {
+      "train_time_sec": 369.82308197021484,
+      "val_metrics": {
+        "precision": 0.6207513416815742,
+        "recall": 0.32070240295748614,
+        "f1": 0.42291285801340645,
+        "roc_auc": 0.9251968467571666,
+        "aupr": 0.40176174461486497,
+        "balanced_accuracy": 0.6602467254702785,
+        "mcc": 0.445774251562374,
+        "kappa": 0.42249371232502253,
+        "specificity": 0.999791047983071,
+        "threshold": 0.11666666666666667,
+        "confusion_matrix": [
+          [
+            1014375,
+            212
+          ],
+          [
+            735,
+            347
+          ]
+        ],
+        "confusion_matrix_dict": {
+          "TN": 1014375,
+          "FP": 212,
+          "FN": 735,
+          "TP": 347
+        },
+        "top_k_metrics": {
+          "precision_at_100": 0.99,
+          "precision_at_500": 0.666,
+          "precision_at_1000": 0.422
+        }
+      },
+      "test_metrics": {
+        "precision": 0.6873096446700507,
+        "recall": 0.37673900946021144,
+        "f1": 0.4867002156721783,
+        "roc_auc": 0.9411188746525121,
+        "aupr": 0.46484808390961474,
+        "balanced_accuracy": 0.6882176117889849,
+        "mcc": 0.5082440886037752,
+        "kappa": 0.48605631257130744,
+        "specificity": 0.9996962141177584,
+        "threshold": 0.11666666666666667,
+        "confusion_matrix": [
+          [
+            1013564,
+            308
+          ],
+          [
+            1120,
+            677
+          ]
+        ],
+        "confusion_matrix_dict": {
+          "TN": 1013564,
+          "FP": 308,
+          "FN": 1120,
+          "TP": 677
+        },
+        "top_k_metrics": {
+          "precision_at_100": 1.0,
+          "precision_at_500": 0.868,
+          "precision_at_1000": 0.682
+        }
+      }
+    },
+    "xgboost": {
+      "error": "dependency not installed"
+    },
+    "mlp": {
+      "train_time_sec": 717.1475012302399,
+      "val_metrics": {
+        "precision": 0.13316739265712507,
+        "recall": 0.1977818853974122,
+        "f1": 0.15916697657121606,
+        "roc_auc": 0.9580501038195037,
+        "aupr": 0.08250894634739744,
+        "balanced_accuracy": 0.5982044564732765,
+        "mcc": 0.16120528521897873,
+        "kappa": 0.15809498040393388,
+        "specificity": 0.9986270275491407,
+        "threshold": 0.9979588985443115,
+        "confusion_matrix": [
+          [
+            1013194,
+            1393
+          ],
+          [
+            868,
+            214
+          ]
+        ],
+        "confusion_matrix_dict": {
+          "TN": 1013194,
+          "FP": 1393,
+          "FN": 868,
+          "TP": 214
+        },
+        "top_k_metrics": {
+          "precision_at_100": 0.43,
+          "precision_at_500": 0.212,
+          "precision_at_1000": 0.158
+        }
+      },
+      "test_metrics": {
+        "precision": 0.19430604982206406,
+        "recall": 0.3038397328881469,
+        "f1": 0.23703060560017364,
+        "roc_auc": 0.9612990803592597,
+        "aupr": 0.16498583177193527,
+        "balanced_accuracy": 0.6508033546950558,
+        "mcc": 0.24131201490931645,
+        "kappa": 0.23538031868679243,
+        "specificity": 0.9977669765019648,
+        "threshold": 0.9979588985443115,
+        "confusion_matrix": [
+          [
+            1011608,
+            2264
+          ],
+          [
+            1251,
+            546
+          ]
+        ],
+        "confusion_matrix_dict": {
+          "TN": 1011608,
+          "FP": 2264,
+          "FN": 1251,
+          "TP": 546
+        },
+        "top_k_metrics": {
+          "precision_at_100": 0.56,
+          "precision_at_500": 0.468,
+          "precision_at_1000": 0.342
+        }
+      }
+    }
+  }
+}

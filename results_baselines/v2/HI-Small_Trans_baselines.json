@@ -1,0 +1,251 @@
+{
+  "graph_dir": "graphs/HI-Small_Trans",
+  "split_dir": "splits/HI-Small_Trans",
+  "num_features": 31,
+  "feature_cols": [
+    "log_amt_rec",
+    "log_amt_paid",
+    "same_bank",
+    "same_currency",
+    "hour_of_day",
+    "day_of_week",
+    "is_weekend",
+    "log_time_since_src",
+    "log_time_since_dst",
+    "pf_code=0",
+    "pf_code=1",
+    "pf_code=2",
+    "pf_code=3",
+    "pf_code=4",
+    "pf_code=5",
+    "pf_code=6",
+    "rc_code=0",
+    "rc_code=1",
+    "rc_code=2",
+    "rc_code=3",
+    "rc_code=4",
+    "rc_code=5",
+    "rc_code=6",
+    "rc_code=7",
+    "rc_code=8",
+    "rc_code=9",
+    "rc_code=10",
+    "rc_code=11",
+    "rc_code=12",
+    "rc_code=13",
+    "rc_code=14"
+  ],
+  "seed": 42,
+  "models": {
+    "logistic_regression": {
+      "train_time_sec": 9.442436456680298,
+      "val_metrics": {
+        "precision": 0.23145071982281284,
+        "recall": 0.19316081330868762,
+        "f1": 0.2105793450881612,
+        "roc_auc": 0.9349312147475568,
+        "aupr": 0.06598568283487782,
+        "balanced_accuracy": 0.5962383955700307,
+        "mcc": 0.21067345509143584,
+        "kappa": 0.2098134629793077,
+        "specificity": 0.9993159778313737,
+        "threshold": 0.976495051278811,
+        "confusion_matrix": [
+          [
+            1013893,
+            694
+          ],
+          [
+            873,
+            209
+          ]
+        ],
+        "confusion_matrix_dict": {
+          "TN": 1013893,
+          "FP": 694,
+          "FN": 873,
+          "TP": 209
+        },
+        "top_k_metrics": {
+          "precision_at_100": 0.24,
+          "precision_at_500": 0.248,
+          "precision_at_1000": 0.216
+        }
+      },
+      "test_metrics": {
+        "precision": 0.2086527929901424,
+        "recall": 0.21202003338898165,
+        "f1": 0.21032293679271322,
+        "roc_auc": 0.9535790982175286,
+        "aupr": 0.12118227725517217,
+        "balanced_accuracy": 0.6052974020843626,
+        "mcc": 0.20891879639254873,
+        "kappa": 0.2089120795636218,
+        "specificity": 0.9985747707797434,
+        "threshold": 0.976495051278811,
+        "confusion_matrix": [
+          [
+            1012427,
+            1445
+          ],
+          [
+            1416,
+            381
+          ]
+        ],
+        "confusion_matrix_dict": {
+          "TN": 1012427,
+          "FP": 1445,
+          "FN": 1416,
+          "TP": 381
+        },
+        "top_k_metrics": {
+          "precision_at_100": 0.35,
+          "precision_at_500": 0.428,
+          "precision_at_1000": 0.309
+        }
+      }
+    },
+    "random_forest": {
+      "train_time_sec": 293.8035945892334,
+      "val_metrics": {
+        "precision": 0.3455964325529543,
+        "recall": 0.28650646950092423,
+        "f1": 0.31328954017180394,
+        "roc_auc": 0.8856624322122261,
+        "aupr": 0.21839410691803215,
+        "balanced_accuracy": 0.6429639544817419,
+        "mcc": 0.3140034111447502,
+        "kappa": 0.3126257283529439,
+        "specificity": 0.9994214394625597,
+        "threshold": 0.11333333333333333,
+        "confusion_matrix": [
+          [
+            1014000,
+            587
+          ],
+          [
+            772,
+            310
+          ]
+        ],
+        "confusion_matrix_dict": {
+          "TN": 1014000,
+          "FP": 587,
+          "FN": 772,
+          "TP": 310
+        },
+        "top_k_metrics": {
+          "precision_at_100": 0.71,
+          "precision_at_500": 0.464,
+          "precision_at_1000": 0.323
+        }
+      },
+      "test_metrics": {
+        "precision": 0.5044334975369458,
+        "recall": 0.2849193099610462,
+        "f1": 0.36415362731152207,
+        "roc_auc": 0.9078548603598373,
+        "aupr": 0.2967405853088053,
+        "balanced_accuracy": 0.6422115960539525,
+        "mcc": 0.3783019696261068,
+        "kappa": 0.36334045261248493,
+        "specificity": 0.9995038821468588,
+        "threshold": 0.11333333333333333,
+        "confusion_matrix": [
+          [
+            1013369,
+            503
+          ],
+          [
+            1285,
+            512
+          ]
+        ],
+        "confusion_matrix_dict": {
+          "TN": 1013369,
+          "FP": 503,
+          "FN": 1285,
+          "TP": 512
+        },
+        "top_k_metrics": {
+          "precision_at_100": 0.89,
+          "precision_at_500": 0.666,
+          "precision_at_1000": 0.504
+        }
+      }
+    },
+    "xgboost": {
+      "error": "dependency not installed"
+    },
+    "mlp": {
+      "train_time_sec": 1471.8671584129333,
+      "val_metrics": {
+        "precision": 0.08574739281575898,
+        "recall": 0.1367837338262477,
+        "f1": 0.10541310541310542,
+        "roc_auc": 0.9442976475898381,
+        "aupr": 0.04026425370837243,
+        "balanced_accuracy": 0.5676142105859681,
+        "mcc": 0.10710237175535134,
+        "kappa": 0.104239990875451,
+        "specificity": 0.9984446873456885,
+        "threshold": 0.9993093013763428,
+        "confusion_matrix": [
+          [
+            1013009,
+            1578
+          ],
+          [
+            934,
+            148
+          ]
+        ],
+        "confusion_matrix_dict": {
+          "TN": 1013009,
+          "FP": 1578,
+          "FN": 934,
+          "TP": 148
+        },
+        "top_k_metrics": {
+          "precision_at_100": 0.09,
+          "precision_at_500": 0.11,
+          "precision_at_1000": 0.098
+        }
+      },
+      "test_metrics": {
+        "precision": 0.14757103574702107,
+        "recall": 0.2687813021702838,
+        "f1": 0.19053254437869824,
+        "roc_auc": 0.9586888273515864,
+        "aupr": 0.10127689101682325,
+        "balanced_accuracy": 0.6330147377548596,
+        "mcc": 0.19726368807408592,
+        "kappa": 0.18867919826082824,
+        "specificity": 0.9972481733394354,
+        "threshold": 0.9993093013763428,
+        "confusion_matrix": [
+          [
+            1011082,
+            2790
+          ],
+          [
+            1314,
+            483
+          ]
+        ],
+        "confusion_matrix_dict": {
+          "TN": 1011082,
+          "FP": 2790,
+          "FN": 1314,
+          "TP": 483
+        },
+        "top_k_metrics": {
+          "precision_at_100": 0.31,
+          "precision_at_500": 0.256,
+          "precision_at_1000": 0.205
+        }
+      }
+    }
+  }
+}

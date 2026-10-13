@@ -1,0 +1,291 @@
+{
+  "graph_dir": "graphs/HI-Small_Trans_SLT_pristine",
+  "split_dir": "splits/HI-Small_Trans_SLT_pristine",
+  "num_features": 71,
+  "feature_cols": [
+    "log_amt_rec",
+    "log_amt_paid",
+    "same_bank",
+    "same_currency",
+    "hour_of_day",
+    "day_of_week",
+    "is_weekend",
+    "log_time_since_src",
+    "log_time_since_dst",
+    "src_peer_risk_score",
+    "dst_peer_risk_score",
+    "SLT_src_susp_nbr_ratio",
+    "SLT_src_susp_amt_share",
+    "SLT_src_susp_txn_share",
+    "SLT_src_strong_tie_susp_ratio",
+    "SLT_src_susp_nbr_ratio_lag1",
+    "SLT_src_susp_nbr_ratio_lag2",
+    "SLT_src_susp_amt_share_lag1",
+    "SLT_src_susp_amt_share_lag2",
+    "SLT_src_susp_txn_share_lag1",
+    "SLT_src_susp_txn_share_lag2",
+    "SLT_src_strong_tie_susp_ratio_lag1",
+    "SLT_src_strong_tie_susp_ratio_lag2",
+    "SLT_src_exposure_delta",
+    "SLT_src_cum_exposure_7d",
+    "SLT_src_cum_amt_exposure_7d",
+    "SLT_src_cum_exposure_7d_norm",
+    "SLT_src_cum_amt_exposure_7d_norm",
+    "SLT_dst_susp_nbr_ratio",
+    "SLT_dst_susp_amt_share",
+    "SLT_dst_susp_txn_share",
+    "SLT_dst_strong_tie_susp_ratio",
+    "SLT_dst_susp_nbr_ratio_lag1",
+    "SLT_dst_susp_nbr_ratio_lag2",
+    "SLT_dst_susp_amt_share_lag1",
+    "SLT_dst_susp_amt_share_lag2",
+    "SLT_dst_susp_txn_share_lag1",
+    "SLT_dst_susp_txn_share_lag2",
+    "SLT_dst_strong_tie_susp_ratio_lag1",
+    "SLT_dst_strong_tie_susp_ratio_lag2",
+    "SLT_dst_exposure_delta",
+    "SLT_dst_cum_exposure_7d",
+    "SLT_dst_cum_amt_exposure_7d",
+    "SLT_dst_cum_exposure_7d_norm",
+    "SLT_dst_cum_amt_exposure_7d_norm",
+    "SLT_same_entity",
+    "SLT_src_score",
+    "SLT_dst_score",
+    "SLT_score",
+    "pf_code=0",
+    "pf_code=1",
+    "pf_code=2",
+    "pf_code=3",
+    "pf_code=4",
+    "pf_code=5",
+    "pf_code=6",
+    "rc_code=0",
+    "rc_code=1",
+    "rc_code=2",
+    "rc_code=3",
+    "rc_code=4",
+    "rc_code=5",
+    "rc_code=6",
+    "rc_code=7",
+    "rc_code=8",
+    "rc_code=9",
+    "rc_code=10",
+    "rc_code=11",
+    "rc_code=12",
+    "rc_code=13",
+    "rc_code=14"
+  ],
+  "seed": 42,
+  "models": {
+    "logistic_regression": {
+      "train_time_sec": 52.599199533462524,
+      "val_metrics": {
+        "precision": 0.014332274778539194,
+        "recall": 0.3170055452865065,
+        "f1": 0.027424642200367794,
+        "roc_auc": 0.9398477003746717,
+        "aupr": 0.011577189715101728,
+        "balanced_accuracy": 0.6468778454561318,
+        "mcc": 0.06317668162966253,
+        "kappa": 0.02543804251504711,
+        "specificity": 0.9767501456257571,
+        "threshold": 0.949304376367134,
+        "confusion_matrix": [
+          [
+            990998,
+            23589
+          ],
+          [
+            739,
+            343
+          ]
+        ],
+        "confusion_matrix_dict": {
+          "TN": 990998,
+          "FP": 23589,
+          "FN": 739,
+          "TP": 343
+        },
+        "top_k_metrics": {
+          "precision_at_100": 0.0,
+          "precision_at_500": 0.01,
+          "precision_at_1000": 0.012
+        }
+      },
+      "test_metrics": {
+        "precision": 0.02710413694721826,
+        "recall": 0.41235392320534225,
+        "f1": 0.05086490939044481,
+        "roc_auc": 0.9476438252018197,
+        "aupr": 0.025365364967987438,
+        "balanced_accuracy": 0.693059921187313,
+        "mcc": 0.10026409123368021,
+        "kappa": 0.04770298854674526,
+        "specificity": 0.9737659191692837,
+        "threshold": 0.949304376367134,
+        "confusion_matrix": [
+          [
+            987274,
+            26598
+          ],
+          [
+            1056,
+            741
+          ]
+        ],
+        "confusion_matrix_dict": {
+          "TN": 987274,
+          "FP": 26598,
+          "FN": 1056,
+          "TP": 741
+        },
+        "top_k_metrics": {
+          "precision_at_100": 0.11,
+          "precision_at_500": 0.028,
+          "precision_at_1000": 0.025
+        }
+      }
+    },
+    "random_forest": {
+      "train_time_sec": 358.99173879623413,
+      "val_metrics": {
+        "precision": 0.2925801011804384,
+        "recall": 0.32070240295748614,
+        "f1": 0.30599647266313934,
+        "roc_auc": 0.9131587209282084,
+        "aupr": 0.22830372302660673,
+        "balanced_accuracy": 0.6599377327471311,
+        "mcc": 0.3055445042159497,
+        "kappa": 0.30522238077191954,
+        "specificity": 0.9991730625367761,
+        "threshold": 0.07666666666666666,
+        "confusion_matrix": [
+          [
+            1013748,
+            839
+          ],
+          [
+            735,
+            347
+          ]
+        ],
+        "confusion_matrix_dict": {
+          "TN": 1013748,
+          "FP": 839,
+          "FN": 735,
+          "TP": 347
+        },
+        "top_k_metrics": {
+          "precision_at_100": 0.77,
+          "precision_at_500": 0.43,
+          "precision_at_1000": 0.319
+        }
+      },
+      "test_metrics": {
+        "precision": 0.3629719853836784,
+        "recall": 0.3316638842515303,
+        "f1": 0.3466123873218959,
+        "roc_auc": 0.9140052598807878,
+        "aupr": 0.26252725854343706,
+        "balanced_accuracy": 0.6653160979166343,
+        "mcc": 0.3458592606944418,
+        "kappa": 0.3455065986799012,
+        "specificity": 0.9989683115817382,
+        "threshold": 0.07666666666666666,
+        "confusion_matrix": [
+          [
+            1012826,
+            1046
+          ],
+          [
+            1201,
+            596
+          ]
+        ],
+        "confusion_matrix_dict": {
+          "TN": 1012826,
+          "FP": 1046,
+          "FN": 1201,
+          "TP": 596
+        },
+        "top_k_metrics": {
+          "precision_at_100": 0.86,
+          "precision_at_500": 0.622,
+          "precision_at_1000": 0.472
+        }
+      }
+    },
+    "xgboost": {
+      "error": "dependency not installed"
+    },
+    "mlp": {
+      "train_time_sec": 935.4683458805084,
+      "val_metrics": {
+        "precision": 0.09140586189766518,
+        "recall": 0.17005545286506468,
+        "f1": 0.11890145395799677,
+        "roc_auc": 0.9194943502383959,
+        "aupr": 0.043603698882081376,
+        "balanced_accuracy": 0.5841263744538454,
+        "mcc": 0.1234108263625927,
+        "kappa": 0.11767876803858679,
+        "specificity": 0.9981972960426262,
+        "threshold": 0.9970843195915222,
+        "confusion_matrix": [
+          [
+            1012758,
+            1829
+          ],
+          [
+            898,
+            184
+          ]
+        ],
+        "confusion_matrix_dict": {
+          "TN": 1012758,
+          "FP": 1829,
+          "FN": 898,
+          "TP": 184
+        },
+        "top_k_metrics": {
+          "precision_at_100": 0.07,
+          "precision_at_500": 0.114,
+          "precision_at_1000": 0.113
+        }
+      },
+      "test_metrics": {
+        "precision": 0.17009943181818182,
+        "recall": 0.26655537006121316,
+        "f1": 0.20767396488185563,
+        "roc_auc": 0.9204221323382449,
+        "aupr": 0.09398706837260008,
+        "balanced_accuracy": 0.6321251726819077,
+        "mcc": 0.21119889041140225,
+        "kappa": 0.20595875158458965,
+        "specificity": 0.9976949753026023,
+        "threshold": 0.9970843195915222,
+        "confusion_matrix": [
+          [
+            1011535,
+            2337
+          ],
+          [
+            1318,
+            479
+          ]
+        ],
+        "confusion_matrix_dict": {
+          "TN": 1011535,
+          "FP": 2337,
+          "FN": 1318,
+          "TP": 479
+        },
+        "top_k_metrics": {
+          "precision_at_100": 0.3,
+          "precision_at_500": 0.246,
+          "precision_at_1000": 0.207
+        }
+      }
+    }
+  }
+}

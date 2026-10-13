@@ -1,0 +1,108 @@
+{
+  "train": {
+    "precision": 0.6904761904761905,
+    "recall": 0.3912097476066144,
+    "f1": 0.49944444444444447,
+    "roc_auc": 0.9941467938645442,
+    "aupr": 0.4964757457147862,
+    "balanced_accuracy": 0.6955386934228505,
+    "mcc": 0.519470873657673,
+    "kappa": 0.4991712295818713,
+    "specificity": 0.9998676392390866,
+    "threshold": 0.9477312564849854,
+    "confusion_matrix": [
+      [
+        3044306,
+        403
+      ],
+      [
+        1399,
+        899
+      ]
+    ],
+    "confusion_matrix_dict": {
+      "TN": 3044306,
+      "FP": 403,
+      "FN": 1399,
+      "TP": 899
+    },
+    "top_k_metrics": {
+      "precision_at_100": 0.96,
+      "precision_at_500": 0.918,
+      "precision_at_1000": 0.793
+    }
+  },
+  "val": {
+    "precision": 0.6950867052023122,
+    "recall": 0.444547134935305,
+    "f1": 0.5422773393461104,
+    "roc_auc": 0.9825442349162563,
+    "aupr": 0.5160741559352313,
+    "balanced_accuracy": 0.7221695842705487,
+    "mcc": 0.5555098031277607,
+    "kappa": 0.5418966058842888,
+    "specificity": 0.9997920336057923,
+    "threshold": 0.9495272636413574,
+    "confusion_matrix": [
+      [
+        1014376,
+        211
+      ],
+      [
+        601,
+        481
+      ]
+    ],
+    "confusion_matrix_dict": {
+      "TN": 1014376,
+      "FP": 211,
+      "FN": 601,
+      "TP": 481
+    },
+    "top_k_metrics": {
+      "precision_at_100": 0.96,
+      "precision_at_500": 0.82,
+      "precision_at_1000": 0.537
+    }
+  },
+  "test": {
+    "precision": 0.6600719424460432,
+    "recall": 0.6126878130217028,
+    "f1": 0.6354978354978355,
+    "roc_auc": 0.9876213471673642,
+    "aupr": 0.6543891026988246,
+    "balanced_accuracy": 0.8060642854146973,
+    "mcc": 0.6353178227727594,
+    "kappa": 0.6348758801506069,
+    "specificity": 0.9994407578076917,
+    "threshold": 0.9495272636413574,
+    "confusion_matrix": [
+      [
+        1013305,
+        567
+      ],
+      [
+        696,
+        1101
+      ]
+    ],
+    "confusion_matrix_dict": {
+      "TN": 1013305,
+      "FP": 567,
+      "FN": 696,
+      "TP": 1101
+    },
+    "top_k_metrics": {
+      "precision_at_100": 0.99,
+      "precision_at_500": 0.938,
+      "precision_at_1000": 0.878
+    }
+  },
+  "best_epoch": 15,
+  "best_val_aupr": 0.5160741559352313,
+  "total_training_time_sec": 6718.050789000998,
+  "batch_size": 4096,
+  "eval_batch_size": 8192,
+  "variant": "causal_v2",
+  "temporal": true
+}
