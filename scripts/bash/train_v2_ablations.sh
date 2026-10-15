@@ -33,13 +33,14 @@ DATASETS_ARR=(
     "configs/datasets/rat_ablation_no_rat_scores.yaml"
     "configs/datasets/rat_ablation_no_motif.yaml"
     "configs/datasets/rat_ablation_no_crossbank.yaml"
-    "configs/datasets/rat_ablation_top20_features.yaml"
     # --- causal-SLT study (vs baseline) ---
     "configs/datasets/slt_causal_1hop.yaml"
     "configs/datasets/slt_causal_multihop.yaml"
     "configs/datasets/selfhist_only.yaml"
     "configs/datasets/selfhist_plus_slt_causal.yaml"
     "configs/datasets/slt_causal_placebo.yaml"
+    # --- leak-free top-20 (needs build_top20_chrono.sh first; last so the CPU job is done by then) ---
+    "configs/datasets/rat_ablation_top20_chrono.yaml"
 )
 # name | script | config | results folder name
 MODELS_ARR=(
@@ -71,6 +72,24 @@ mkdir -p logs/tmp_configs
 # GraphSAGE-T / DyRep-Full need the fixed time encoding in the CODE
 grep -q 'mode="fixed"' scripts/training/causal_sage.py || { echo "ERROR: causal_sage.py lacks the fixed time encoding -- git pull"; exit 1; }
 grep -q 'cfg.get("time_encoding", "fixed")' scripts/training/train_dyrep_full.py || { echo "ERROR: train_dyrep_full.py lacks the fix -- git pull"; exit 1; }
+
+# Each ablation must use EXACTLY the same edges and chronological split as its
+# reference condition, otherwise the comparison is meaningless. Checked once per dataset.
+declare -A SPLIT_OK
+check_split() {   # $1 = ablation prefix
+    local P="$1" REF
+    case "$P" in HI-Small_Trans_RAT_pristine__*) REF="HI-Small_Trans_RAT_pristine" ;; *) REF="HI-Small_Trans" ;; esac
+    python - "$P" "$REF" <<'PYEOF'
+import sys, torch
+p, r = sys.argv[1], sys.argv[2]
+ok = torch.equal(torch.load(f"graphs/{p}/timestamps.pt"), torch.load(f"graphs/{r}/timestamps.pt"))
+for s in ("train", "val", "test"):
+    ok &= torch.equal(torch.load(f"splits/{p}/{s}_edge_idx.pt"), torch.load(f"splits/{r}/{s}_edge_idx.pt"))
+print(f"split check {p} vs {r}: {'OK' if ok else 'MISMATCH'}")
+sys.exit(0 if ok else 1)
+PYEOF
+}
+
 COMBOS=()
 for ds in "${DATASETS_ARR[@]}"; do
     for mod in "${MODELS_ARR[@]}"; do
@@ -89,6 +108,8 @@ for i in "${!COMBOS[@]}"; do
 
     if [ -f "$RDIR/metrics.json" ]; then echo "$TAG: done already, skip"; continue; fi
     [ -d "graphs/$PREFIX" ] && [ -d "splits/$PREFIX" ] || { echo "$TAG: graphs/ or splits/$PREFIX missing, skip"; continue; }
+    if [ -z "${SPLIT_OK[$PREFIX]:-}" ]; then check_split "$PREFIX" && SPLIT_OK[$PREFIX]=1 || SPLIT_OK[$PREFIX]=0; fi
+    [ "${SPLIT_OK[$PREFIX]}" = 1 ] || { echo "$TAG: edges/split differ from reference -- rebuild this graph, skip"; continue; }
     case "$PREFIX" in *SLT*) [ -f logs/markers/slt_rebuild.done ] || { echo "$TAG: SLT rebuild not done, skip"; continue; } ;; esac
     mkdir -p "$RDIR"
     if [ -f "$RDIR/.lock" ]; then

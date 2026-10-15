@@ -1,0 +1,8 @@
+# configs/datasets/rat_ablation_top20_chrono.yaml
+# RAT ablation: rat_natural restricted to the top-20 edge features, chosen by RF
+# importance on the chronological TRAIN split only (leak-free replacement for
+# top20_features). Graph built by scripts/bash/build_top20_chrono.sh.
+dataset:
+  theory: "RAT"
+  prefix: "HI-Small_Trans_RAT_pristine__top20_chrono"
+  requires_intensity: false
